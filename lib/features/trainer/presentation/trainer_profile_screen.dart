@@ -71,12 +71,13 @@ class TrainerProfileScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Row(
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => context.push('/chat/${trainer.id}'),
-                  icon: const Icon(Icons.chat_bubble_outline_rounded),
-                  label: const Text('Написать'),
+              OutlinedButton(
+                onPressed: () => context.push('/chat/${trainer.id}'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(56, 56),
+                  padding: EdgeInsets.zero,
                 ),
+                child: const Icon(Icons.chat_bubble_outline_rounded),
               ),
               const SizedBox(width: 10),
               Expanded(
