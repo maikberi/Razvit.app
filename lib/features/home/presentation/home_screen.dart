@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,25 +6,18 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
-import '../../../core/widgets/stat_tile.dart';
+import '../../../data/mock/mock_progress.dart';
 import '../../../data/repositories/nutrition_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
 import '../../../data/repositories/trainer_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../data/repositories/workout_repository.dart';
-import '../widgets/week_strip.dart';
-import '../widgets/weight_chart_card.dart';
+
+const _statBlue = Color(0xFF3B82F6);
+const _statPurple = Color(0xFF8B5CF6);
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
-
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 5) return 'Доброй ночи';
-    if (hour < 12) return 'Доброе утро';
-    if (hour < 18) return 'Добрый день';
-    return 'Добрый вечер';
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,91 +25,136 @@ class HomeScreen extends ConsumerWidget {
     final today = ref.watch(todayWorkoutProvider);
     final meals = ref.watch(mealsProvider);
     final plan = ref.watch(nutritionPlanProvider);
-    final water = ref.watch(waterIntakeProvider);
-    final sessions = ref.watch(workoutSessionsProvider);
     final trainer = ref.watch(myTrainerProvider);
     final weightHistory = ref.watch(weightHistoryProvider);
 
     final calories = meals.fold(0, (s, m) => s + m.calories);
-    final protein = meals.fold(0.0, (s, m) => s + m.protein);
+    final mealsDone = meals.where((m) => m.entries.isNotEmpty).length;
 
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxl),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xxl),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text.rich(
-                        TextSpan(
-                          text: '${_greeting()}, ',
-                          style: Theme.of(context).textTheme.headlineMedium,
-                          children: [
-                            TextSpan(text: '${user.name}! 👋', style: const TextStyle(color: AppColors.green600)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text('Ты на шаг ближе к своей цели', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
-                    ],
-                  ),
+                Text(
+                  'RAZVIT',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(letterSpacing: 0.5),
                 ),
-                IconButton(
-                  onPressed: () => context.push('/notifications'),
-                  icon: const Icon(Icons.notifications_none_rounded),
-                  style: IconButton.styleFrom(backgroundColor: AppColors.white, shape: const CircleBorder()),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => context.push('/notifications'),
+                      icon: const Icon(Icons.notifications_none_rounded),
+                      style: IconButton.styleFrom(backgroundColor: AppColors.white, shape: const CircleBorder()),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => context.go('/profile'),
+                      child: AppAvatar(name: user.name, size: 40),
+                    ),
+                  ],
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            _TodayWorkoutCard(title: today.title, exercises: today.exercises.length, minutes: today.estimatedDuration.inMinutes, volume: today.estimatedVolumeKg),
+            Text('Привет, ${user.name}! 👋', style: Theme.of(context).textTheme.headlineLarge),
+            const SizedBox(height: 4),
+            Text('Готов к новой лучшей версии себя?', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
             const SizedBox(height: AppSpacing.lg),
-            Text('Мои показатели', style: Theme.of(context).textTheme.titleLarge),
+            _GoalCard(subtitle: today.title, streakDays: user.streakDays),
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Сегодня', style: Theme.of(context).textTheme.titleLarge),
+                _LinkText(label: 'Смотреть все', onTap: () => context.push('/workout-stats')),
+              ],
+            ),
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
-                Expanded(child: StatTile(label: 'Калории', value: '$calories', unit: '/ ${plan.calorieGoal} ккал', icon: Icons.local_fire_department_rounded)),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(child: StatTile(label: 'Белки', value: protein.toStringAsFixed(0), unit: '/ ${plan.proteinGoal} г', icon: Icons.egg_alt_outlined)),
+                Expanded(
+                  child: _TodayStatCard(
+                    icon: Icons.local_fire_department_rounded,
+                    color: AppColors.green600,
+                    background: AppColors.green50,
+                    label: 'Калории',
+                    value: '$calories',
+                    goal: '${plan.calorieGoal} ккал',
+                    progress: plan.calorieGoal == 0 ? 0 : calories / plan.calorieGoal,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _TodayStatCard(
+                    icon: Icons.fitness_center_rounded,
+                    color: _statBlue,
+                    background: const Color(0xFFEAF1FE),
+                    label: 'Тренировка',
+                    value: '0',
+                    goal: '${today.estimatedDuration.inMinutes} мин',
+                    progress: 0,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _TodayStatCard(
+                    icon: Icons.restaurant_rounded,
+                    color: _statPurple,
+                    background: const Color(0xFFF2ECFE),
+                    label: 'Питание',
+                    value: '$mealsDone',
+                    goal: '${meals.length} приёмов',
+                    progress: meals.isEmpty ? 0 : mealsDone / meals.length,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Прогресс', style: Theme.of(context).textTheme.titleLarge),
+                _LinkText(label: 'Подробнее', onTap: () => context.push('/workout-stats')),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
+            _ProgressCard(history: weightHistory, currentWeight: user.weightKg),
+            const SizedBox(height: AppSpacing.xl),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: StatTile(
-                    label: 'Вода',
-                    value: (water / 1000).toStringAsFixed(1),
-                    unit: '/ ${(plan.waterGoalMl / 1000).toStringAsFixed(1)} л',
-                    icon: Icons.water_drop_outlined,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: StatTile(
-                    label: 'Вес',
-                    value: user.weightKg.toStringAsFixed(0),
-                    unit: 'кг',
-                    trend: '${(user.weightKg - user.startWeightKg).toStringAsFixed(1)} кг',
-                    trendUp: user.weightKg <= user.startWeightKg,
-                    icon: Icons.monitor_weight_outlined,
-                  ),
-                ),
+                Text('Тренировки', style: Theme.of(context).textTheme.titleLarge),
+                _LinkText(label: 'Смотреть все', onTap: () => context.push('/workouts')),
               ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-            WeekStripCard(sessions: sessions, streakDays: user.streakDays),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
+            _WorkoutRow(
+              icon: Icons.fitness_center_rounded,
+              color: _statBlue,
+              background: const Color(0xFFEAF1FE),
+              title: today.title,
+              subtitle: '${today.estimatedDuration.inMinutes} мин • ${today.exercises.length} упражнений',
+              tag: 'Силовая тренировка',
+              onTap: () => context.push('/workout-session'),
+            ),
+            const SizedBox(height: 10),
+            _WorkoutRow(
+              icon: Icons.directions_run_rounded,
+              color: _statPurple,
+              background: const Color(0xFFF2ECFE),
+              title: 'Кардио',
+              subtitle: '30 мин • Средняя интенсивность',
+              tag: 'Беговая дорожка',
+              onTap: () => context.push('/workouts'),
+            ),
+            const SizedBox(height: AppSpacing.xl),
             _AiMentorCard(),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
             _TrainerCard(name: trainer.name, isOnline: trainer.isOnline, rating: trainer.rating, seed: trainer.avatarSeed, id: trainer.id),
-            const SizedBox(height: AppSpacing.lg),
-            WeightChartCard(history: weightHistory, currentWeight: user.weightKg),
           ],
         ),
       ),
@@ -123,53 +162,212 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _TodayWorkoutCard extends StatelessWidget {
-  const _TodayWorkoutCard({required this.title, required this.exercises, required this.minutes, required this.volume});
-  final String title;
-  final int exercises;
-  final int minutes;
-  final double volume;
+class _LinkText extends StatelessWidget {
+  const _LinkText({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green600)),
+    );
+  }
+}
+
+class _GoalCard extends StatelessWidget {
+  const _GoalCard({required this.subtitle, required this.streakDays});
+  final String subtitle;
+  final int streakDays;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: AppColors.greenGradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
+        color: AppColors.green50,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: AppShadows.button,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Сегодня по плану', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white70)),
-          const SizedBox(height: 4),
-          Text(title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
-          const SizedBox(height: AppSpacing.md),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _pill(context, Icons.fitness_center_rounded, '$exercises упражнений'),
-              const SizedBox(width: 8),
-              _pill(context, Icons.timer_outlined, '$minutes минут'),
+              Expanded(
+                child: Text('Твоя цель на сегодня', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green700)),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  boxShadow: AppShadows.card,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('🔥', style: TextStyle(fontSize: 13)),
+                    const SizedBox(width: 5),
+                    Text('$streakDays дней подряд', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.ink700)),
+                  ],
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 6),
-          _pill(context, Icons.bar_chart_rounded, '${volume.round()} кг объём'),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Тренировка', style: Theme.of(context).textTheme.headlineMedium),
+                    const SizedBox(height: 2),
+                    Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+                    const SizedBox(height: AppSpacing.md),
+                    ElevatedButton(
+                      onPressed: () => context.push('/workout-session'),
+                      style: ElevatedButton.styleFrom(minimumSize: const Size(0, 48), padding: const EdgeInsets.symmetric(horizontal: 22)),
+                      child: const Text('Начать тренировку'),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 88,
+                height: 88,
+                margin: const EdgeInsets.only(left: AppSpacing.sm),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: AppColors.greenGradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.fitness_center_rounded, color: Colors.white, size: 40),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TodayStatCard extends StatelessWidget {
+  const _TodayStatCard({
+    required this.icon,
+    required this.color,
+    required this.background,
+    required this.label,
+    required this.value,
+    required this.goal,
+    required this.progress,
+  });
+
+  final IconData icon;
+  final Color color;
+  final Color background;
+  final String label;
+  final String value;
+  final String goal;
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 17),
+          ),
+          const SizedBox(height: 10),
+          Text(label, style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 2),
+          Text(value, style: Theme.of(context).textTheme.titleLarge),
+          Text('/ $goal', style: Theme.of(context).textTheme.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: LinearProgressIndicator(value: progress.clamp(0, 1), minHeight: 5, backgroundColor: AppColors.ink100, color: color),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProgressCard extends StatelessWidget {
+  const _ProgressCard({required this.history, required this.currentWeight});
+  final List<WeightEntry> history;
+  final double currentWeight;
+
+  @override
+  Widget build(BuildContext context) {
+    final weights = history.map((e) => e.weightKg).toList();
+    final minW = (weights.reduce((a, b) => a < b ? a : b) - 1).floorToDouble();
+    final maxW = (weights.reduce((a, b) => a > b ? a : b) + 1).ceilToDouble();
+    final delta = history.isEmpty ? 0.0 : currentWeight - history.first.weightKg;
+    final steps = 4;
+    final labels = List.generate(steps, (i) => (maxW - (maxW - minW) * i / (steps - 1)).round());
+
+    return AppCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 4,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Вес', style: Theme.of(context).textTheme.bodySmall),
+                const SizedBox(height: 4),
+                Text('${currentWeight.toStringAsFixed(1)} кг', style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 6),
+                Text(
+                  '${delta <= 0 ? '' : '+'}${delta.toStringAsFixed(1)} кг за 3 недели',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(color: delta <= 0 ? AppColors.green600 : AppColors.error),
+                ),
+              ],
+            ),
+          ),
           SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                context.push('/workout-session');
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.green700),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text('Начать тренировку'),
-                  SizedBox(width: 6),
-                  Icon(Icons.arrow_forward_rounded, size: 18),
-                ],
+            width: 26,
+            height: 110,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [for (final l in labels) Text('$l', style: Theme.of(context).textTheme.labelSmall)],
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            flex: 5,
+            child: SizedBox(
+              height: 110,
+              child: LineChart(
+                LineChartData(
+                  minY: minW,
+                  maxY: maxW,
+                  gridData: const FlGridData(show: false),
+                  titlesData: const FlTitlesData(show: false),
+                  borderData: FlBorderData(show: false),
+                  lineTouchData: const LineTouchData(enabled: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: [for (var i = 0; i < weights.length; i++) FlSpot(i.toDouble(), weights[i])],
+                      isCurved: true,
+                      color: AppColors.green500,
+                      barWidth: 3,
+                      dotData: const FlDotData(show: false),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -177,15 +375,61 @@ class _TodayWorkoutCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _pill(BuildContext context, IconData icon, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: Colors.white),
-        const SizedBox(width: 5),
-        Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white)),
-      ],
+class _WorkoutRow extends StatelessWidget {
+  const _WorkoutRow({
+    required this.icon,
+    required this.color,
+    required this.background,
+    required this.title,
+    required this.subtitle,
+    required this.tag,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final Color background;
+  final String title;
+  final String subtitle;
+  final String tag;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.md)),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                Text(tag, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink400)),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.md)),
+              child: Icon(Icons.play_arrow_rounded, color: color),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

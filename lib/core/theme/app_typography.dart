@@ -1,11 +1,18 @@
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-/// Типографика RAZVIT — Nunito: круглый, дружелюбный гротеск в духе
-/// Duolingo (их фирменный шрифт Feather кастомный и нигде не продаётся,
-/// Nunito — ближайший открытый аналог с полной поддержкой кириллицы).
+/// Типографика RAZVIT — на iOS/macOS используется настоящий системный
+/// SF Pro Rounded (Apple лицензирует его только для своих платформ, вшить
+/// сам файл в кроссплатформенное приложение нельзя). На остальных
+/// платформах — Nunito, открытый круглый гротеск с полной поддержкой
+/// кириллицы, близкий по духу к SF Pro Rounded.
 abstract final class AppTypography {
+  static bool get _useSystemAppleRounded =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS);
+
   static TextStyle _style({
     required double fontSize,
     required FontWeight fontWeight,
@@ -13,6 +20,16 @@ abstract final class AppTypography {
     double? letterSpacing,
     double? height,
   }) {
+    if (_useSystemAppleRounded) {
+      return TextStyle(
+        fontFamily: '.SF Pro Rounded',
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+        letterSpacing: letterSpacing,
+        height: height,
+      );
+    }
     return GoogleFonts.nunito(
       fontSize: fontSize,
       fontWeight: fontWeight,
@@ -23,7 +40,7 @@ abstract final class AppTypography {
   }
 
   static TextTheme textTheme(Color base) {
-    final theme = GoogleFonts.nunitoTextTheme();
+    final theme = _useSystemAppleRounded ? const TextTheme() : GoogleFonts.nunitoTextTheme();
     return theme.copyWith(
       displayLarge: _style(
         fontSize: 34,
