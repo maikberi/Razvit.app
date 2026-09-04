@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/razvit_logo.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -15,16 +16,7 @@ class WelcomeScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(flex: 3),
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: AppColors.greenGradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(AppRadius.xxl),
-                  boxShadow: AppShadows.button,
-                ),
-                child: const Icon(Icons.eco_rounded, color: Colors.white, size: 60),
-              ),
+              const RazvitMark(size: 128),
               const SizedBox(height: AppSpacing.xl),
               Text(
                 'Добро пожаловать\nв RAZVIT',

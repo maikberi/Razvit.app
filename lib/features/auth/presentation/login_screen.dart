@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/razvit_logo.dart';
 import '../../../data/repositories/user_repository.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -34,6 +35,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: AppSpacing.md),
+              const Center(child: RazvitMark(size: 64)),
+              const SizedBox(height: AppSpacing.md),
               Text('С возвращением', style: Theme.of(context).textTheme.headlineLarge),
               const SizedBox(height: AppSpacing.xs),
               Text(

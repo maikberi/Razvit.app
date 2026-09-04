@@ -3,6 +3,30 @@ import '../models/exercise.dart';
 /// Библиотека упражнений RAZVIT (мок-данные для MVP).
 final List<Exercise> mockExercises = [
   const Exercise(
+    id: 'seated_barbell_press',
+    name: 'Жим штанги сидя над головой',
+    primaryMuscle: MuscleGroup.shoulders,
+    secondaryMuscles: [MuscleGroup.arms],
+    equipment: 'Тренажёр Смита',
+    difficulty: ExerciseDifficulty.intermediate,
+    instructions: [
+      'Сядьте на скамью со спинкой, спина плотно прижата.',
+      'Хват чуть шире плеч, гриф на уровне верхней части груди.',
+      'Выжмите штангу вверх над головой, не прогибая поясницу.',
+      'Опустите штангу под контролем до уровня подбородка.',
+    ],
+    mistakes: [
+      'Чрезмерный прогиб в пояснице.',
+      'Слишком быстрое опускание штанги.',
+    ],
+    tips: [
+      'Держите локти слегка впереди грифа в нижней точке.',
+      'Не разгибайте локти полностью до щелчка в верхней точке.',
+    ],
+    isFavorite: true,
+    videoAsset: 'assets/exercises/machine_exercise_demo.mp4',
+  ),
+  const Exercise(
     id: 'bench_press',
     name: 'Жим штанги лёжа',
     primaryMuscle: MuscleGroup.chest,

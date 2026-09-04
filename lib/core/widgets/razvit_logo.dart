@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_theme.dart';
 
-/// Фирменный знак RAZVIT — стилизованный лист/сердце в круге.
-/// Используется как временная замена финального логотипа заказчика.
+/// Фирменный знак RAZVIT — векторный логотип заказчика.
 class RazvitMark extends StatelessWidget {
-  const RazvitMark({super.key, this.size = 32, this.background = AppColors.green500, this.foreground = AppColors.white});
+  const RazvitMark({super.key, this.size = 32});
 
   final double size;
-  final Color background;
-  final Color foreground;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SvgPicture.asset(
+      'assets/logo/razvit_mark.svg',
       width: size,
       height: size,
-      decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-      child: Center(
-        child: Icon(Icons.eco_rounded, color: foreground, size: size * 0.6),
-      ),
     );
   }
 }

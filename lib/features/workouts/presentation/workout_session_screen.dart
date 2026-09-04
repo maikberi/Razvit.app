@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/loop_video.dart';
 import '../../../data/models/exercise.dart';
 import '../../../data/repositories/workout_repository.dart';
 
@@ -116,13 +117,15 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
                     Text(exercise.exercise.name, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
                     Text(exercise.exercise.primaryMuscle.label, style: const TextStyle(color: Colors.white54)),
                     const SizedBox(height: AppSpacing.md),
-                    Container(
-                      height: 200,
-                      decoration: BoxDecoration(color: AppColors.darkSurfaceElevated, borderRadius: BorderRadius.circular(AppRadius.lg)),
-                      child: const Center(
-                        child: Icon(Icons.play_circle_fill_rounded, color: Colors.white70, size: 56),
-                      ),
-                    ),
+                    exercise.exercise.videoAsset != null
+                        ? LoopVideo(assetPath: exercise.exercise.videoAsset!)
+                        : Container(
+                            height: 200,
+                            decoration: BoxDecoration(color: AppColors.darkSurfaceElevated, borderRadius: BorderRadius.circular(AppRadius.lg)),
+                            child: const Center(
+                              child: Icon(Icons.fitness_center_rounded, color: Colors.white38, size: 56),
+                            ),
+                          ),
                     const SizedBox(height: AppSpacing.lg),
                     if (state.isResting)
                       _RestPanel(seconds: state.restRemaining, total: exercise.restSeconds, onSkip: () => ref.read(activeWorkoutProvider.notifier).skipRest())

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/razvit_logo.dart';
 import '../../../data/repositories/user_repository.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -38,6 +39,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: AppSpacing.md),
+              const Center(child: RazvitMark(size: 64)),
+              const SizedBox(height: AppSpacing.md),
               Text('Создать аккаунт', style: Theme.of(context).textTheme.headlineLarge),
               const SizedBox(height: AppSpacing.xs),
               Text(

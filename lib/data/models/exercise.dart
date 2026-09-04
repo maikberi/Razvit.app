@@ -35,6 +35,7 @@ class Exercise {
     this.mistakes = const [],
     this.tips = const [],
     this.isFavorite = false,
+    this.videoAsset,
   });
 
   final String id;
@@ -42,6 +43,8 @@ class Exercise {
   final MuscleGroup primaryMuscle;
   final List<MuscleGroup> secondaryMuscles;
   final String equipment;
+  /// Путь к зацикленному демо-видео техники выполнения (если есть).
+  final String? videoAsset;
   final ExerciseDifficulty difficulty;
   final List<String> instructions;
   final List<String> mistakes;

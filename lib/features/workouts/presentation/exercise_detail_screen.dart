@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/loop_video.dart';
 import '../../../core/widgets/selectable_option.dart';
 import '../../../data/mock/mock_exercises.dart';
 import '../../../data/models/exercise.dart';
@@ -81,12 +82,14 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: Container(
-                  height: 180,
-                  width: double.infinity,
-                  decoration: BoxDecoration(color: AppColors.ink800, borderRadius: BorderRadius.circular(AppRadius.lg)),
-                  child: const Center(child: Icon(Icons.fitness_center_rounded, color: Colors.white38, size: 56)),
-                ),
+                child: exercise.videoAsset != null
+                    ? LoopVideo(assetPath: exercise.videoAsset!)
+                    : Container(
+                        height: 180,
+                        width: double.infinity,
+                        decoration: BoxDecoration(color: AppColors.ink800, borderRadius: BorderRadius.circular(AppRadius.lg)),
+                        child: const Center(child: Icon(Icons.fitness_center_rounded, color: Colors.white38, size: 56)),
+                      ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
