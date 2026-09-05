@@ -33,7 +33,7 @@ class _PlanGeneratingScreenState extends State<PlanGeneratingScreen> {
       if (_visible >= _steps.length) {
         t.cancel();
         Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) context.pushReplacement('/plan-ready');
+          if (mounted) context.pushReplacement('/plan-motivation');
         });
       }
     });

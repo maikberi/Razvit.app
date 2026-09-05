@@ -13,6 +13,7 @@ import '../../features/nutrition/presentation/nutrition_stats_screen.dart';
 import '../../features/nutrition/presentation/recipes_screen.dart';
 import '../../features/onboarding/presentation/onboarding_flow_screen.dart';
 import '../../features/onboarding/presentation/plan_generating_screen.dart';
+import '../../features/onboarding/presentation/plan_motivation_screen.dart';
 import '../../features/onboarding/presentation/plan_ready_screen.dart';
 import '../../features/profile/presentation/achievements_screen.dart';
 import '../../features/profile/presentation/settings_screen.dart';
@@ -45,6 +46,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),
     GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingFlowScreen()),
     GoRoute(path: '/plan-generating', builder: (context, state) => const PlanGeneratingScreen()),
+    GoRoute(path: '/plan-motivation', builder: (context, state) => const PlanMotivationScreen()),
     GoRoute(path: '/plan-ready', builder: (context, state) => const PlanReadyScreen()),
 
     // Полноэкранные маршруты без нижней навигации.
