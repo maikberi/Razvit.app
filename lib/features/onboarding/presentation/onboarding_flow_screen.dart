@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/selectable_option.dart';
 import '../../../data/models/user.dart';
 import '../../../data/repositories/onboarding_repository.dart';
+import 'onboarding_widgets.dart';
 
 (IconData, Color, Color) _goalStyle(FitnessGoal g) => switch (g) {
       FitnessGoal.loseWeight => (Icons.local_fire_department_rounded, const Color(0xFFEF4444), const Color(0xFFFEE9E9)),
@@ -27,6 +28,13 @@ import '../../../data/repositories/onboarding_repository.dart';
       TrainingPlace.home => (Icons.home_rounded, AppColors.green600, AppColors.green50),
       TrainingPlace.outdoor => (Icons.park_rounded, const Color(0xFF16A34A), AppColors.green50),
       TrainingPlace.mixed => (Icons.public_rounded, const Color(0xFF8B5CF6), const Color(0xFFF2ECFE)),
+    };
+
+List<Color> _placeGradient(TrainingPlace p) => switch (p) {
+      TrainingPlace.gym => const [Color(0xFF60A5FA), Color(0xFF1D4ED8)],
+      TrainingPlace.home => AppColors.greenGradient,
+      TrainingPlace.outdoor => const [Color(0xFF34D399), Color(0xFF047857)],
+      TrainingPlace.mixed => const [Color(0xFFA78BFA), Color(0xFF6D28D9)],
     };
 
 (IconData, Color, Color) _motivationStyle(Motivation m) => switch (m) {
@@ -62,7 +70,7 @@ class OnboardingFlowScreen extends ConsumerStatefulWidget {
 class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
   final _controller = PageController();
   int _page = 0;
-  static const _total = 12;
+  static const _total = 10;
 
   int _age = 25;
   int _height = 177;
@@ -92,17 +100,17 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
         return p.goal != null;
       case 1:
         return p.gender != null;
-      case 5:
+      case 3:
         return p.experience != null;
-      case 6:
+      case 4:
         return p.place != null;
-      case 8:
+      case 6:
         return p.workoutsPerWeek != null;
-      case 9:
+      case 7:
         return p.duration != null;
-      case 10:
+      case 8:
         return p.motivation != null;
-      case 11:
+      case 9:
         return p.aiTone != null;
       default:
         return true;
@@ -141,60 +149,58 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
-              child: PageView(
-                controller: _controller,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _GoalPage(profile: profile, onSelect: notifier.setGoal),
-                  _GenderPage(profile: profile, onSelect: notifier.setGender),
-                  _NumberPage(
-                    title: 'Сколько тебе лет?',
-                    value: _age,
-                    unit: 'лет',
-                    min: 12,
-                    max: 90,
-                    onChanged: (v) {
-                      setState(() => _age = v);
-                      notifier.setAge(v);
-                    },
+            const Positioned.fill(child: OnboardingWaveBackground()),
+            Column(
+              children: [
+                Expanded(
+                  child: PageView(
+                    controller: _controller,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      _GoalPage(profile: profile, onSelect: notifier.setGoal),
+                      _AboutYouPage(
+                        profile: profile,
+                        age: _age,
+                        onGender: notifier.setGender,
+                        onAgeChanged: (v) {
+                          setState(() => _age = v);
+                          notifier.setAge(v);
+                        },
+                      ),
+                      _HeightWeightPage(
+                        height: _height,
+                        weight: _weight,
+                        onHeightChanged: (v) {
+                          setState(() => _height = v);
+                          notifier.setHeight(v);
+                        },
+                        onWeightChanged: (v) {
+                          setState(() => _weight = v);
+                          notifier.setWeight(v);
+                        },
+                      ),
+                      _ExperiencePage(profile: profile, onSelect: notifier.setExperience),
+                      _PlaceEquipmentPage(profile: profile, onPlace: notifier.setPlace, onToggleEquipment: notifier.toggleEquipment),
+                      _LimitationsPage(profile: profile, onToggle: notifier.toggleLimitation, onClear: notifier.clearLimitations),
+                      _WorkoutsPerWeekPage(profile: profile, onSelect: notifier.setWorkoutsPerWeek),
+                      _DurationPage(profile: profile, onSelect: notifier.setDuration),
+                      _MotivationPage(profile: profile, onSelect: notifier.setMotivation),
+                      _AiTonePage(profile: profile, onSelect: notifier.setAiTone),
+                    ],
                   ),
-                  _NumberPage(
-                    title: 'Какой у тебя рост?',
-                    value: _height,
-                    unit: 'см',
-                    min: 120,
-                    max: 220,
-                    onChanged: (v) {
-                      setState(() => _height = v);
-                      notifier.setHeight(v);
-                    },
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      CircleNextButton(enabled: _canContinue(profile), onTap: _next, isLast: _page == _total - 1),
+                    ],
                   ),
-                  _WeightPage(
-                    value: _weight,
-                    onChanged: (v) {
-                      setState(() => _weight = v);
-                      notifier.setWeight(v);
-                    },
-                  ),
-                  _ExperiencePage(profile: profile, onSelect: notifier.setExperience),
-                  _PlacePage(profile: profile, onSelect: notifier.setPlace),
-                  _EquipmentPage(profile: profile, onToggle: notifier.toggleEquipment),
-                  _WorkoutsPerWeekPage(profile: profile, onSelect: notifier.setWorkoutsPerWeek),
-                  _DurationPage(profile: profile, onSelect: notifier.setDuration),
-                  _MotivationPage(profile: profile, onSelect: notifier.setMotivation),
-                  _AiTonePage(profile: profile, onSelect: notifier.setAiTone),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
-              child: ElevatedButton(
-                onPressed: _canContinue(profile) ? _next : null,
-                child: Text(_page == _total - 1 ? 'Готово' : 'Далее'),
-              ),
+                ),
+              ],
             ),
           ],
         ),
@@ -237,12 +243,18 @@ class _GoalPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _QuestionScaffold(
-      title: 'Какая у тебя главная цель?',
+      title: 'Какая твоя главная цель?',
       subtitle: 'Выбери основную — план построим вокруг неё',
-      child: Column(
+      child: GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 1.3,
         children: [
           for (final g in FitnessGoal.values)
-            SelectableOptionCard(
+            SelectableTileCard(
               label: g.label,
               icon: _goalStyle(g).$1,
               iconColor: _goalStyle(g).$2,
@@ -256,28 +268,55 @@ class _GoalPage extends StatelessWidget {
   }
 }
 
-class _GenderPage extends StatelessWidget {
-  const _GenderPage({required this.profile, required this.onSelect});
+class _AboutYouPage extends StatelessWidget {
+  const _AboutYouPage({required this.profile, required this.age, required this.onGender, required this.onAgeChanged});
   final OnboardingProfile profile;
-  final ValueChanged<Gender> onSelect;
+  final int age;
+  final ValueChanged<Gender> onGender;
+  final ValueChanged<int> onAgeChanged;
 
   @override
   Widget build(BuildContext context) {
     return _QuestionScaffold(
-      title: 'Укажи свой пол',
+      title: 'Расскажи о себе',
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SelectableOptionCard(
-            label: 'Мужчина',
-            icon: Icons.male_rounded,
-            selected: profile.gender == Gender.male,
-            onTap: () => onSelect(Gender.male),
+          Text('Пол', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(
+                child: SelectableTileCard(
+                  label: 'Мужчина',
+                  icon: Icons.male_rounded,
+                  iconColor: const Color(0xFF3B82F6),
+                  iconBackground: const Color(0xFFEAF1FE),
+                  selected: profile.gender == Gender.male,
+                  onTap: () => onGender(Gender.male),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: SelectableTileCard(
+                  label: 'Женщина',
+                  icon: Icons.female_rounded,
+                  iconColor: const Color(0xFFEC4899),
+                  iconBackground: const Color(0xFFFDE8F3),
+                  selected: profile.gender == Gender.female,
+                  onTap: () => onGender(Gender.female),
+                ),
+              ),
+            ],
           ),
-          SelectableOptionCard(
-            label: 'Женщина',
-            icon: Icons.female_rounded,
-            selected: profile.gender == Gender.female,
-            onTap: () => onSelect(Gender.female),
+          const SizedBox(height: AppSpacing.xl),
+          _MetricSlider(
+            label: 'Возраст',
+            value: '$age лет',
+            sliderValue: age.toDouble(),
+            min: 12,
+            max: 90,
+            onChanged: (v) => onAgeChanged(v.round()),
           ),
         ],
       ),
@@ -285,79 +324,84 @@ class _GenderPage extends StatelessWidget {
   }
 }
 
-class _NumberPage extends StatelessWidget {
-  const _NumberPage({
-    required this.title,
+class _HeightWeightPage extends StatelessWidget {
+  const _HeightWeightPage({
+    required this.height,
+    required this.weight,
+    required this.onHeightChanged,
+    required this.onWeightChanged,
+  });
+
+  final int height;
+  final double weight;
+  final ValueChanged<int> onHeightChanged;
+  final ValueChanged<double> onWeightChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return _QuestionScaffold(
+      title: 'Рост и вес',
+      subtitle: 'Нужно для расчёта твоего плана и аналитики',
+      child: Column(
+        children: [
+          _MetricSlider(
+            label: 'Рост',
+            value: '$height см',
+            sliderValue: height.toDouble(),
+            min: 120,
+            max: 220,
+            onChanged: (v) => onHeightChanged(v.round()),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          _MetricSlider(
+            label: 'Вес',
+            value: '${weight.toStringAsFixed(0)} кг',
+            sliderValue: weight.clamp(35, 200),
+            min: 35,
+            max: 200,
+            onChanged: onWeightChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetricSlider extends StatelessWidget {
+  const _MetricSlider({
+    required this.label,
     required this.value,
-    required this.unit,
+    required this.sliderValue,
     required this.min,
     required this.max,
     required this.onChanged,
   });
 
-  final String title;
-  final int value;
-  final String unit;
-  final int min;
-  final int max;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return _QuestionScaffold(
-      title: title,
-      child: Column(
-        children: [
-          const SizedBox(height: AppSpacing.xl),
-          Text('$value $unit', style: Theme.of(context).textTheme.displayLarge?.copyWith(color: AppColors.green600, fontSize: 44)),
-          const SizedBox(height: AppSpacing.xl),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _StepButton(icon: Icons.remove_rounded, onTap: value > min ? () => onChanged(value - 1) : null),
-              Expanded(
-                child: Slider(
-                  value: value.toDouble(),
-                  min: min.toDouble(),
-                  max: max.toDouble(),
-                  onChanged: (v) => onChanged(v.round()),
-                ),
-              ),
-              _StepButton(icon: Icons.add_rounded, onTap: value < max ? () => onChanged(value + 1) : null),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WeightPage extends StatelessWidget {
-  const _WeightPage({required this.value, required this.onChanged});
-  final double value;
+  final String label;
+  final String value;
+  final double sliderValue;
+  final double min;
+  final double max;
   final ValueChanged<double> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return _QuestionScaffold(
-      title: 'Какой у тебя вес?',
-      child: Column(
-        children: [
-          const SizedBox(height: AppSpacing.xl),
-          Text('${value.toStringAsFixed(0)} кг', style: Theme.of(context).textTheme.displayLarge?.copyWith(color: AppColors.green600, fontSize: 44)),
-          const SizedBox(height: AppSpacing.xl),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _StepButton(icon: Icons.remove_rounded, onTap: () => onChanged(value - 1)),
-              Expanded(
-                child: Slider(value: value.clamp(35, 200), min: 35, max: 200, onChanged: onChanged),
-              ),
-              _StepButton(icon: Icons.add_rounded, onTap: () => onChanged(value + 1)),
-            ],
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 4),
+        Text(value, style: Theme.of(context).textTheme.displayLarge?.copyWith(color: AppColors.green600, fontSize: 38)),
+        Row(
+          children: [
+            _StepButton(icon: Icons.remove_rounded, onTap: sliderValue > min ? () => onChanged(sliderValue - 1) : null),
+            Expanded(
+              child: Slider(value: sliderValue, min: min, max: max, onChanged: onChanged),
+            ),
+            _StepButton(icon: Icons.add_rounded, onTap: sliderValue < max ? () => onChanged(sliderValue + 1) : null),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -372,7 +416,7 @@ class _StepButton extends StatelessWidget {
     return IconButton.filled(
       onPressed: onTap,
       icon: Icon(icon),
-      style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+      style: IconButton.styleFrom(backgroundColor: Theme.of(context).cardTheme.color, foregroundColor: Theme.of(context).textTheme.bodyLarge?.color),
     );
   }
 }
@@ -403,48 +447,80 @@ class _ExperiencePage extends StatelessWidget {
   }
 }
 
-class _PlacePage extends StatelessWidget {
-  const _PlacePage({required this.profile, required this.onSelect});
+class _PlaceEquipmentPage extends StatelessWidget {
+  const _PlaceEquipmentPage({required this.profile, required this.onPlace, required this.onToggleEquipment});
   final OnboardingProfile profile;
-  final ValueChanged<TrainingPlace> onSelect;
+  final ValueChanged<TrainingPlace> onPlace;
+  final ValueChanged<HomeEquipment> onToggleEquipment;
 
   @override
   Widget build(BuildContext context) {
     return _QuestionScaffold(
-      title: 'Где тренируешься?',
+      title: 'Где и с чем занимаешься?',
+      subtitle: 'Выбери место — и что есть под рукой',
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final p in TrainingPlace.values)
-            SelectableOptionCard(
-              label: p.label,
-              icon: _placeStyle(p).$1,
-              iconColor: _placeStyle(p).$2,
-              iconBackground: _placeStyle(p).$3,
-              selected: profile.place == p,
-              onTap: () => onSelect(p),
-            ),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 1.15,
+            children: [
+              for (final p in TrainingPlace.values)
+                PlacePhotoTile(
+                  label: p.label,
+                  icon: _placeStyle(p).$1,
+                  gradient: _placeGradient(p),
+                  selected: profile.place == p,
+                  onTap: () => onPlace(p),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Text('Что у тебя есть?', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              for (final eq in HomeEquipment.values)
+                SelectableChip(label: eq.label, selected: profile.equipment.contains(eq), onTap: () => onToggleEquipment(eq)),
+            ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _EquipmentPage extends StatelessWidget {
-  const _EquipmentPage({required this.profile, required this.onToggle});
+class _LimitationsPage extends StatelessWidget {
+  const _LimitationsPage({required this.profile, required this.onToggle, required this.onClear});
   final OnboardingProfile profile;
-  final ValueChanged<HomeEquipment> onToggle;
+  final ValueChanged<BodyLimitation> onToggle;
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
     return _QuestionScaffold(
-      title: 'Какое оборудование доступно?',
-      subtitle: 'Можно выбрать несколько вариантов',
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 10,
+      title: 'Есть ли ограничения или травмы?',
+      subtitle: 'Отметь зоны на схеме — учтём при подборе упражнений',
+      child: Column(
         children: [
-          for (final eq in HomeEquipment.values)
-            SelectableChip(label: eq.label, selected: profile.equipment.contains(eq), onTap: () => onToggle(eq)),
+          BodyDiagram(selected: profile.limitations, onToggle: onToggle),
+          const SizedBox(height: AppSpacing.lg),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            alignment: WrapAlignment.center,
+            children: [
+              for (final l in BodyLimitation.values)
+                SelectableChip(label: l.label, selected: profile.limitations.contains(l), onTap: () => onToggle(l)),
+              SelectableChip(label: 'Нет ограничений', selected: profile.limitations.isEmpty, onTap: onClear),
+            ],
+          ),
         ],
       ),
     );

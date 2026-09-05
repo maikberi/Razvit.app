@@ -25,7 +25,17 @@ class PlanReadyScreen extends ConsumerWidget {
           child: Column(
             children: [
               const SizedBox(height: AppSpacing.md),
-              const AnimatedEmoji('🔥', fontSize: 48),
+              SizedBox(
+                height: 72,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const Positioned(left: 40, top: 4, child: AnimatedEmoji('✨', fontSize: 18)),
+                    const Positioned(right: 36, top: 10, child: AnimatedEmoji('✨', fontSize: 14)),
+                    const AnimatedEmoji('🔥', fontSize: 48),
+                  ],
+                ),
+              ),
               const SizedBox(height: AppSpacing.md),
               Text('Твой план готов!', style: Theme.of(context).textTheme.headlineLarge),
               const SizedBox(height: 6),

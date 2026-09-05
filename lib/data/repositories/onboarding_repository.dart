@@ -22,6 +22,18 @@ class OnboardingNotifier extends StateNotifier<OnboardingProfile> {
     state = state.copyWith(equipment: next);
   }
 
+  void toggleLimitation(BodyLimitation v) {
+    final next = {...state.limitations};
+    if (next.contains(v)) {
+      next.remove(v);
+    } else {
+      next.add(v);
+    }
+    state = state.copyWith(limitations: next);
+  }
+
+  void clearLimitations() => state = state.copyWith(limitations: {});
+
   void setWorkoutsPerWeek(int v) => state = state.copyWith(workoutsPerWeek: v);
   void setDuration(WorkoutDuration v) => state = state.copyWith(duration: v);
   void setMotivation(Motivation v) => state = state.copyWith(motivation: v);

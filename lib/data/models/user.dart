@@ -55,6 +55,17 @@ extension HomeEquipmentX on HomeEquipment {
       };
 }
 
+enum BodyLimitation { knees, back, shoulders, elbows }
+
+extension BodyLimitationX on BodyLimitation {
+  String get label => switch (this) {
+        BodyLimitation.knees => 'Травмы коленей',
+        BodyLimitation.back => 'Проблемы со спиной',
+        BodyLimitation.shoulders => 'Болят плечи',
+        BodyLimitation.elbows => 'Болят локти',
+      };
+}
+
 enum WorkoutDuration { short, medium, long, extended, veryLong }
 
 extension WorkoutDurationX on WorkoutDuration {
@@ -101,6 +112,7 @@ class OnboardingProfile {
     this.experience,
     this.place,
     this.equipment = const {},
+    this.limitations = const {},
     this.workoutsPerWeek,
     this.duration,
     this.motivation,
@@ -115,6 +127,7 @@ class OnboardingProfile {
   final ExperienceLevel? experience;
   final TrainingPlace? place;
   final Set<HomeEquipment> equipment;
+  final Set<BodyLimitation> limitations;
   final int? workoutsPerWeek;
   final WorkoutDuration? duration;
   final Motivation? motivation;
@@ -142,6 +155,7 @@ class OnboardingProfile {
     ExperienceLevel? experience,
     TrainingPlace? place,
     Set<HomeEquipment>? equipment,
+    Set<BodyLimitation>? limitations,
     int? workoutsPerWeek,
     WorkoutDuration? duration,
     Motivation? motivation,
@@ -156,6 +170,7 @@ class OnboardingProfile {
       experience: experience ?? this.experience,
       place: place ?? this.place,
       equipment: equipment ?? this.equipment,
+      limitations: limitations ?? this.limitations,
       workoutsPerWeek: workoutsPerWeek ?? this.workoutsPerWeek,
       duration: duration ?? this.duration,
       motivation: motivation ?? this.motivation,
