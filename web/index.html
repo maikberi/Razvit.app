@@ -31,8 +31,34 @@
 
   <title>RAZVIT</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #app-splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #F3F4F6;
+      z-index: 0;
+    }
+    #app-splash img {
+      width: 150px;
+      height: 150px;
+      animation: razvit-splash-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes razvit-splash-pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.07); opacity: 0.85; }
+    }
+    @media (prefers-color-scheme: dark) {
+      #app-splash { background: #0E1116; }
+    }
+  </style>
 </head>
 <body>
+  <div id="app-splash"><img src="assets/assets/logo/razvit_mark.svg" alt="RAZVIT"></div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
