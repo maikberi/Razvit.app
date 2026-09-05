@@ -28,7 +28,6 @@ class WorkoutSessionCompleteScreen extends ConsumerWidget {
     final totalReps = state.logs.values.fold<int>(0, (s, l) => s + l.fold(0, (a, b) => a + b.reps));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),

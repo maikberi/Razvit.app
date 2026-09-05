@@ -8,9 +8,7 @@ export 'app_spacing.dart';
 export 'app_shadows.dart';
 export 'app_radius.dart';
 
-/// Светлая тема RAZVIT — единственная тема MVP (дизайн строился как
-/// светлый Premium Minimal Fitness UI; тёмная гамма используется точечно,
-/// например на экране выполнения тренировки).
+/// Светлая и тёмная темы RAZVIT — переключаются в Настройках.
 abstract final class AppTheme {
   static ThemeData light() {
     final textTheme = AppTypography.textTheme(AppColors.ink900);
@@ -27,6 +25,7 @@ abstract final class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      brightness: Brightness.light,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
       textTheme: textTheme,
@@ -132,6 +131,142 @@ abstract final class AppTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.ink900,
         contentTextStyle: textTheme.bodyMedium?.copyWith(color: AppColors.white),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
+    );
+  }
+
+  /// Тёмная тема — тот же RAZVIT, но на графитовом фоне.
+  static ThemeData dark() {
+    final textTheme = AppTypography.textTheme(AppColors.darkTextPrimary, secondary: AppColors.darkTextSecondary);
+    final colorScheme = const ColorScheme.dark().copyWith(
+      primary: AppColors.green500,
+      onPrimary: AppColors.white,
+      secondary: AppColors.darkTextPrimary,
+      onSecondary: AppColors.darkBg,
+      surface: AppColors.darkCard,
+      onSurface: AppColors.darkTextPrimary,
+      error: AppColors.error,
+      onError: AppColors.white,
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: AppColors.darkBg,
+      textTheme: textTheme,
+      fontFamily: textTheme.bodyMedium?.fontFamily,
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: Colors.transparent,
+      dividerColor: AppColors.darkBorder,
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.darkBg,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        titleTextStyle: textTheme.titleLarge,
+        iconTheme: const IconThemeData(color: AppColors.darkTextPrimary),
+      ),
+      cardTheme: CardThemeData(
+        color: AppColors.darkCard,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.green500,
+          foregroundColor: AppColors.white,
+          disabledBackgroundColor: AppColors.darkBorder,
+          disabledForegroundColor: AppColors.darkTextSecondary,
+          elevation: 0,
+          minimumSize: const Size.fromHeight(56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          textStyle: textTheme.labelLarge,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.darkTextPrimary,
+          side: const BorderSide(color: AppColors.darkBorder),
+          minimumSize: const Size.fromHeight(56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          textStyle: textTheme.labelLarge,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.green400,
+          textStyle: textTheme.labelLarge,
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.darkCard,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        hintStyle: textTheme.bodyLarge?.copyWith(color: AppColors.darkTextSecondary),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.green500, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.darkCard,
+        selectedColor: AppColors.green500,
+        labelStyle: textTheme.labelMedium?.copyWith(color: AppColors.darkTextPrimary),
+        secondaryLabelStyle: textTheme.labelMedium?.copyWith(color: AppColors.white),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+        ),
+        side: BorderSide.none,
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppColors.green500,
+        linearTrackColor: AppColors.darkBorder,
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.darkBorder,
+        thickness: 1,
+        space: 1,
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.darkCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.darkCard,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(color: AppColors.darkTextPrimary),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),

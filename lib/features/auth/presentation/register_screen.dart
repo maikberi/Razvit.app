@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text_field.dart';
-import '../../../core/widgets/razvit_logo.dart';
+import '../../../core/widgets/mascot.dart';
 import '../../../data/repositories/user_repository.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -20,8 +20,47 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nickname = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+
+  final _firstNameFocus = FocusNode();
+  final _lastNameFocus = FocusNode();
+  final _nicknameFocus = FocusNode();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+
   bool _obscure = true;
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    for (final node in [_firstNameFocus, _lastNameFocus, _nicknameFocus, _emailFocus, _passwordFocus]) {
+      node.addListener(() => setState(() {}));
+    }
+    _firstName.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _firstNameFocus.dispose();
+    _lastNameFocus.dispose();
+    _nicknameFocus.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    super.dispose();
+  }
+
+  String get _mascotTip {
+    final name = _firstName.text.trim();
+    if (_passwordFocus.hasFocus) return 'Пароль от 8 символов — и никому его не показывай 🔒';
+    if (_emailFocus.hasFocus) return 'Укажи почту, чтобы не потерять доступ к аккаунту.';
+    if (_nicknameFocus.hasFocus) return 'Придумай никнейм — его увидят другие в приложении.';
+    if (_lastNameFocus.hasFocus) return 'Фамилия — необязательно, но приятно!';
+    if (_firstNameFocus.hasFocus) {
+      return name.isEmpty ? 'Введи своё имя — так я буду к тебе обращаться!' : 'Приятно познакомиться, $name! 👋';
+    }
+    if (name.isNotEmpty) return 'Отлично, $name! Заполни остальные поля, и начнём 💪';
+    return 'Привет! Я твой AI-ассистент. Давай знакомиться 👋';
+  }
 
   Future<void> _register() async {
     setState(() => _loading = true);
@@ -48,9 +87,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: AppSpacing.md),
-              const Center(child: RazvitMark(size: 64)),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.sm),
+              MascotBubble(text: _mascotTip),
+              const SizedBox(height: AppSpacing.lg),
               Text('Создать аккаунт', style: Theme.of(context).textTheme.headlineLarge),
               const SizedBox(height: AppSpacing.xs),
               Text(
@@ -60,19 +99,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: AppSpacing.xl),
               Row(
                 children: [
-                  Expanded(child: AppTextField(label: 'Имя', controller: _firstName, hint: 'Михаил')),
+                  Expanded(child: AppTextField(label: 'Имя', controller: _firstName, focusNode: _firstNameFocus, hint: 'Михаил')),
                   const SizedBox(width: AppSpacing.sm),
-                  Expanded(child: AppTextField(label: 'Фамилия', controller: _lastName, hint: 'Иванов')),
+                  Expanded(child: AppTextField(label: 'Фамилия', controller: _lastName, focusNode: _lastNameFocus, hint: 'Иванов')),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              AppTextField(label: 'Никнейм', controller: _nickname, hint: '@mikhail'),
+              AppTextField(label: 'Никнейм', controller: _nickname, focusNode: _nicknameFocus, hint: '@mikhail'),
               const SizedBox(height: AppSpacing.md),
-              AppTextField(label: 'Email', controller: _email, hint: 'you@example.com', keyboardType: TextInputType.emailAddress),
+              AppTextField(label: 'Email', controller: _email, focusNode: _emailFocus, hint: 'you@example.com', keyboardType: TextInputType.emailAddress),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
                 label: 'Пароль',
                 controller: _password,
+                focusNode: _passwordFocus,
                 hint: 'Минимум 8 символов',
                 obscureText: _obscure,
                 suffix: IconButton(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/mascot.dart';
 import '../../../core/widgets/razvit_logo.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -35,6 +36,8 @@ class WelcomeScreen extends StatelessWidget {
               const _FeatureRow(icon: Icons.insights_rounded, text: 'Контроль прогресса и аналитика'),
               const SizedBox(height: AppSpacing.md),
               const _FeatureRow(icon: Icons.auto_awesome_rounded, text: 'Поддержка AI-наставника 24/7'),
+              const SizedBox(height: AppSpacing.lg),
+              const MascotBubble(text: 'Привет! Я твой AI-ассистент, помогу тебе начать 👋', mascotSize: 48),
               const Spacer(flex: 3),
               ElevatedButton(
                 onPressed: () => context.push('/register'),

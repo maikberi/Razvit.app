@@ -2,27 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/avatar.dart';
-import '../../../data/mock/mock_trainers.dart';
+import '../../../core/widgets/mascot.dart';
 import '../../../data/models/trainer.dart';
-import '../../../data/repositories/trainer_repository.dart';
+import '../../../data/repositories/ai_assistant_repository.dart';
 
-class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key, required this.trainerId});
-  final String trainerId;
+class AiAssistantScreen extends ConsumerStatefulWidget {
+  const AiAssistantScreen({super.key});
 
   @override
-  ConsumerState<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<AiAssistantScreen> createState() => _AiAssistantScreenState();
 }
 
-class _ChatScreenState extends ConsumerState<ChatScreen> {
+class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
 
   void _send() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    ref.read(chatProvider.notifier).send(text);
+    ref.read(aiAssistantProvider.notifier).send(text);
     _controller.clear();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -33,21 +31,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final trainer = mockTrainers.firstWhere((t) => t.id == widget.trainerId, orElse: () => mockTrainers.first);
-    final messages = ref.watch(chatProvider);
+    final messages = ref.watch(aiAssistantProvider);
 
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
         title: Row(
           children: [
-            AppAvatar(name: trainer.name, seed: trainer.avatarSeed, size: 34),
+            const RazvitMascot(size: 34),
             const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(trainer.name, style: Theme.of(context).textTheme.titleSmall),
-                Text(trainer.isOnline ? 'В сети' : 'Не в сети', style: Theme.of(context).textTheme.bodySmall),
+                Text('AI-ассистент', style: Theme.of(context).textTheme.titleSmall),
+                Text('Всегда на связи', style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ],
@@ -61,7 +58,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 controller: _scrollController,
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 itemCount: messages.length,
-                itemBuilder: (context, i) => _MessageBubble(message: messages[i]),
+                itemBuilder: (context, i) => _AiMessageBubble(message: messages[i]),
               ),
             ),
             SafeArea(
@@ -73,7 +70,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     Expanded(
                       child: TextField(
                         controller: _controller,
-                        decoration: const InputDecoration(hintText: 'Сообщение...'),
+                        decoration: const InputDecoration(hintText: 'Спроси что-нибудь...'),
                         onSubmitted: (_) => _send(),
                       ),
                     ),
@@ -94,8 +91,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 }
 
-class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message});
+class _AiMessageBubble extends StatelessWidget {
+  const _AiMessageBubble({required this.message});
   final ChatMessage message;
 
   @override

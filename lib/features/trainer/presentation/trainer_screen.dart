@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/mascot.dart';
 import '../../../core/widgets/selectable_option.dart';
 import '../../../data/models/trainer.dart';
 import '../../../data/repositories/trainer_repository.dart';
@@ -40,6 +41,26 @@ class _TrainerScreenState extends ConsumerState<TrainerScreen> {
             : ListView(
                 padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxl),
                 children: [
+                  AppCard(
+                    onTap: () => context.push('/ai-assistant'),
+                    child: Row(
+                      children: [
+                        const RazvitMascot(size: 48),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('AI-ассистент RAZVIT', style: Theme.of(context).textTheme.titleMedium),
+                              Text('Отвечу на вопросы о тренировках и питании', style: Theme.of(context).textTheme.bodySmall),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.green600),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
                   AppCard(
                     onTap: () => context.push('/trainer/${myTrainer.id}'),
                     child: Row(

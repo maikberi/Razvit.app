@@ -21,9 +21,9 @@ class AppShell extends StatelessWidget {
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: AppColors.white,
-          border: Border(top: BorderSide(color: AppColors.border)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color,
+          border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
         ),
         child: SafeArea(
           child: SizedBox(

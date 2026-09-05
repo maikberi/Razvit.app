@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_controller.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/selectable_option.dart';
 import '../../../data/repositories/user_repository.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -23,12 +25,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Настройки'), leading: const BackButton()),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
+            Text('Тема', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: SelectableChip(
+                    label: 'Светлая',
+                    selected: themeMode == ThemeMode.light,
+                    onTap: () => ref.read(themeModeProvider.notifier).setMode(ThemeMode.light),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SelectableChip(
+                    label: 'Тёмная',
+                    selected: themeMode == ThemeMode.dark,
+                    onTap: () => ref.read(themeModeProvider.notifier).setMode(ThemeMode.dark),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SelectableChip(
+                    label: 'Как в системе',
+                    selected: themeMode == ThemeMode.system,
+                    onTap: () => ref.read(themeModeProvider.notifier).setMode(ThemeMode.system),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
             Text('Уведомления', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: AppSpacing.sm),
             AppCard(

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
+import '../../../core/widgets/mascot.dart';
 import '../../../data/mock/mock_progress.dart';
 import '../../../data/repositories/nutrition_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
@@ -48,7 +49,7 @@ class HomeScreen extends ConsumerWidget {
                     IconButton(
                       onPressed: () => context.push('/notifications'),
                       icon: const Icon(Icons.notifications_none_rounded),
-                      style: IconButton.styleFrom(backgroundColor: AppColors.white, shape: const CircleBorder()),
+                      style: IconButton.styleFrom(backgroundColor: Theme.of(context).cardTheme.color, shape: const CircleBorder()),
                     ),
                     const SizedBox(width: 8),
                     GestureDetector(
@@ -224,7 +225,7 @@ class _GoalCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Тренировка', style: Theme.of(context).textTheme.headlineMedium),
+                    Text('Тренировка', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.ink900)),
                     const SizedBox(height: 2),
                     Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
                     const SizedBox(height: AppSpacing.md),
@@ -438,30 +439,26 @@ class _AiMentorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      color: AppColors.green50,
+      color: context.isDarkMode ? AppColors.green500.withOpacity(0.16) : AppColors.green50,
       shadow: false,
+      onTap: () => context.push('/ai-assistant'),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle),
-            child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
-          ),
+          const RazvitMascot(size: 44),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('AI-наставник', style: Theme.of(context).textTheme.titleSmall),
+                Text('AI-ассистент', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 4),
                 Text(
-                  'Ты отлично держишь темп. На следующей тренировке можно немного увеличить нагрузку.',
+                  'Ты отлично держишь темп. Не останавливайся! На следующей тренировке можно немного увеличить нагрузку.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 8),
-                Text('Посмотреть рекомендации', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green700)),
+                Text('Спросить совет', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green700)),
               ],
             ),
           ),

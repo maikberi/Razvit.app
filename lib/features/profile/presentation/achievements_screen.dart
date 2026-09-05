@@ -61,7 +61,7 @@ class _AchievementCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      color: achievement.isUnlocked ? AppColors.white : AppColors.ink50,
+      color: achievement.isUnlocked ? null : Theme.of(context).scaffoldBackgroundColor,
       shadow: achievement.isUnlocked,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,7 +73,7 @@ class _AchievementCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(
             achievement.title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(color: achievement.isUnlocked ? AppColors.ink900 : AppColors.ink400),
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(color: achievement.isUnlocked ? null : AppColors.ink400),
           ),
           const SizedBox(height: 2),
           Text(

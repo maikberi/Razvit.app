@@ -39,7 +39,8 @@ abstract final class AppTypography {
     );
   }
 
-  static TextTheme textTheme(Color base) {
+  static TextTheme textTheme(Color base, {Color? secondary}) {
+    final muted = secondary ?? AppColors.ink500;
     final theme = _useSystemAppleRounded ? const TextTheme() : GoogleFonts.nunitoTextTheme();
     return theme.copyWith(
       displayLarge: _style(
@@ -96,7 +97,7 @@ abstract final class AppTypography {
       bodySmall: _style(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: AppColors.ink500,
+        color: muted,
         height: 1.4,
       ),
       labelLarge: _style(
@@ -114,7 +115,7 @@ abstract final class AppTypography {
       labelSmall: _style(
         fontSize: 11,
         fontWeight: FontWeight.w800,
-        color: AppColors.ink500,
+        color: muted,
         letterSpacing: 0.2,
       ),
     );

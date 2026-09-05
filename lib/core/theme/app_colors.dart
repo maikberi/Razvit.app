@@ -53,4 +53,16 @@ abstract final class AppColors {
 
   static const List<Color> greenGradient = [green400, green600];
   static const List<Color> darkGradient = [ink800, ink900];
+
+  // Тёмная тема (Settings → Тема).
+  static const Color darkBg = Color(0xFF0E1116);
+  static const Color darkCard = Color(0xFF181C22);
+  static const Color darkBorder = Color(0xFF2A2F37);
+  static const Color darkTextPrimary = Color(0xFFF3F4F6);
+  static const Color darkTextSecondary = Color(0xFF9BA4B0);
+}
+
+/// Удобный доступ к текущей яркости темы из виджетов.
+extension AppBrightnessX on BuildContext {
+  bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
 }

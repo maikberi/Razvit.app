@@ -35,7 +35,7 @@ class MyProgramTab extends ConsumerWidget {
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(AppRadius.pill),
-                  child: const LinearProgressIndicator(value: 4 / 5, minHeight: 8, backgroundColor: AppColors.ink100),
+                  child: LinearProgressIndicator(value: 4 / 5, minHeight: 8, backgroundColor: Theme.of(context).dividerColor),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -57,8 +57,8 @@ class MyProgramTab extends ConsumerWidget {
               return ActionChip(
                 onPressed: () => onCategoryTap?.call(group),
                 label: Text(group.label),
-                backgroundColor: AppColors.white,
-                side: const BorderSide(color: AppColors.border),
+                backgroundColor: Theme.of(context).cardTheme.color,
+                side: BorderSide(color: Theme.of(context).dividerColor),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.pill)),
               );
             },

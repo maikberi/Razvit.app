@@ -20,6 +20,7 @@ import '../../features/shell/app_shell.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/nutrition/presentation/nutrition_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/trainer/presentation/ai_assistant_screen.dart';
 import '../../features/trainer/presentation/chat_screen.dart';
 import '../../features/trainer/presentation/trainer_profile_screen.dart';
 import '../../features/trainer/presentation/trainer_screen.dart';
@@ -62,6 +63,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/nutrition-stats', builder: (context, state) => const NutritionStatsScreen()),
     GoRoute(path: '/trainer/:id', builder: (context, state) => TrainerProfileScreen(trainerId: state.pathParameters['id']!)),
     GoRoute(path: '/chat/:id', builder: (context, state) => ChatScreen(trainerId: state.pathParameters['id']!)),
+    GoRoute(path: '/ai-assistant', builder: (context, state) => const AiAssistantScreen()),
     GoRoute(path: '/achievements', builder: (context, state) => const AchievementsScreen()),
     GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
     GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),

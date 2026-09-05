@@ -89,7 +89,7 @@ class NutritionPlanScreen extends ConsumerWidget {
 
   Widget _recommendation(BuildContext context, IconData icon, String title, String subtitle, {bool good = false}) {
     return AppCard(
-      color: good ? AppColors.green50 : AppColors.white,
+      color: good ? (context.isDarkMode ? AppColors.green500.withOpacity(0.18) : AppColors.green50) : null,
       shadow: !good,
       child: Row(
         children: [

@@ -26,6 +26,7 @@ class SelectableOptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final isDark = context.isDarkMode;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -34,9 +35,9 @@ class SelectableOptionCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          color: selected ? AppColors.green50 : AppColors.white,
+          color: selected ? (isDark ? AppColors.green500.withOpacity(0.18) : AppColors.green50) : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: selected ? AppColors.green500 : AppColors.border, width: selected ? 1.5 : 1),
+          border: Border.all(color: selected ? AppColors.green500 : Theme.of(context).dividerColor, width: selected ? 1.5 : 1),
         ),
         child: Row(
           children: [
@@ -95,9 +96,9 @@ class SelectableChip extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 16, vertical: dense ? 9 : 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? AppColors.green500 : AppColors.white,
+          color: selected ? AppColors.green500 : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(AppRadius.pill),
-          border: Border.all(color: selected ? AppColors.green500 : AppColors.border),
+          border: Border.all(color: selected ? AppColors.green500 : Theme.of(context).dividerColor),
         ),
         child: Text(
           label,
@@ -105,7 +106,7 @@ class SelectableChip extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: (dense ? Theme.of(context).textTheme.labelSmall : Theme.of(context).textTheme.labelMedium)?.copyWith(
-                color: selected ? AppColors.white : AppColors.ink700,
+                color: selected ? AppColors.white : null,
               ),
         ),
       ),
