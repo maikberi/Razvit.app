@@ -54,36 +54,43 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                 Text('Сегодня', style: Theme.of(context).textTheme.titleMedium),
                 const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.ink500),
                 const Spacer(),
-                IconButton(
-                  onPressed: () => context.push('/workout-calendar'),
-                  icon: const Icon(Icons.calendar_today_outlined, size: 20),
-                  visualDensity: VisualDensity.compact,
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardTheme.color,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    boxShadow: AppShadows.card,
+                  ),
+                  child: IconButton(
+                    onPressed: () => context.push('/workout-calendar'),
+                    icon: const Icon(Icons.calendar_today_outlined, size: 20),
+                    visualDensity: VisualDensity.compact,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
             AppCard(
-              color: AppColors.green500,
-              shadow: false,
               child: Row(
                 children: [
                   ProgressRing(
                     progress: plan.calorieGoal == 0 ? 0 : (calories / plan.calorieGoal).clamp(0, 1),
-                    size: 100,
-                    strokeWidth: 9,
-                    color: Colors.white,
-                    trackColor: Colors.white24,
+                    size: 132,
+                    strokeWidth: 11,
+                    color: AppColors.green500,
+                    trackColor: AppColors.green100,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          remaining >= 0 ? '$remaining' : '${-remaining}',
-                          style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800),
+                          '$calories',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
                         ),
+                        Text('/ ${plan.calorieGoal} ккал', style: const TextStyle(color: AppColors.ink500, fontSize: 12)),
+                        const SizedBox(height: 8),
+                        const Text('Осталось', style: TextStyle(color: AppColors.ink500, fontSize: 11)),
                         Text(
-                          remaining >= 0 ? 'осталось ккал' : 'сверх плана',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white70, fontSize: 10),
+                          remaining >= 0 ? '$remaining ккал' : '${-remaining} ккал сверх',
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                         ),
                       ],
                     ),
@@ -94,9 +101,9 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _macroLine(context, 'Белки', protein, plan.proteinGoal),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 16),
                         _macroLine(context, 'Жиры', fat, plan.fatGoal),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 16),
                         _macroLine(context, 'Углеводы', carbs, plan.carbsGoal),
                       ],
                     ),
@@ -127,29 +134,29 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    child: LinearProgressIndicator(
-                      value: (water / plan.waterGoalMl).clamp(0.0, 1.0),
-                      minHeight: 8,
-                      backgroundColor: AppColors.ink100,
-                      valueColor: const AlwaysStoppedAnimation(AppColors.water),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      IconButton.filled(
-                        onPressed: water > 0 ? () => waterNotifier.set(water - 250 < 0 ? 0 : water - 250) : null,
-                        icon: const Icon(Icons.remove_rounded),
-                        style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
-                      ),
-                      SizedBox(width: 100, child: Text('$water мл', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium)),
-                      IconButton.filled(
-                        onPressed: () => waterNotifier.add(250),
-                        icon: const Icon(Icons.add_rounded),
-                        style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+                      for (var i = 0; i < 8; i++)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: GestureDetector(
+                            onTap: () => waterNotifier.set((i + 1) * 250),
+                            child: Icon(
+                              Icons.water_drop_rounded,
+                              size: 22,
+                              color: (i + 1) * 250 <= water ? AppColors.water : AppColors.ink200,
+                            ),
+                          ),
+                        ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => waterNotifier.add(250),
+                        child: Container(
+                          width: 26,
+                          height: 26,
+                          decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle),
+                          child: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                        ),
                       ),
                     ],
                   ),
@@ -179,10 +186,24 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
     final done = goal > 0 && value >= goal;
     return Row(
       children: [
-        Icon(done ? Icons.check_circle_rounded : Icons.check_circle_outline_rounded, size: 14, color: Colors.white70),
-        const SizedBox(width: 6),
-        Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12))),
-        Text('${value.toStringAsFixed(0)} / $goal г', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+        Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.green500, width: 1.5),
+            color: done ? AppColors.green500 : Colors.transparent,
+          ),
+          child: Icon(Icons.check_rounded, size: 14, color: done ? Colors.white : AppColors.green500),
+        ),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(color: AppColors.ink500, fontSize: 12)),
+            Text('${value.toStringAsFixed(0)} / $goal г', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+          ],
+        ),
       ],
     );
   }
