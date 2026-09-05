@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/pressable_scale.dart';
 import '../../../data/models/user.dart';
 
 /// Мягкая волнообразная подложка внизу экрана — фирменный акцент онбординга.
@@ -101,7 +102,7 @@ class SelectableTileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
-    return GestureDetector(
+    return PressableScale(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
@@ -126,8 +127,16 @@ class SelectableTileCard extends StatelessWidget {
                 Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
               ],
             ),
-            if (selected)
-              const Positioned(top: 0, right: 0, child: Icon(Icons.check_circle_rounded, color: AppColors.green500, size: 18)),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: AnimatedScale(
+                scale: selected ? 1 : 0,
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.elasticOut,
+                child: const Icon(Icons.check_circle_rounded, color: AppColors.green500, size: 18),
+              ),
+            ),
           ],
         ),
       ),
@@ -155,7 +164,7 @@ class PlacePhotoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return PressableScale(
       onTap: onTap,
       child: AspectRatio(
         aspectRatio: 1.15,
@@ -174,12 +183,16 @@ class PlacePhotoTile extends StatelessWidget {
                 bottom: 10,
                 child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13)),
               ),
-              if (selected)
-                const Positioned(
-                  top: 8,
-                  right: 8,
-                  child: CircleAvatar(radius: 11, backgroundColor: Colors.white, child: Icon(Icons.check_rounded, color: AppColors.green600, size: 14)),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: AnimatedScale(
+                  scale: selected ? 1 : 0,
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.elasticOut,
+                  child: const CircleAvatar(radius: 11, backgroundColor: Colors.white, child: Icon(Icons.check_rounded, color: AppColors.green600, size: 14)),
                 ),
+              ),
             ],
           ),
         ),

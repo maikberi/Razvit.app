@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/fade_slide_in.dart';
 import '../../../core/widgets/selectable_option.dart';
 import '../../../data/models/user.dart';
 import '../../../data/repositories/onboarding_repository.dart';
@@ -68,8 +69,8 @@ class OnboardingFlowScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
-  final _controller = PageController();
   int _page = 0;
+  bool _forward = true;
   static const _total = 10;
 
   int _age = 25;
@@ -81,8 +82,10 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
       context.push('/plan-generating');
       return;
     }
-    setState(() => _page++);
-    _controller.nextPage(duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
+    setState(() {
+      _forward = true;
+      _page++;
+    });
   }
 
   void _back() {
@@ -90,8 +93,10 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
       context.pop();
       return;
     }
-    setState(() => _page--);
-    _controller.previousPage(duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
+    setState(() {
+      _forward = false;
+      _page--;
+    });
   }
 
   bool _canContinue(OnboardingProfile p) {
@@ -133,9 +138,11 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 for (var i = 0; i < _total; i++)
-                  Container(
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOutCubic,
                     margin: const EdgeInsets.symmetric(horizontal: 2),
-                    width: 14,
+                    width: i == _page ? 22 : 14,
                     height: 4,
                     decoration: BoxDecoration(
                       color: i <= _page ? AppColors.green500 : AppColors.ink200,
@@ -155,47 +162,66 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
             Column(
               children: [
                 Expanded(
-                  child: PageView(
-                    controller: _controller,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: [
-                      _GoalPage(profile: profile, onSelect: notifier.setGoal),
-                      _AboutYouPage(
-                        profile: profile,
-                        age: _age,
-                        onGender: notifier.setGender,
-                        onAgeChanged: (v) {
-                          setState(() => _age = v);
-                          notifier.setAge(v);
-                        },
-                      ),
-                      _HeightWeightPage(
-                        height: _height,
-                        weight: _weight,
-                        onHeightChanged: (v) {
-                          setState(() => _height = v);
-                          notifier.setHeight(v);
-                        },
-                        onWeightChanged: (v) {
-                          setState(() => _weight = v);
-                          notifier.setWeight(v);
-                        },
-                      ),
-                      _ExperiencePage(profile: profile, onSelect: notifier.setExperience),
-                      _PlaceEquipmentPage(profile: profile, onPlace: notifier.setPlace, onToggleEquipment: notifier.toggleEquipment),
-                      _LimitationsPage(profile: profile, onToggle: notifier.toggleLimitation, onClear: notifier.clearLimitations),
-                      _WorkoutsPerWeekPage(profile: profile, onSelect: notifier.setWorkoutsPerWeek),
-                      _DurationPage(profile: profile, onSelect: notifier.setDuration),
-                      _MotivationPage(profile: profile, onSelect: notifier.setMotivation),
-                      _AiTonePage(profile: profile, onSelect: notifier.setAiTone),
-                    ],
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 320),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      final slide = Tween<Offset>(
+                        begin: Offset(_forward ? 0.06 : -0.06, 0),
+                        end: Offset.zero,
+                      ).animate(animation);
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(position: slide, child: child),
+                      );
+                    },
+                    child: KeyedSubtree(
+                      key: ValueKey(_page),
+                      child: switch (_page) {
+                        0 => _GoalPage(profile: profile, onSelect: notifier.setGoal),
+                        1 => _AboutYouPage(
+                            profile: profile,
+                            age: _age,
+                            onGender: notifier.setGender,
+                            onAgeChanged: (v) {
+                              setState(() => _age = v);
+                              notifier.setAge(v);
+                            },
+                          ),
+                        2 => _HeightWeightPage(
+                            height: _height,
+                            weight: _weight,
+                            onHeightChanged: (v) {
+                              setState(() => _height = v);
+                              notifier.setHeight(v);
+                            },
+                            onWeightChanged: (v) {
+                              setState(() => _weight = v);
+                              notifier.setWeight(v);
+                            },
+                          ),
+                        3 => _ExperiencePage(profile: profile, onSelect: notifier.setExperience),
+                        4 => _PlaceEquipmentPage(profile: profile, onPlace: notifier.setPlace, onToggleEquipment: notifier.toggleEquipment),
+                        5 => _LimitationsPage(profile: profile, onToggle: notifier.toggleLimitation, onClear: notifier.clearLimitations),
+                        6 => _WorkoutsPerWeekPage(profile: profile, onSelect: notifier.setWorkoutsPerWeek),
+                        7 => _DurationPage(profile: profile, onSelect: notifier.setDuration),
+                        8 => _MotivationPage(profile: profile, onSelect: notifier.setMotivation),
+                        _ => _AiTonePage(profile: profile, onSelect: notifier.setAiTone),
+                      },
+                    ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
-                  child: ElevatedButton(
-                    onPressed: _canContinue(profile) ? _next : null,
-                    child: Text(_page == _total - 1 ? 'Готово' : 'Далее'),
+                  child: AnimatedScale(
+                    scale: _canContinue(profile) ? 1 : 0.98,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    child: ElevatedButton(
+                      onPressed: _canContinue(profile) ? _next : null,
+                      child: Text(_page == _total - 1 ? 'Готово' : 'Далее'),
+                    ),
                   ),
                 ),
               ],
@@ -220,10 +246,13 @@ class _QuestionScaffold extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: Theme.of(context).textTheme.headlineMedium),
+          FadeSlideIn(child: Text(title, style: Theme.of(context).textTheme.headlineMedium)),
           if (subtitle != null) ...[
             const SizedBox(height: 6),
-            Text(subtitle!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+            FadeSlideIn(
+              delay: const Duration(milliseconds: 60),
+              child: Text(subtitle!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+            ),
           ],
           const SizedBox(height: AppSpacing.xl),
           child,
@@ -251,14 +280,17 @@ class _GoalPage extends StatelessWidget {
         crossAxisSpacing: 10,
         childAspectRatio: 1.3,
         children: [
-          for (final g in FitnessGoal.values)
-            SelectableTileCard(
-              label: g.label,
-              icon: _goalStyle(g).$1,
-              iconColor: _goalStyle(g).$2,
-              iconBackground: _goalStyle(g).$3,
-              selected: profile.goal == g,
-              onTap: () => onSelect(g),
+          for (final (i, g) in FitnessGoal.values.indexed)
+            FadeSlideIn(
+              delay: Duration(milliseconds: 120 + 40 * i),
+              child: SelectableTileCard(
+                label: g.label,
+                icon: _goalStyle(g).$1,
+                iconColor: _goalStyle(g).$2,
+                iconBackground: _goalStyle(g).$3,
+                selected: profile.goal == g,
+                onTap: () => onSelect(g),
+              ),
             ),
         ],
       ),
@@ -285,36 +317,45 @@ class _AboutYouPage extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: SelectableTileCard(
-                  label: 'Мужчина',
-                  icon: Icons.male_rounded,
-                  iconColor: const Color(0xFF3B82F6),
-                  iconBackground: const Color(0xFFEAF1FE),
-                  selected: profile.gender == Gender.male,
-                  onTap: () => onGender(Gender.male),
+                child: FadeSlideIn(
+                  delay: const Duration(milliseconds: 120),
+                  child: SelectableTileCard(
+                    label: 'Мужчина',
+                    icon: Icons.male_rounded,
+                    iconColor: const Color(0xFF3B82F6),
+                    iconBackground: const Color(0xFFEAF1FE),
+                    selected: profile.gender == Gender.male,
+                    onTap: () => onGender(Gender.male),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: SelectableTileCard(
-                  label: 'Женщина',
-                  icon: Icons.female_rounded,
-                  iconColor: const Color(0xFFEC4899),
-                  iconBackground: const Color(0xFFFDE8F3),
-                  selected: profile.gender == Gender.female,
-                  onTap: () => onGender(Gender.female),
+                child: FadeSlideIn(
+                  delay: const Duration(milliseconds: 170),
+                  child: SelectableTileCard(
+                    label: 'Женщина',
+                    icon: Icons.female_rounded,
+                    iconColor: const Color(0xFFEC4899),
+                    iconBackground: const Color(0xFFFDE8F3),
+                    selected: profile.gender == Gender.female,
+                    onTap: () => onGender(Gender.female),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
-          _MetricSlider(
-            label: 'Возраст',
-            value: '$age лет',
-            sliderValue: age.toDouble(),
-            min: 12,
-            max: 90,
-            onChanged: (v) => onAgeChanged(v.round()),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 240),
+            child: _MetricSlider(
+              label: 'Возраст',
+              value: '$age лет',
+              sliderValue: age.toDouble(),
+              min: 12,
+              max: 90,
+              onChanged: (v) => onAgeChanged(v.round()),
+            ),
           ),
         ],
       ),
@@ -342,22 +383,28 @@ class _HeightWeightPage extends StatelessWidget {
       subtitle: 'Нужно для расчёта твоего плана и аналитики',
       child: Column(
         children: [
-          _MetricSlider(
-            label: 'Рост',
-            value: '$height см',
-            sliderValue: height.toDouble(),
-            min: 120,
-            max: 220,
-            onChanged: (v) => onHeightChanged(v.round()),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 120),
+            child: _MetricSlider(
+              label: 'Рост',
+              value: '$height см',
+              sliderValue: height.toDouble(),
+              min: 120,
+              max: 220,
+              onChanged: (v) => onHeightChanged(v.round()),
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          _MetricSlider(
-            label: 'Вес',
-            value: '${weight.toStringAsFixed(0)} кг',
-            sliderValue: weight.clamp(35, 200),
-            min: 35,
-            max: 200,
-            onChanged: onWeightChanged,
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 200),
+            child: _MetricSlider(
+              label: 'Вес',
+              value: '${weight.toStringAsFixed(0)} кг',
+              sliderValue: weight.clamp(35, 200),
+              min: 35,
+              max: 200,
+              onChanged: onWeightChanged,
+            ),
           ),
         ],
       ),
@@ -430,14 +477,17 @@ class _ExperiencePage extends StatelessWidget {
       title: 'Какой у тебя уровень подготовки?',
       child: Column(
         children: [
-          for (final e in ExperienceLevel.values)
-            SelectableOptionCard(
-              label: e.label,
-              icon: _experienceStyle(e).$1,
-              iconColor: _experienceStyle(e).$2,
-              iconBackground: _experienceStyle(e).$3,
-              selected: profile.experience == e,
-              onTap: () => onSelect(e),
+          for (final (i, e) in ExperienceLevel.values.indexed)
+            FadeSlideIn(
+              delay: Duration(milliseconds: 120 + 70 * i),
+              child: SelectableOptionCard(
+                label: e.label,
+                icon: _experienceStyle(e).$1,
+                iconColor: _experienceStyle(e).$2,
+                iconBackground: _experienceStyle(e).$3,
+                selected: profile.experience == e,
+                onTap: () => onSelect(e),
+              ),
             ),
         ],
       ),
@@ -467,26 +517,35 @@ class _PlaceEquipmentPage extends StatelessWidget {
             crossAxisSpacing: 10,
             childAspectRatio: 1.15,
             children: [
-              for (final p in TrainingPlace.values)
-                PlacePhotoTile(
-                  label: p.label,
-                  icon: _placeStyle(p).$1,
-                  gradient: _placeGradient(p),
-                  selected: profile.place == p,
-                  onTap: () => onPlace(p),
+              for (final (i, p) in TrainingPlace.values.indexed)
+                FadeSlideIn(
+                  delay: Duration(milliseconds: 120 + 50 * i),
+                  child: PlacePhotoTile(
+                    label: p.label,
+                    icon: _placeStyle(p).$1,
+                    gradient: _placeGradient(p),
+                    selected: profile.place == p,
+                    onTap: () => onPlace(p),
+                  ),
                 ),
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
-          Text('Что у тебя есть?', style: Theme.of(context).textTheme.titleSmall),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 340),
+            child: Text('Что у тебя есть?', style: Theme.of(context).textTheme.titleSmall),
+          ),
           const SizedBox(height: AppSpacing.sm),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (final eq in HomeEquipment.values)
-                SelectableChip(label: eq.label, selected: profile.equipment.contains(eq), onTap: () => onToggleEquipment(eq)),
-            ],
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 380),
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final eq in HomeEquipment.values)
+                  SelectableChip(label: eq.label, selected: profile.equipment.contains(eq), onTap: () => onToggleEquipment(eq)),
+              ],
+            ),
           ),
         ],
       ),
@@ -507,17 +566,23 @@ class _LimitationsPage extends StatelessWidget {
       subtitle: 'Отметь зоны на схеме — учтём при подборе упражнений',
       child: Column(
         children: [
-          BodyDiagram(selected: profile.limitations, onToggle: onToggle),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 120),
+            child: BodyDiagram(selected: profile.limitations, onToggle: onToggle),
+          ),
           const SizedBox(height: AppSpacing.lg),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            alignment: WrapAlignment.center,
-            children: [
-              for (final l in BodyLimitation.values)
-                SelectableChip(label: l.label, selected: profile.limitations.contains(l), onTap: () => onToggle(l)),
-              SelectableChip(label: 'Нет ограничений', selected: profile.limitations.isEmpty, onTap: onClear),
-            ],
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 260),
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: [
+                for (final l in BodyLimitation.values)
+                  SelectableChip(label: l.label, selected: profile.limitations.contains(l), onTap: () => onToggle(l)),
+                SelectableChip(label: 'Нет ограничений', selected: profile.limitations.isEmpty, onTap: onClear),
+              ],
+            ),
           ),
         ],
       ),
@@ -538,8 +603,11 @@ class _WorkoutsPerWeekPage extends StatelessWidget {
         spacing: 10,
         runSpacing: 10,
         children: [
-          for (final n in [2, 3, 4, 5, 6])
-            SelectableChip(label: '$n', selected: profile.workoutsPerWeek == n, onTap: () => onSelect(n)),
+          for (final (i, n) in [2, 3, 4, 5, 6].indexed)
+            FadeSlideIn(
+              delay: Duration(milliseconds: 120 + 40 * i),
+              child: SelectableChip(label: '$n', selected: profile.workoutsPerWeek == n, onTap: () => onSelect(n)),
+            ),
         ],
       ),
     );
@@ -557,14 +625,17 @@ class _DurationPage extends StatelessWidget {
       title: 'Сколько времени готов уделять тренировке?',
       child: Column(
         children: [
-          for (final d in WorkoutDuration.values)
-            SelectableOptionCard(
-              label: d.label,
-              icon: _durationStyle(d).$1,
-              iconColor: _durationStyle(d).$2,
-              iconBackground: _durationStyle(d).$3,
-              selected: profile.duration == d,
-              onTap: () => onSelect(d),
+          for (final (i, d) in WorkoutDuration.values.indexed)
+            FadeSlideIn(
+              delay: Duration(milliseconds: 120 + 60 * i),
+              child: SelectableOptionCard(
+                label: d.label,
+                icon: _durationStyle(d).$1,
+                iconColor: _durationStyle(d).$2,
+                iconBackground: _durationStyle(d).$3,
+                selected: profile.duration == d,
+                onTap: () => onSelect(d),
+              ),
             ),
         ],
       ),
@@ -584,14 +655,17 @@ class _MotivationPage extends StatelessWidget {
       subtitle: 'Настроим акценты интерфейса под тебя',
       child: Column(
         children: [
-          for (final m in Motivation.values)
-            SelectableOptionCard(
-              label: m.label,
-              icon: _motivationStyle(m).$1,
-              iconColor: _motivationStyle(m).$2,
-              iconBackground: _motivationStyle(m).$3,
-              selected: profile.motivation == m,
-              onTap: () => onSelect(m),
+          for (final (i, m) in Motivation.values.indexed)
+            FadeSlideIn(
+              delay: Duration(milliseconds: 120 + 55 * i),
+              child: SelectableOptionCard(
+                label: m.label,
+                icon: _motivationStyle(m).$1,
+                iconColor: _motivationStyle(m).$2,
+                iconBackground: _motivationStyle(m).$3,
+                selected: profile.motivation == m,
+                onTap: () => onSelect(m),
+              ),
             ),
         ],
       ),
@@ -611,14 +685,17 @@ class _AiTonePage extends StatelessWidget {
       subtitle: 'Это повлияет на стиль сообщений AI-наставника',
       child: Column(
         children: [
-          for (final t in AiTone.values)
-            SelectableOptionCard(
-              label: t.label,
-              icon: _aiToneStyle(t).$1,
-              iconColor: _aiToneStyle(t).$2,
-              iconBackground: _aiToneStyle(t).$3,
-              selected: profile.aiTone == t,
-              onTap: () => onSelect(t),
+          for (final (i, t) in AiTone.values.indexed)
+            FadeSlideIn(
+              delay: Duration(milliseconds: 120 + 80 * i),
+              child: SelectableOptionCard(
+                label: t.label,
+                icon: _aiToneStyle(t).$1,
+                iconColor: _aiToneStyle(t).$2,
+                iconBackground: _aiToneStyle(t).$3,
+                selected: profile.aiTone == t,
+                onTap: () => onSelect(t),
+              ),
             ),
         ],
       ),

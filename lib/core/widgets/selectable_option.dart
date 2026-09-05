@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import 'pressable_scale.dart';
 
 /// Карточка-опция для онбординга и фильтров: заголовок + галочка при выборе.
 class SelectableOptionCard extends StatelessWidget {
@@ -27,7 +28,7 @@ class SelectableOptionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final isDark = context.isDarkMode;
-    return GestureDetector(
+    return PressableScale(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
@@ -60,9 +61,10 @@ class SelectableOptionCard extends StatelessWidget {
                 ],
               ),
             ),
-            AnimatedOpacity(
-              opacity: selected ? 1 : 0,
-              duration: const Duration(milliseconds: 150),
+            AnimatedScale(
+              scale: selected ? 1 : 0,
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.elasticOut,
               child: const Icon(Icons.check_circle_rounded, color: AppColors.green500),
             ),
           ],
@@ -89,7 +91,7 @@ class SelectableChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return PressableScale(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
