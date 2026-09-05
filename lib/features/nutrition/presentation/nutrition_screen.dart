@@ -127,29 +127,29 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                    child: LinearProgressIndicator(
+                      value: (water / plan.waterGoalMl).clamp(0.0, 1.0),
+                      minHeight: 8,
+                      backgroundColor: AppColors.ink100,
+                      valueColor: const AlwaysStoppedAnimation(AppColors.water),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      for (var i = 0; i < 8; i++)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: GestureDetector(
-                            onTap: () => waterNotifier.set((i + 1) * 250),
-                            child: Icon(
-                              Icons.water_drop_rounded,
-                              size: 22,
-                              color: (i + 1) * 250 <= water ? AppColors.water : AppColors.ink200,
-                            ),
-                          ),
-                        ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () => waterNotifier.add(250),
-                        child: Container(
-                          width: 26,
-                          height: 26,
-                          decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle),
-                          child: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
-                        ),
+                      IconButton.filled(
+                        onPressed: water > 0 ? () => waterNotifier.set(water - 250 < 0 ? 0 : water - 250) : null,
+                        icon: const Icon(Icons.remove_rounded),
+                        style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+                      ),
+                      SizedBox(width: 100, child: Text('$water мл', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium)),
+                      IconButton.filled(
+                        onPressed: () => waterNotifier.add(250),
+                        icon: const Icon(Icons.add_rounded),
+                        style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
                       ),
                     ],
                   ),
