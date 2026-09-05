@@ -34,6 +34,16 @@ class MealsNotifier extends StateNotifier<List<Meal>> {
     ];
   }
 
+  void removeFood(MealType type, int entryIndex) {
+    state = [
+      for (final meal in state)
+        if (meal.type == type)
+          Meal(type: meal.type, time: meal.time, entries: [for (var i = 0; i < meal.entries.length; i++) if (i != entryIndex) meal.entries[i]])
+        else
+          meal,
+    ];
+  }
+
   int get totalCalories => state.fold(0, (sum, m) => sum + m.calories);
   double get totalProtein => state.fold(0, (sum, m) => sum + m.protein);
   double get totalFat => state.fold(0, (sum, m) => sum + m.fat);
@@ -46,6 +56,7 @@ class WaterNotifier extends StateNotifier<int> {
   WaterNotifier() : super(1600); // мл
 
   void add(int ml) => state += ml;
+  void set(int ml) => state = ml.clamp(0, 1 << 30);
   void reset() => state = 0;
 }
 

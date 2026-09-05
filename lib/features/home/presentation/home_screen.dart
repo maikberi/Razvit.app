@@ -95,6 +95,7 @@ class HomeScreen extends ConsumerWidget {
                     value: '$calories',
                     goal: '${plan.calorieGoal} ккал',
                     progress: plan.calorieGoal == 0 ? 0 : calories / plan.calorieGoal,
+                    onTap: () => context.push('/nutrition-stats'),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -107,6 +108,7 @@ class HomeScreen extends ConsumerWidget {
                     value: '0',
                     goal: '${today.estimatedDuration.inMinutes} мин',
                     progress: 0,
+                    onTap: () => context.push('/workout-stats'),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -119,6 +121,7 @@ class HomeScreen extends ConsumerWidget {
                     value: '$mealsDone',
                     goal: '${meals.length} приёмов',
                     progress: meals.isEmpty ? 0 : mealsDone / meals.length,
+                    onTap: () => context.go('/nutrition'),
                   ),
                 ),
               ],
@@ -273,6 +276,7 @@ class _TodayStatCard extends StatelessWidget {
     required this.value,
     required this.goal,
     required this.progress,
+    this.onTap,
   });
 
   final IconData icon;
@@ -282,10 +286,12 @@ class _TodayStatCard extends StatelessWidget {
   final String value;
   final String goal;
   final double progress;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return AppCard(
+      onTap: onTap,
       padding: const EdgeInsets.all(AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,6 +334,7 @@ class _ProgressCard extends StatelessWidget {
     final labels = List.generate(steps, (i) => (maxW - (maxW - minW) * i / (steps - 1)).round());
 
     return AppCard(
+      onTap: () => context.push('/workout-stats'),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
