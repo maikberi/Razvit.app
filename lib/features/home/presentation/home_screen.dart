@@ -268,40 +268,46 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.xl),
+      child: Container(
         color: AppColors.green50,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Сегодня по плану', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green700)),
-                const SizedBox(height: 4),
-                Text('$title 💪', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.ink900)),
-                const SizedBox(height: AppSpacing.sm),
-                _bullet(context, Icons.format_list_bulleted_rounded, '$exercises упражнений'),
-                const SizedBox(height: 4),
-                _bullet(context, Icons.timer_outlined, '$minutes минут'),
-                const SizedBox(height: 4),
-                _bullet(context, Icons.bar_chart_rounded, '${volumeKg.round()} кг объём'),
-              ],
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            Positioned(
+              right: -16,
+              top: 0,
+              bottom: 0,
+              child: Image.asset(
+                'assets/home/hero_dumbbells.png',
+                width: 210,
+                fit: BoxFit.contain,
+              ),
             ),
-          ),
-          SizedBox(
-            width: 150,
-            height: 100,
-            child: Image.asset(
-              'assets/home/hero_dumbbells.png',
-              fit: BoxFit.contain,
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: FractionallySizedBox(
+                widthFactor: 0.6,
+                alignment: Alignment.topLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Сегодня по плану', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green700)),
+                    const SizedBox(height: 4),
+                    Text(title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.ink900)),
+                    const SizedBox(height: AppSpacing.sm),
+                    _bullet(context, Icons.format_list_bulleted_rounded, '$exercises упражнений'),
+                    const SizedBox(height: 4),
+                    _bullet(context, Icons.timer_outlined, '$minutes минут'),
+                    const SizedBox(height: 4),
+                    _bullet(context, Icons.bar_chart_rounded, '${volumeKg.round()} кг объём'),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
