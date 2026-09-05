@@ -293,13 +293,12 @@ class _GoalCard extends StatelessWidget {
               ],
             ),
           ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+          SizedBox(
+            width: 150,
+            height: 100,
             child: Image.asset(
               'assets/home/hero_dumbbells.png',
-              width: 96,
-              height: 96,
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
             ),
           ),
         ],
