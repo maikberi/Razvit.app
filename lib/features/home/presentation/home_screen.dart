@@ -7,7 +7,9 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/mascot.dart';
+import '../../../core/widgets/progress_ring.dart';
 import '../../../data/mock/mock_progress.dart';
+import '../../../data/models/workout_session.dart';
 import '../../../data/repositories/nutrition_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
 import '../../../data/repositories/trainer_repository.dart';
@@ -16,6 +18,7 @@ import '../../../data/repositories/workout_repository.dart';
 
 const _statBlue = Color(0xFF3B82F6);
 const _statPurple = Color(0xFF8B5CF6);
+const _weekdayLetters = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 String _weeksLabel(int weeks) {
   final mod100 = weeks % 100;
@@ -24,6 +27,14 @@ String _weeksLabel(int weeks) {
   if (mod10 == 1) return 'неделю';
   if (mod10 >= 2 && mod10 <= 4) return 'недели';
   return 'недель';
+}
+
+String _greeting() {
+  final hour = DateTime.now().hour;
+  if (hour < 6) return 'Доброй ночи';
+  if (hour < 12) return 'Доброе утро';
+  if (hour < 18) return 'Добрый день';
+  return 'Добрый вечер';
 }
 
 class HomeScreen extends ConsumerWidget {
@@ -35,11 +46,14 @@ class HomeScreen extends ConsumerWidget {
     final today = ref.watch(todayWorkoutProvider);
     final meals = ref.watch(mealsProvider);
     final plan = ref.watch(nutritionPlanProvider);
+    final water = ref.watch(waterIntakeProvider);
     final trainer = ref.watch(myTrainerProvider);
     final weightHistory = ref.watch(weightHistoryProvider);
+    final sessions = ref.watch(workoutSessionsProvider);
 
     final calories = meals.fold(0, (s, m) => s + m.calories);
-    final mealsDone = meals.where((m) => m.entries.isNotEmpty).length;
+    final protein = meals.fold(0.0, (s, m) => s + m.protein);
+    final weightDelta = weightHistory.isEmpty ? 0.0 : user.weightKg - weightHistory.first.weightKg;
 
     return Scaffold(
       body: SafeArea(
@@ -47,40 +61,66 @@ class HomeScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xxl),
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'RAZVIT',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(letterSpacing: 0.5),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.headlineLarge,
+                      children: [
+                        TextSpan(text: '${_greeting()},\n'),
+                        TextSpan(text: '${user.name}! 👋', style: const TextStyle(color: AppColors.green600)),
+                      ],
+                    ),
+                  ),
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => context.push('/notifications'),
-                      icon: const Icon(Icons.notifications_none_rounded),
-                      style: IconButton.styleFrom(backgroundColor: Theme.of(context).cardTheme.color, shape: const CircleBorder()),
+                GestureDetector(
+                  onTap: () => context.push('/nutrition-stats'),
+                  child: SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: ProgressRing(
+                      progress: plan.progressPercent / 100,
+                      size: 64,
+                      strokeWidth: 6,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('${plan.progressPercent}%', style: Theme.of(context).textTheme.titleSmall),
+                          Text('Прогресс', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8)),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () => context.go('/profile'),
-                      child: AppAvatar(name: user.name, size: 40),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
+            const SizedBox(height: 6),
+            Text('Ты на ${plan.progressPercent}% ближе к своей цели!', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
             const SizedBox(height: AppSpacing.lg),
-            Text('Привет, ${user.name}! 👋', style: Theme.of(context).textTheme.headlineLarge),
-            const SizedBox(height: 4),
-            Text('Готов к новой лучшей версии себя?', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
-            const SizedBox(height: AppSpacing.lg),
-            _GoalCard(subtitle: today.title, streakDays: user.streakDays),
+            _GoalCard(title: today.title, exercises: today.exercises.length, minutes: today.estimatedDuration.inMinutes, volumeKg: today.estimatedVolumeKg),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => context.push('/workout-session'),
+                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).cardTheme.color, side: BorderSide.none, elevation: 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Начать тренировку'),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.arrow_forward_rounded, size: 18),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: AppSpacing.xl),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Сегодня', style: Theme.of(context).textTheme.titleLarge),
-                _LinkText(label: 'Смотреть все', onTap: () => context.push('/workout-stats')),
+                Text('Мои показатели', style: Theme.of(context).textTheme.titleLarge),
+                _LinkText(label: 'Настроить', onTap: () => context.push('/settings')),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -101,31 +141,63 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _TodayStatCard(
-                    icon: Icons.fitness_center_rounded,
+                    icon: Icons.egg_alt_rounded,
                     color: _statBlue,
                     background: const Color(0xFFEAF1FE),
-                    label: 'Тренировка',
-                    value: '0',
-                    goal: '${today.estimatedDuration.inMinutes} мин',
-                    progress: 0,
-                    onTap: () => context.push('/workout-stats'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _TodayStatCard(
-                    icon: Icons.restaurant_rounded,
-                    color: _statPurple,
-                    background: const Color(0xFFF2ECFE),
-                    label: 'Питание',
-                    value: '$mealsDone',
-                    goal: '${meals.length} приёмов',
-                    progress: meals.isEmpty ? 0 : mealsDone / meals.length,
+                    label: 'Белки',
+                    value: protein.toStringAsFixed(0),
+                    goal: '${plan.proteinGoal} г',
+                    progress: plan.proteinGoal == 0 ? 0 : protein / plan.proteinGoal,
                     onTap: () => context.go('/nutrition'),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _TodayStatCard(
+                    icon: Icons.water_drop_rounded,
+                    color: AppColors.water,
+                    background: const Color(0xFFE0FAFE),
+                    label: 'Вода',
+                    value: (water / 1000).toStringAsFixed(1),
+                    goal: '${(plan.waterGoalMl / 1000).toStringAsFixed(1)} л',
+                    progress: plan.waterGoalMl == 0 ? 0 : water / plan.waterGoalMl,
+                    onTap: () => context.go('/nutrition'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _TodayStatCard(
+                    icon: Icons.monitor_weight_rounded,
+                    color: _statPurple,
+                    background: const Color(0xFFF2ECFE),
+                    label: 'Вес',
+                    value: user.weightKg.toStringAsFixed(0),
+                    goal: 'кг',
+                    trailing: Text(
+                      '${weightDelta <= 0 ? '↓' : '↑'} ${weightDelta.abs().toStringAsFixed(1)} кг',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: weightDelta <= 0 ? AppColors.green600 : AppColors.error),
+                    ),
+                    onTap: () => context.push('/workout-stats'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Календарь тренировок', style: Theme.of(context).textTheme.titleLarge),
+                _LinkText(label: 'Смотреть все', onTap: () => context.push('/workout-calendar')),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _WeekCalendar(sessions: sessions),
+            const SizedBox(height: AppSpacing.xl),
+            _StreakCard(streakDays: user.streakDays),
             const SizedBox(height: AppSpacing.xl),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -165,8 +237,6 @@ class HomeScreen extends ConsumerWidget {
               onTap: () => context.push('/workouts'),
             ),
             const SizedBox(height: AppSpacing.xl),
-            _AiMentorCard(),
-            const SizedBox(height: AppSpacing.sm),
             _TrainerCard(name: trainer.name, isOnline: trainer.isOnline, rating: trainer.rating, seed: trainer.avatarSeed, id: trainer.id),
           ],
         ),
@@ -190,9 +260,11 @@ class _LinkText extends StatelessWidget {
 }
 
 class _GoalCard extends StatelessWidget {
-  const _GoalCard({required this.subtitle, required this.streakDays});
-  final String subtitle;
-  final int streakDays;
+  const _GoalCard({required this.title, required this.exercises, required this.minutes, required this.volumeKg});
+  final String title;
+  final int exercises;
+  final int minutes;
+  final double volumeKg;
 
   @override
   Widget build(BuildContext context) {
@@ -202,67 +274,46 @@ class _GoalCard extends StatelessWidget {
         color: AppColors.green50,
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text('Твоя цель на сегодня', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green700)),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  boxShadow: AppShadows.card,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('🔥', style: TextStyle(fontSize: 13)),
-                    const SizedBox(width: 5),
-                    Text('$streakDays дней подряд', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.ink700)),
-                  ],
-                ),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Сегодня по плану', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green700)),
+                const SizedBox(height: 4),
+                Text('$title 💪', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.ink900)),
+                const SizedBox(height: AppSpacing.sm),
+                _bullet(context, Icons.format_list_bulleted_rounded, '$exercises упражнений'),
+                const SizedBox(height: 4),
+                _bullet(context, Icons.timer_outlined, '$minutes минут'),
+                const SizedBox(height: 4),
+                _bullet(context, Icons.bar_chart_rounded, '${volumeKg.round()} кг объём'),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Тренировка', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.ink900)),
-                    const SizedBox(height: 2),
-                    Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
-                    const SizedBox(height: AppSpacing.md),
-                    ElevatedButton(
-                      onPressed: () => context.push('/workout-session'),
-                      style: ElevatedButton.styleFrom(minimumSize: const Size(0, 48), padding: const EdgeInsets.symmetric(horizontal: 22)),
-                      child: const Text('Начать тренировку'),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                width: 88,
-                height: 88,
-                margin: const EdgeInsets.only(left: AppSpacing.sm),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: AppColors.greenGradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.fitness_center_rounded, color: Colors.white, size: 40),
-              ),
-            ],
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            child: Image.asset(
+              'assets/home/hero_dumbbells.png',
+              width: 96,
+              height: 96,
+              fit: BoxFit.cover,
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _bullet(BuildContext context, IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 15, color: AppColors.green700),
+        const SizedBox(width: 6),
+        Text(text, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink700)),
+      ],
     );
   }
 }
@@ -275,7 +326,8 @@ class _TodayStatCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.goal,
-    required this.progress,
+    this.progress,
+    this.trailing,
     this.onTap,
   });
 
@@ -285,7 +337,8 @@ class _TodayStatCard extends StatelessWidget {
   final String label;
   final String value;
   final String goal;
-  final double progress;
+  final double? progress;
+  final Widget? trailing;
   final VoidCallback? onTap;
 
   @override
@@ -308,10 +361,109 @@ class _TodayStatCard extends StatelessWidget {
           Text(value, style: Theme.of(context).textTheme.titleLarge),
           Text('/ $goal', style: Theme.of(context).textTheme.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-            child: LinearProgressIndicator(value: progress.clamp(0, 1), minHeight: 5, backgroundColor: AppColors.ink100, color: color),
+          trailing ??
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                child: LinearProgressIndicator(value: (progress ?? 0).clamp(0, 1), minHeight: 5, backgroundColor: AppColors.ink100, color: color),
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeekCalendar extends StatelessWidget {
+  const _WeekCalendar({required this.sessions});
+  final List<WorkoutSession> sessions;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+
+    return AppCard(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          for (var i = 0; i < 7; i++) _dayColumn(context, startOfWeek.add(Duration(days: i)), today),
+        ],
+      ),
+    );
+  }
+
+  Widget _dayColumn(BuildContext context, DateTime date, DateTime today) {
+    final isToday = date == today;
+    WorkoutSession? session;
+    for (final s in sessions) {
+      final sDate = DateTime(s.date.year, s.date.month, s.date.day);
+      if (sDate == date) {
+        session = s;
+        break;
+      }
+    }
+
+    Color bg;
+    Color fg;
+    Widget? child;
+    if (session?.status == SessionStatus.done) {
+      bg = AppColors.green500;
+      fg = Colors.white;
+      child = const Icon(Icons.check_rounded, size: 16, color: Colors.white);
+    } else if (session?.status == SessionStatus.missed) {
+      bg = Theme.of(context).dividerColor;
+      fg = AppColors.ink500;
+      child = Text('${date.day}', style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w700));
+    } else {
+      bg = Colors.transparent;
+      fg = AppColors.ink400;
+      child = Text('${date.day}', style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w700));
+    }
+
+    return Column(
+      children: [
+        Text(_weekdayLetters[date.weekday - 1], style: Theme.of(context).textTheme.labelSmall),
+        const SizedBox(height: 6),
+        Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: bg,
+            shape: BoxShape.circle,
+            border: isToday ? Border.all(color: AppColors.green600, width: 2) : Border.all(color: Theme.of(context).dividerColor),
           ),
+          child: child,
+        ),
+      ],
+    );
+  }
+}
+
+class _StreakCard extends StatelessWidget {
+  const _StreakCard({required this.streakDays});
+  final int streakDays;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      color: context.isDarkMode ? AppColors.green500.withValues(alpha: 0.16) : AppColors.green50,
+      shadow: false,
+      onTap: () => context.push('/ai-assistant'),
+      child: Row(
+        children: [
+          const Text('🔥', style: TextStyle(fontSize: 22)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$streakDays дней подряд', style: Theme.of(context).textTheme.titleSmall),
+                Text('Не останавливайся!', style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+          const RazvitMascot(size: 44),
         ],
       ),
     );
@@ -444,39 +596,6 @@ class _WorkoutRow extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.md)),
               child: Icon(Icons.play_arrow_rounded, color: color),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AiMentorCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      color: context.isDarkMode ? AppColors.green500.withValues(alpha: 0.16) : AppColors.green50,
-      shadow: false,
-      onTap: () => context.push('/ai-assistant'),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const RazvitMascot(size: 44),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('AI-ассистент', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 4),
-                Text(
-                  'Ты отлично держишь темп. Не останавливайся! На следующей тренировке можно немного увеличить нагрузку.',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 8),
-                Text('Спросить совет', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green700)),
-              ],
             ),
           ),
         ],

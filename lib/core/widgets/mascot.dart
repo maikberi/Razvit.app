@@ -44,7 +44,10 @@ class _RazvitMascotState extends State<RazvitMascot> with SingleTickerProviderSt
           shape: BoxShape.circle,
         ),
         alignment: Alignment.center,
-        child: Text('🐻', style: TextStyle(fontSize: widget.size * 0.52)),
+        child: Padding(
+          padding: EdgeInsets.all(widget.size * 0.06),
+          child: Image.asset('assets/mascot/bear.png', fit: BoxFit.contain),
+        ),
       ),
     );
   }

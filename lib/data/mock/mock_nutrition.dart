@@ -1,24 +1,24 @@
 import '../models/nutrition.dart';
 
 final List<FoodItem> mockFoods = [
-  const FoodItem(id: 'oatmeal', name: 'Овсянка на молоке', caloriesPer100g: 110, proteinPer100g: 3.6, fatPer100g: 2, carbsPer100g: 19),
-  const FoodItem(id: 'banana', name: 'Банан', caloriesPer100g: 89, proteinPer100g: 1.1, fatPer100g: 0.3, carbsPer100g: 23),
+  const FoodItem(id: 'oatmeal', name: 'Овсянка на молоке', caloriesPer100g: 110, proteinPer100g: 3.6, fatPer100g: 2, carbsPer100g: 19, fiberPer100g: 1.7),
+  const FoodItem(id: 'banana', name: 'Банан', caloriesPer100g: 89, proteinPer100g: 1.1, fatPer100g: 0.3, carbsPer100g: 23, fiberPer100g: 2.6),
   const FoodItem(id: 'chicken_breast', name: 'Куриная грудка', caloriesPer100g: 165, proteinPer100g: 31, fatPer100g: 3.6, carbsPer100g: 0),
   const FoodItem(id: 'chicken_grilled', name: 'Куриная грудка гриль', caloriesPer100g: 165, proteinPer100g: 31, fatPer100g: 3.6, carbsPer100g: 0),
-  const FoodItem(id: 'brown_rice', name: 'Рис бурый', caloriesPer100g: 112, proteinPer100g: 2.6, fatPer100g: 0.9, carbsPer100g: 23),
-  const FoodItem(id: 'veg_salad', name: 'Овощной салат', caloriesPer100g: 75, proteinPer100g: 1.5, fatPer100g: 5, carbsPer100g: 6),
+  const FoodItem(id: 'brown_rice', name: 'Рис бурый', caloriesPer100g: 112, proteinPer100g: 2.6, fatPer100g: 0.9, carbsPer100g: 23, fiberPer100g: 1.8),
+  const FoodItem(id: 'veg_salad', name: 'Овощной салат', caloriesPer100g: 75, proteinPer100g: 1.5, fatPer100g: 5, carbsPer100g: 6, fiberPer100g: 2.2),
   const FoodItem(id: 'olive_oil', name: 'Оливковое масло', caloriesPer100g: 884, proteinPer100g: 0, fatPer100g: 100, carbsPer100g: 0),
   const FoodItem(id: 'salmon', name: 'Лосось запечённый', caloriesPer100g: 187, proteinPer100g: 20, fatPer100g: 12, carbsPer100g: 0),
-  const FoodItem(id: 'quinoa', name: 'Киноа', caloriesPer100g: 120, proteinPer100g: 4.4, fatPer100g: 1.9, carbsPer100g: 21),
+  const FoodItem(id: 'quinoa', name: 'Киноа', caloriesPer100g: 120, proteinPer100g: 4.4, fatPer100g: 1.9, carbsPer100g: 21, fiberPer100g: 2.8),
   const FoodItem(id: 'eggs', name: 'Яйцо куриное', caloriesPer100g: 155, proteinPer100g: 13, fatPer100g: 11, carbsPer100g: 1.1, defaultGrams: 55),
   const FoodItem(id: 'cottage_cheese', name: 'Творог 5%', caloriesPer100g: 121, proteinPer100g: 17, fatPer100g: 5, carbsPer100g: 1.8),
   const FoodItem(id: 'cottage_cheese_grain', name: 'Творог зернёный 5%', caloriesPer100g: 106, proteinPer100g: 12, fatPer100g: 5, carbsPer100g: 3),
   const FoodItem(id: 'whey_protein', name: 'Протеин сывороточный', caloriesPer100g: 400, proteinPer100g: 80, fatPer100g: 7, carbsPer100g: 10, defaultGrams: 30),
-  const FoodItem(id: 'whole_grain_bread', name: 'Хлеб цельнозерновой', caloriesPer100g: 247, proteinPer100g: 9, fatPer100g: 3, carbsPer100g: 41),
-  const FoodItem(id: 'avocado', name: 'Авокадо', caloriesPer100g: 160, proteinPer100g: 2, fatPer100g: 15, carbsPer100g: 9),
-  const FoodItem(id: 'buckwheat', name: 'Гречка варёная', caloriesPer100g: 110, proteinPer100g: 4, fatPer100g: 1, carbsPer100g: 21),
-  const FoodItem(id: 'almonds', name: 'Миндаль', caloriesPer100g: 579, proteinPer100g: 21, fatPer100g: 50, carbsPer100g: 22, defaultGrams: 30),
-  const FoodItem(id: 'apple', name: 'Яблоко', caloriesPer100g: 52, proteinPer100g: 0.3, fatPer100g: 0.2, carbsPer100g: 14),
+  const FoodItem(id: 'whole_grain_bread', name: 'Хлеб цельнозерновой', caloriesPer100g: 247, proteinPer100g: 9, fatPer100g: 3, carbsPer100g: 41, fiberPer100g: 6.5),
+  const FoodItem(id: 'avocado', name: 'Авокадо', caloriesPer100g: 160, proteinPer100g: 2, fatPer100g: 15, carbsPer100g: 9, fiberPer100g: 7),
+  const FoodItem(id: 'buckwheat', name: 'Гречка варёная', caloriesPer100g: 110, proteinPer100g: 4, fatPer100g: 1, carbsPer100g: 21, fiberPer100g: 2.7),
+  const FoodItem(id: 'almonds', name: 'Миндаль', caloriesPer100g: 579, proteinPer100g: 21, fatPer100g: 50, carbsPer100g: 22, fiberPer100g: 12.5, defaultGrams: 30),
+  const FoodItem(id: 'apple', name: 'Яблоко', caloriesPer100g: 52, proteinPer100g: 0.3, fatPer100g: 0.2, carbsPer100g: 14, fiberPer100g: 2.4),
 ];
 
 FoodItem foodById(String id) => mockFoods.firstWhere((f) => f.id == id);

@@ -264,6 +264,8 @@ class _BarcodeSheetState extends State<_BarcodeSheet> {
   }
 }
 
+const _foodBadgeColors = [AppColors.green600, Color(0xFF3B82F6), Color(0xFFF59E0B), Color(0xFF8B5CF6), Color(0xFFEC4899)];
+
 class _FoodRow extends StatelessWidget {
   const _FoodRow({required this.food, required this.onAdd});
   final FoodItem food;
@@ -271,10 +273,23 @@ class _FoodRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = _foodBadgeColors[food.id.hashCode.abs() % _foodBadgeColors.length];
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      onTap: () => showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => _ProductDetailSheet(food: food, onAdd: onAdd),
+      ),
       child: Row(
         children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+            child: Icon(Icons.restaurant_rounded, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,10 +297,6 @@ class _FoodRow extends StatelessWidget {
                 Text(food.name, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
                 Text(
                   '${food.defaultGrams} г · ${food.caloriesPer100g} ккал',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                Text(
-                  'Б ${food.proteinPer100g.toStringAsFixed(1)} · Ж ${food.fatPer100g.toStringAsFixed(1)} · У ${food.carbsPer100g.toStringAsFixed(1)}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -296,6 +307,125 @@ class _FoodRow extends StatelessWidget {
             icon: const Icon(Icons.add_rounded),
             style: IconButton.styleFrom(backgroundColor: AppColors.green500, foregroundColor: Colors.white),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProductDetailSheet extends StatefulWidget {
+  const _ProductDetailSheet({required this.food, required this.onAdd});
+  final FoodItem food;
+  final ValueChanged<int> onAdd;
+
+  @override
+  State<_ProductDetailSheet> createState() => _ProductDetailSheetState();
+}
+
+class _ProductDetailSheetState extends State<_ProductDetailSheet> {
+  late int _grams = widget.food.defaultGrams;
+
+  @override
+  Widget build(BuildContext context) {
+    final food = widget.food;
+    final ratio = _grams / 100;
+    final color = _foodBadgeColors[food.id.hashCode.abs() % _foodBadgeColors.length];
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+                child: Icon(Icons.restaurant_rounded, color: color, size: 30),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(food.name, style: Theme.of(context).textTheme.headlineMedium),
+                    Text('$_grams г', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              Expanded(child: _statColumn(context, 'Калории', '${(food.caloriesPer100g * ratio).round()}')),
+              Expanded(child: _statColumn(context, 'Белки', '${(food.proteinPer100g * ratio).toStringAsFixed(0)} г')),
+              Expanded(child: _statColumn(context, 'Жиры', '${(food.fatPer100g * ratio).toStringAsFixed(0)} г')),
+              Expanded(child: _statColumn(context, 'Углеводы', '${(food.carbsPer100g * ratio).toStringAsFixed(0)} г')),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text('Вес порции', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton.filled(
+                onPressed: _grams > 10 ? () => setState(() => _grams -= 10) : null,
+                icon: const Icon(Icons.remove_rounded),
+                style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+              ),
+              SizedBox(width: 100, child: Text('$_grams г', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium)),
+              IconButton.filled(
+                onPressed: () => setState(() => _grams += 10),
+                icon: const Icon(Icons.add_rounded),
+                style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onAdd(_grams);
+              },
+              child: const Text('Добавить продукт'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text('Пищевая ценность на 100 г', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: AppSpacing.sm),
+          _nutrientRow(context, 'Калории', '${food.caloriesPer100g} ккал'),
+          _nutrientRow(context, 'Белки', '${food.proteinPer100g.toStringAsFixed(1)} г'),
+          _nutrientRow(context, 'Жиры', '${food.fatPer100g.toStringAsFixed(1)} г'),
+          _nutrientRow(context, 'Углеводы', '${food.carbsPer100g.toStringAsFixed(1)} г'),
+          _nutrientRow(context, 'Клетчатка', '${food.fiberPer100g.toStringAsFixed(1)} г'),
+        ],
+      ),
+    );
+  }
+
+  Widget _statColumn(BuildContext context, String label, String value) {
+    return Column(
+      children: [
+        Text(value, style: Theme.of(context).textTheme.titleMedium),
+        Text(label, style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ],
+    );
+  }
+
+  Widget _nutrientRow(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+          Text(value, style: Theme.of(context).textTheme.titleSmall),
         ],
       ),
     );

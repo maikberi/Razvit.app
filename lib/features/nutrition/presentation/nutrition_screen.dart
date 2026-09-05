@@ -15,11 +15,18 @@ import '../../../data/repositories/nutrition_repository.dart';
       MealType.snack => (Icons.cookie_rounded, AppColors.green600, AppColors.green50),
     };
 
-class NutritionScreen extends ConsumerWidget {
+class NutritionScreen extends ConsumerStatefulWidget {
   const NutritionScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NutritionScreen> createState() => _NutritionScreenState();
+}
+
+class _NutritionScreenState extends ConsumerState<NutritionScreen> {
+  bool _editMode = false;
+
+  @override
+  Widget build(BuildContext context) {
     final meals = ref.watch(mealsProvider);
     final plan = ref.watch(nutritionPlanProvider);
     final water = ref.watch(waterIntakeProvider);
@@ -32,11 +39,29 @@ class NutritionScreen extends ConsumerWidget {
     final remaining = plan.calorieGoal - calories;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Питание')),
+      appBar: AppBar(
+        title: const Text('Питание'),
+        actions: [
+          IconButton(onPressed: () => context.push('/notifications'), icon: const Icon(Icons.notifications_none_rounded)),
+        ],
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxl),
           children: [
+            Row(
+              children: [
+                Text('Сегодня', style: Theme.of(context).textTheme.titleMedium),
+                const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.ink500),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => context.push('/workout-calendar'),
+                  icon: const Icon(Icons.calendar_today_outlined, size: 20),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
             AppCard(
               color: AppColors.green500,
               shadow: false,
@@ -69,9 +94,9 @@ class NutritionScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _macroLine(context, 'Белки', protein, plan.proteinGoal),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         _macroLine(context, 'Жиры', fat, plan.fatGoal),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         _macroLine(context, 'Углеводы', carbs, plan.carbsGoal),
                       ],
                     ),
@@ -111,22 +136,20 @@ class NutritionScreen extends ConsumerWidget {
                             onTap: () => waterNotifier.set((i + 1) * 250),
                             child: Icon(
                               Icons.water_drop_rounded,
-                              size: 24,
+                              size: 22,
                               color: (i + 1) * 250 <= water ? AppColors.water : AppColors.ink200,
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(onPressed: () => waterNotifier.add(250), icon: const Icon(Icons.add_rounded, size: 16), label: const Text('250 мл')),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(onPressed: () => waterNotifier.add(500), icon: const Icon(Icons.add_rounded, size: 16), label: const Text('500 мл')),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => waterNotifier.add(250),
+                        child: Container(
+                          width: 26,
+                          height: 26,
+                          decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle),
+                          child: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                        ),
                       ),
                     ],
                   ),
@@ -134,10 +157,16 @@ class NutritionScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('Приёмы пищи', style: Theme.of(context).textTheme.titleLarge),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Приёмы пищи', style: Theme.of(context).textTheme.titleLarge),
+                _LinkText(label: _editMode ? 'Готово' : 'Изменить', onTap: () => setState(() => _editMode = !_editMode)),
+              ],
+            ),
             const SizedBox(height: AppSpacing.sm),
             for (final meal in meals) ...[
-              _MealSection(meal: meal),
+              _MealSection(meal: meal, editMode: _editMode),
               const SizedBox(height: AppSpacing.sm),
             ],
           ],
@@ -147,27 +176,28 @@ class NutritionScreen extends ConsumerWidget {
   }
 
   Widget _macroLine(BuildContext context, String label, double value, int goal) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final done = goal > 0 && value >= goal;
+    return Row(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-            Text('${value.toStringAsFixed(0)} / $goal г', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-          ],
-        ),
-        const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          child: LinearProgressIndicator(
-            value: goal == 0 ? 0 : (value / goal).clamp(0, 1),
-            minHeight: 5,
-            backgroundColor: Colors.white24,
-            color: Colors.white,
-          ),
-        ),
+        Icon(done ? Icons.check_circle_rounded : Icons.check_circle_outline_rounded, size: 14, color: Colors.white70),
+        const SizedBox(width: 6),
+        Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12))),
+        Text('${value.toStringAsFixed(0)} / $goal г', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
       ],
+    );
+  }
+}
+
+class _LinkText extends StatelessWidget {
+  const _LinkText({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green600)),
     );
   }
 }
@@ -195,42 +225,49 @@ class _QuickAction extends StatelessWidget {
 }
 
 class _MealSection extends ConsumerWidget {
-  const _MealSection({required this.meal});
+  const _MealSection({required this.meal, required this.editMode});
   final Meal meal;
+  final bool editMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final style = _mealStyle(meal.type);
+    final summary = meal.entries.map((e) => e.food.name).join(', ');
+
     return AppCard(
+      onTap: editMode ? null : () => context.push('/add-food/${meal.type.name}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: () => context.push('/add-food/${meal.type.name}'),
-            child: Row(
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(color: style.$3, shape: BoxShape.circle),
-                  child: Icon(style.$1, color: style.$2, size: 18),
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: style.$3, shape: BoxShape.circle),
+                child: Icon(style.$1, color: style.$2, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(meal.type.label, style: Theme.of(context).textTheme.titleSmall),
+                    Text(
+                      summary.isEmpty ? 'Ничего не добавлено' : summary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(meal.type.label, style: Theme.of(context).textTheme.titleSmall),
-                      Text(meal.time, style: Theme.of(context).textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-                Text('${meal.calories} ккал', style: Theme.of(context).textTheme.titleSmall),
-                const Icon(Icons.chevron_right_rounded, color: AppColors.ink300),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              Text('${meal.calories} ккал', style: Theme.of(context).textTheme.titleSmall),
+              if (!editMode) const Icon(Icons.chevron_right_rounded, color: AppColors.ink300),
+            ],
           ),
-          if (meal.entries.isNotEmpty) ...[
+          if (editMode && meal.entries.isNotEmpty) ...[
             const Divider(height: AppSpacing.lg),
             for (var i = 0; i < meal.entries.length; i++)
               Padding(
@@ -251,11 +288,12 @@ class _MealSection extends ConsumerWidget {
                   ],
                 ),
               ),
-          ] else ...[
+          ],
+          if (editMode) ...[
             const SizedBox(height: AppSpacing.sm),
             GestureDetector(
               onTap: () => context.push('/add-food/${meal.type.name}'),
-              child: AddFoodRow(label: 'Добавить продукт'),
+              child: const AddFoodRow(label: 'Добавить продукт'),
             ),
           ],
         ],
@@ -274,7 +312,7 @@ class AddFoodRow extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).dividerColor, style: BorderStyle.solid),
+        border: Border.all(color: Theme.of(context).dividerColor),
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Row(
