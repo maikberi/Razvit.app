@@ -439,7 +439,7 @@ class _AiMentorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      color: context.isDarkMode ? AppColors.green500.withOpacity(0.16) : AppColors.green50,
+      color: context.isDarkMode ? AppColors.green500.withValues(alpha: 0.16) : AppColors.green50,
       shadow: false,
       onTap: () => context.push('/ai-assistant'),
       child: Row(

@@ -25,6 +25,7 @@ final List<Exercise> mockExercises = [
     ],
     isFavorite: true,
     videoAsset: 'assets/exercises/machine_exercise_demo.mp4',
+    videoPosterAsset: 'assets/exercises/machine_exercise_demo_poster.jpg',
   ),
   const Exercise(
     id: 'bench_press',

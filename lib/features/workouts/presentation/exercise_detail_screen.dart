@@ -84,7 +84,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: exercise.videoAsset != null
-                    ? LoopVideo(assetPath: exercise.videoAsset!)
+                    ? LoopVideo(assetPath: exercise.videoAsset!, posterAssetPath: exercise.videoPosterAsset)
                     : Container(
                         height: 180,
                         width: double.infinity,

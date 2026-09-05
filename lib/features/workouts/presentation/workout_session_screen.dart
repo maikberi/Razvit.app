@@ -118,7 +118,7 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
                     Text(exercise.exercise.primaryMuscle.label, style: const TextStyle(color: Colors.white54)),
                     const SizedBox(height: AppSpacing.md),
                     exercise.exercise.videoAsset != null
-                        ? LoopVideo(assetPath: exercise.exercise.videoAsset!)
+                        ? LoopVideo(assetPath: exercise.exercise.videoAsset!, posterAssetPath: exercise.exercise.videoPosterAsset)
                         : Container(
                             height: 200,
                             decoration: BoxDecoration(color: AppColors.darkSurfaceElevated, borderRadius: BorderRadius.circular(AppRadius.lg)),

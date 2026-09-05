@@ -70,7 +70,7 @@ class _WavePainter extends CustomPainter {
       }
       path.lineTo(size.width, size.height);
       path.close();
-      canvas.drawPath(path, Paint()..color = color.withOpacity(baseOpacity * 0.5));
+      canvas.drawPath(path, Paint()..color = color.withValues(alpha: baseOpacity * 0.5));
     }
   }
 
@@ -107,7 +107,7 @@ class SelectableTileCard extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: selected ? (isDark ? AppColors.green500.withOpacity(0.18) : AppColors.green50) : Theme.of(context).cardTheme.color,
+          color: selected ? (isDark ? AppColors.green500.withValues(alpha: 0.18) : AppColors.green50) : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(color: selected ? AppColors.green500 : Theme.of(context).dividerColor, width: selected ? 1.5 : 1),
         ),
@@ -181,53 +181,6 @@ class PlacePhotoTile extends StatelessWidget {
                   child: CircleAvatar(radius: 11, backgroundColor: Colors.white, child: Icon(Icons.check_rounded, color: AppColors.green600, size: 14)),
                 ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Круглая кнопка «Далее» с анимацией нажатия — вместо кнопки на всю ширину.
-class CircleNextButton extends StatefulWidget {
-  const CircleNextButton({super.key, required this.enabled, required this.onTap, required this.isLast});
-
-  final bool enabled;
-  final VoidCallback onTap;
-  final bool isLast;
-
-  @override
-  State<CircleNextButton> createState() => _CircleNextButtonState();
-}
-
-class _CircleNextButtonState extends State<CircleNextButton> {
-  double _scale = 1;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: widget.enabled ? (_) => setState(() => _scale = 0.9) : null,
-      onTapUp: widget.enabled ? (_) => setState(() => _scale = 1) : null,
-      onTapCancel: widget.enabled ? () => setState(() => _scale = 1) : null,
-      onTap: widget.enabled ? widget.onTap : null,
-      child: AnimatedScale(
-        scale: _scale,
-        duration: const Duration(milliseconds: 100),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: widget.enabled ? const LinearGradient(colors: AppColors.greenGradient, begin: Alignment.topLeft, end: Alignment.bottomRight) : null,
-            color: widget.enabled ? null : Theme.of(context).dividerColor,
-            boxShadow: widget.enabled
-                ? [BoxShadow(color: AppColors.green500.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 6))]
-                : null,
-          ),
-          child: Icon(
-            widget.isLast ? Icons.check_rounded : Icons.arrow_forward_rounded,
-            color: widget.enabled ? Colors.white : AppColors.ink400,
           ),
         ),
       ),
@@ -325,7 +278,7 @@ class _PulseDotState extends State<_PulseDot> with SingleTickerProviderStateMixi
             children: [
               Transform.scale(
                 scale: scale,
-                child: Container(width: 24, height: 24, decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.green500.withOpacity(0.35))),
+                child: Container(width: 24, height: 24, decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.green500.withValues(alpha: 0.35))),
               ),
               Container(width: 14, height: 14, decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.green500)),
             ],

@@ -36,6 +36,7 @@ class Exercise {
     this.tips = const [],
     this.isFavorite = false,
     this.videoAsset,
+    this.videoPosterAsset,
   });
 
   final String id;
@@ -45,6 +46,8 @@ class Exercise {
   final String equipment;
   /// Путь к зацикленному демо-видео техники выполнения (если есть).
   final String? videoAsset;
+  /// Кадр-превью видео — показывается мгновенно, пока видео догружается.
+  final String? videoPosterAsset;
   final ExerciseDifficulty difficulty;
   final List<String> instructions;
   final List<String> mistakes;

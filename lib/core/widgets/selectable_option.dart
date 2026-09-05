@@ -35,7 +35,7 @@ class SelectableOptionCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          color: selected ? (isDark ? AppColors.green500.withOpacity(0.18) : AppColors.green50) : Theme.of(context).cardTheme.color,
+          color: selected ? (isDark ? AppColors.green500.withValues(alpha: 0.18) : AppColors.green50) : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(color: selected ? AppColors.green500 : Theme.of(context).dividerColor, width: selected ? 1.5 : 1),
         ),

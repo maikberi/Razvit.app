@@ -11,12 +11,12 @@ import '../../../data/models/workout.dart';
 import '../../../data/repositories/workout_repository.dart';
 
 class _DraftExercise {
-  _DraftExercise({required this.exercise, this.sets = 3, this.repsLabel = '8–12', this.weightKg = 20, this.restSeconds = 60});
+  _DraftExercise({required this.exercise});
   final Exercise exercise;
-  int sets;
-  String repsLabel;
-  double weightKg;
-  int restSeconds;
+  int sets = 3;
+  String repsLabel = '8–12';
+  double weightKg = 20;
+  int restSeconds = 60;
 }
 
 const _weekdayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];

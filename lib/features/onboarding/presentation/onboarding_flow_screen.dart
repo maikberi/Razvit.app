@@ -193,11 +193,9 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      CircleNextButton(enabled: _canContinue(profile), onTap: _next, isLast: _page == _total - 1),
-                    ],
+                  child: ElevatedButton(
+                    onPressed: _canContinue(profile) ? _next : null,
+                    child: Text(_page == _total - 1 ? 'Готово' : 'Далее'),
                   ),
                 ),
               ],

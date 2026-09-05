@@ -17,7 +17,7 @@ class WelcomeScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(flex: 2),
-              const RazvitMark(size: 88),
+              const RazvitMark(size: 128),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 'Добро пожаловать\nв RAZVIT',
