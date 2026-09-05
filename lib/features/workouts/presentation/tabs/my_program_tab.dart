@@ -7,6 +7,7 @@ import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/section_header.dart';
 import '../../../../data/models/exercise.dart';
 import '../../../../data/models/workout.dart';
+import '../../../../data/models/workout_session.dart';
 import '../../../../data/repositories/workout_repository.dart';
 import '../../widgets/program_card.dart';
 
@@ -22,6 +23,14 @@ class MyProgramTab extends ConsumerWidget {
     final records = ref.watch(personalRecordsProvider);
     final exercises = ref.watch(exerciseCatalogProvider).where((e) => e.isFavorite).take(4).toList();
 
+    final activeProgram = ref.watch(activeProgramProvider);
+    final sessions = ref.watch(workoutSessionsProvider);
+    final now = DateTime.now();
+    final startOfWeek = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    final doneThisWeek = sessions.where((s) => s.status == SessionStatus.done && !s.date.isBefore(startOfWeek)).length;
+    final targetPerWeek = activeProgram.trainingDays.isEmpty ? 1 : activeProgram.trainingDays.length;
+    final weekProgress = (doneThisWeek / targetPerWeek).clamp(0.0, 1.0);
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxl),
       children: [
@@ -35,11 +44,11 @@ class MyProgramTab extends ConsumerWidget {
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(AppRadius.pill),
-                  child: LinearProgressIndicator(value: 4 / 5, minHeight: 8, backgroundColor: Theme.of(context).dividerColor),
+                  child: LinearProgressIndicator(value: weekProgress, minHeight: 8, backgroundColor: Theme.of(context).dividerColor),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text('4 / 5', style: Theme.of(context).textTheme.titleSmall),
+              Text('$doneThisWeek / $targetPerWeek', style: Theme.of(context).textTheme.titleSmall),
             ],
           ),
         ),

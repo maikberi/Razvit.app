@@ -17,6 +17,15 @@ import '../../../data/repositories/workout_repository.dart';
 const _statBlue = Color(0xFF3B82F6);
 const _statPurple = Color(0xFF8B5CF6);
 
+String _weeksLabel(int weeks) {
+  final mod100 = weeks % 100;
+  final mod10 = weeks % 10;
+  if (mod100 >= 11 && mod100 <= 14) return 'недель';
+  if (mod10 == 1) return 'неделю';
+  if (mod10 >= 2 && mod10 <= 4) return 'недели';
+  return 'недель';
+}
+
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -314,6 +323,7 @@ class _ProgressCard extends StatelessWidget {
     final minW = (weights.reduce((a, b) => a < b ? a : b) - 1).floorToDouble();
     final maxW = (weights.reduce((a, b) => a > b ? a : b) + 1).ceilToDouble();
     final delta = history.isEmpty ? 0.0 : currentWeight - history.first.weightKg;
+    final weeks = history.isEmpty ? 0 : (DateTime.now().difference(history.first.date).inDays / 7).round();
     final steps = 4;
     final labels = List.generate(steps, (i) => (maxW - (maxW - minW) * i / (steps - 1)).round());
 
@@ -331,7 +341,7 @@ class _ProgressCard extends StatelessWidget {
                 Text('${currentWeight.toStringAsFixed(1)} кг', style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 6),
                 Text(
-                  '${delta <= 0 ? '' : '+'}${delta.toStringAsFixed(1)} кг за 3 недели',
+                  '${delta <= 0 ? '' : '+'}${delta.toStringAsFixed(1)} кг за $weeks ${_weeksLabel(weeks)}',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(color: delta <= 0 ? AppColors.green600 : AppColors.error),
                 ),
               ],

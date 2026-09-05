@@ -1,12 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/selectable_option.dart';
 import '../../../data/models/workout_session.dart';
-import '../../../data/repositories/progress_repository.dart';
 import '../../../data/repositories/workout_repository.dart';
 
 enum _Period { week, month, year, all }
@@ -24,7 +24,6 @@ class _WorkoutStatsScreenState extends ConsumerState<WorkoutStatsScreen> {
   @override
   Widget build(BuildContext context) {
     final sessions = ref.watch(workoutSessionsProvider).where((s) => s.status == SessionStatus.done).toList();
-    final volume = ref.watch(monthlyVolumeProvider);
 
     final days = switch (_period) {
       _Period.week => 7,
@@ -33,7 +32,7 @@ class _WorkoutStatsScreenState extends ConsumerState<WorkoutStatsScreen> {
       _Period.all => 100000,
     };
     final cutoff = DateTime.now().subtract(Duration(days: days));
-    final filtered = sessions.where((s) => s.date.isAfter(cutoff)).toList();
+    final filtered = sessions.where((s) => s.date.isAfter(cutoff)).toList()..sort((a, b) => a.date.compareTo(b.date));
 
     final totalMinutes = filtered.fold<int>(0, (s, w) => s + w.durationMinutes);
     final totalVolume = filtered.fold<double>(0, (s, w) => s + w.volumeKg);
@@ -81,27 +80,49 @@ class _WorkoutStatsScreenState extends ConsumerState<WorkoutStatsScreen> {
                   Text('Объём тренировок', style: Theme.of(context).textTheme.bodySmall),
                   Text('${totalVolume.round()} кг', style: Theme.of(context).textTheme.headlineLarge),
                   const SizedBox(height: AppSpacing.md),
-                  SizedBox(
-                    height: 140,
-                    child: LineChart(
-                      LineChartData(
-                        gridData: const FlGridData(show: false),
-                        titlesData: const FlTitlesData(show: false),
-                        borderData: FlBorderData(show: false),
-                        lineTouchData: const LineTouchData(enabled: false),
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: [for (var i = 0; i < volume.length; i++) FlSpot(i.toDouble(), volume[i].volumeKg)],
-                            isCurved: true,
-                            color: AppColors.green500,
-                            barWidth: 3,
-                            dotData: const FlDotData(show: true),
-                            belowBarData: BarAreaData(show: true, color: AppColors.green500.withValues(alpha: 0.12)),
+                  if (filtered.isEmpty)
+                    const SizedBox(height: 100, child: Center(child: Text('Нет тренировок за этот период')))
+                  else
+                    SizedBox(
+                      height: 140,
+                      child: LineChart(
+                        LineChartData(
+                          gridData: const FlGridData(show: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 22,
+                                interval: (filtered.length / 3).clamp(1, double.infinity).ceilToDouble(),
+                                getTitlesWidget: (value, meta) {
+                                  final i = value.round();
+                                  if (i < 0 || i >= filtered.length) return const SizedBox.shrink();
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 6),
+                                    child: Text(DateFormat('d.MM').format(filtered[i].date), style: const TextStyle(fontSize: 9, color: AppColors.ink400)),
+                                  );
+                                },
+                              ),
+                            ),
                           ),
-                        ],
+                          borderData: FlBorderData(show: false),
+                          lineTouchData: const LineTouchData(enabled: false),
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: [for (var i = 0; i < filtered.length; i++) FlSpot(i.toDouble(), filtered[i].volumeKg)],
+                              isCurved: true,
+                              color: AppColors.green500,
+                              barWidth: 3,
+                              dotData: FlDotData(show: filtered.length <= 14),
+                              belowBarData: BarAreaData(show: true, color: AppColors.green500.withValues(alpha: 0.12)),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

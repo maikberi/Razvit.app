@@ -1,11 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../mock/mock_nutrition.dart';
+import '../mock/mock_nutrition_history.dart';
 import '../models/nutrition.dart';
 
 final foodCatalogProvider = Provider<List<FoodItem>>((ref) => mockFoods);
 final recipesProvider = Provider<List<Recipe>>((ref) => mockRecipes);
 final nutritionPlanProvider = Provider<NutritionPlan>((ref) => mockNutritionPlan);
+
+/// История питания за последние ~90 дней (без сегодняшнего — он берётся
+/// из реального состояния приёмов пищи и воды).
+final nutritionHistoryProvider = Provider<List<NutritionDayLog>>((ref) {
+  final plan = ref.watch(nutritionPlanProvider);
+  return generateMockNutritionHistory(
+    calorieGoal: plan.calorieGoal,
+    proteinGoal: plan.proteinGoal,
+    fatGoal: plan.fatGoal,
+    carbsGoal: plan.carbsGoal,
+    waterGoalMl: plan.waterGoalMl,
+  );
+});
 
 class MealsNotifier extends StateNotifier<List<Meal>> {
   MealsNotifier() : super(buildTodayMeals());

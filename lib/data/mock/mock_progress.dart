@@ -22,23 +22,3 @@ List<WeightEntry> generateMockWeightHistory() {
 }
 
 final List<WeightEntry> mockWeightHistory = generateMockWeightHistory();
-
-class VolumeEntry {
-  const VolumeEntry(this.date, this.volumeKg);
-  final DateTime date;
-  final double volumeKg;
-}
-
-List<VolumeEntry> generateMockMonthlyVolume() {
-  final now = DateTime.now();
-  final points = <VolumeEntry>[];
-  double base = 55000;
-  for (var i = 4; i >= 0; i--) {
-    final date = now.subtract(Duration(days: i * 7));
-    base += 6000 + (i.isEven ? 2000 : -1000);
-    points.add(VolumeEntry(date, base));
-  }
-  return points;
-}
-
-final List<VolumeEntry> mockMonthlyVolume = generateMockMonthlyVolume();
