@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/animated_emoji.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -237,7 +238,7 @@ class _HistoryTab extends StatelessWidget {
               shadow: false,
               child: Row(
                 children: [
-                  const Text('🔥', style: TextStyle(fontSize: 24)),
+                  const AnimatedEmoji('🔥', fontSize: 24),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(

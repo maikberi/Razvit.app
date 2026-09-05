@@ -7,6 +7,51 @@ import '../../../core/widgets/selectable_option.dart';
 import '../../../data/models/user.dart';
 import '../../../data/repositories/onboarding_repository.dart';
 
+(IconData, Color, Color) _goalStyle(FitnessGoal g) => switch (g) {
+      FitnessGoal.loseWeight => (Icons.local_fire_department_rounded, const Color(0xFFEF4444), const Color(0xFFFEE9E9)),
+      FitnessGoal.gainMuscle => (Icons.fitness_center_rounded, AppColors.green600, AppColors.green50),
+      FitnessGoal.getStronger => (Icons.bolt_rounded, const Color(0xFFF59E0B), const Color(0xFFFFF4DF)),
+      FitnessGoal.improveShape => (Icons.auto_awesome_rounded, const Color(0xFF8B5CF6), const Color(0xFFF2ECFE)),
+      FitnessGoal.endurance => (Icons.directions_run_rounded, const Color(0xFF3B82F6), const Color(0xFFEAF1FE)),
+      FitnessGoal.maintain => (Icons.favorite_rounded, const Color(0xFFEC4899), const Color(0xFFFDE8F3)),
+    };
+
+(IconData, Color, Color) _experienceStyle(ExperienceLevel e) => switch (e) {
+      ExperienceLevel.beginner => (Icons.eco_rounded, AppColors.green600, AppColors.green50),
+      ExperienceLevel.intermediate => (Icons.trending_up_rounded, const Color(0xFF3B82F6), const Color(0xFFEAF1FE)),
+      ExperienceLevel.advanced => (Icons.emoji_events_rounded, const Color(0xFFF59E0B), const Color(0xFFFFF4DF)),
+    };
+
+(IconData, Color, Color) _placeStyle(TrainingPlace p) => switch (p) {
+      TrainingPlace.gym => (Icons.fitness_center_rounded, const Color(0xFF3B82F6), const Color(0xFFEAF1FE)),
+      TrainingPlace.home => (Icons.home_rounded, AppColors.green600, AppColors.green50),
+      TrainingPlace.outdoor => (Icons.park_rounded, const Color(0xFF16A34A), AppColors.green50),
+      TrainingPlace.mixed => (Icons.public_rounded, const Color(0xFF8B5CF6), const Color(0xFFF2ECFE)),
+    };
+
+(IconData, Color, Color) _motivationStyle(Motivation m) => switch (m) {
+      Motivation.progress => (Icons.show_chart_rounded, const Color(0xFF3B82F6), const Color(0xFFEAF1FE)),
+      Motivation.records => (Icons.emoji_events_rounded, const Color(0xFFF59E0B), const Color(0xFFFFF4DF)),
+      Motivation.streak => (Icons.local_fire_department_rounded, const Color(0xFFEF4444), const Color(0xFFFEE9E9)),
+      Motivation.achievements => (Icons.military_tech_rounded, const Color(0xFF8B5CF6), const Color(0xFFF2ECFE)),
+      Motivation.trainerSupport => (Icons.support_agent_rounded, AppColors.green600, AppColors.green50),
+      Motivation.stats => (Icons.bar_chart_rounded, const Color(0xFF06B6D4), const Color(0xFFE0FAFE)),
+    };
+
+(IconData, Color, Color) _aiToneStyle(AiTone t) => switch (t) {
+      AiTone.professional => (Icons.badge_rounded, const Color(0xFF3B82F6), const Color(0xFFEAF1FE)),
+      AiTone.motivating => (Icons.bolt_rounded, const Color(0xFFF59E0B), const Color(0xFFFFF4DF)),
+      AiTone.friendly => (Icons.sentiment_satisfied_alt_rounded, AppColors.green600, AppColors.green50),
+    };
+
+(IconData, Color, Color) _durationStyle(WorkoutDuration d) => switch (d) {
+      WorkoutDuration.short => (Icons.timer_outlined, const Color(0xFF06B6D4), const Color(0xFFE0FAFE)),
+      WorkoutDuration.medium => (Icons.timer_rounded, AppColors.green600, AppColors.green50),
+      WorkoutDuration.long => (Icons.hourglass_bottom_rounded, const Color(0xFF3B82F6), const Color(0xFFEAF1FE)),
+      WorkoutDuration.extended => (Icons.hourglass_full_rounded, const Color(0xFFF59E0B), const Color(0xFFFFF4DF)),
+      WorkoutDuration.veryLong => (Icons.all_inclusive_rounded, const Color(0xFF8B5CF6), const Color(0xFFF2ECFE)),
+    };
+
 class OnboardingFlowScreen extends ConsumerStatefulWidget {
   const OnboardingFlowScreen({super.key});
 
@@ -74,15 +119,22 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
         leading: IconButton(icon: const Icon(Icons.arrow_back_rounded), onPressed: _back),
         title: Column(
           children: [
-            Text('${_page + 1} из $_total', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.ink500)),
-            const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              child: SizedBox(
-                width: 140,
-                height: 5,
-                child: LinearProgressIndicator(value: (_page + 1) / _total, backgroundColor: AppColors.ink200),
-              ),
+            Text('ШАГ ${_page + 1} ИЗ $_total', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.ink500, letterSpacing: 0.4)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var i = 0; i < _total; i++)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    width: 14,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: i <= _page ? AppColors.green500 : AppColors.ink200,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),
@@ -190,7 +242,14 @@ class _GoalPage extends StatelessWidget {
       child: Column(
         children: [
           for (final g in FitnessGoal.values)
-            SelectableOptionCard(label: g.label, selected: profile.goal == g, onTap: () => onSelect(g)),
+            SelectableOptionCard(
+              label: g.label,
+              icon: _goalStyle(g).$1,
+              iconColor: _goalStyle(g).$2,
+              iconBackground: _goalStyle(g).$3,
+              selected: profile.goal == g,
+              onTap: () => onSelect(g),
+            ),
         ],
       ),
     );
@@ -330,7 +389,14 @@ class _ExperiencePage extends StatelessWidget {
       child: Column(
         children: [
           for (final e in ExperienceLevel.values)
-            SelectableOptionCard(label: e.label, selected: profile.experience == e, onTap: () => onSelect(e)),
+            SelectableOptionCard(
+              label: e.label,
+              icon: _experienceStyle(e).$1,
+              iconColor: _experienceStyle(e).$2,
+              iconBackground: _experienceStyle(e).$3,
+              selected: profile.experience == e,
+              onTap: () => onSelect(e),
+            ),
         ],
       ),
     );
@@ -349,7 +415,14 @@ class _PlacePage extends StatelessWidget {
       child: Column(
         children: [
           for (final p in TrainingPlace.values)
-            SelectableOptionCard(label: p.label, selected: profile.place == p, onTap: () => onSelect(p)),
+            SelectableOptionCard(
+              label: p.label,
+              icon: _placeStyle(p).$1,
+              iconColor: _placeStyle(p).$2,
+              iconBackground: _placeStyle(p).$3,
+              selected: profile.place == p,
+              onTap: () => onSelect(p),
+            ),
         ],
       ),
     );
@@ -411,7 +484,14 @@ class _DurationPage extends StatelessWidget {
       child: Column(
         children: [
           for (final d in WorkoutDuration.values)
-            SelectableOptionCard(label: d.label, selected: profile.duration == d, onTap: () => onSelect(d)),
+            SelectableOptionCard(
+              label: d.label,
+              icon: _durationStyle(d).$1,
+              iconColor: _durationStyle(d).$2,
+              iconBackground: _durationStyle(d).$3,
+              selected: profile.duration == d,
+              onTap: () => onSelect(d),
+            ),
         ],
       ),
     );
@@ -431,7 +511,14 @@ class _MotivationPage extends StatelessWidget {
       child: Column(
         children: [
           for (final m in Motivation.values)
-            SelectableOptionCard(label: m.label, selected: profile.motivation == m, onTap: () => onSelect(m)),
+            SelectableOptionCard(
+              label: m.label,
+              icon: _motivationStyle(m).$1,
+              iconColor: _motivationStyle(m).$2,
+              iconBackground: _motivationStyle(m).$3,
+              selected: profile.motivation == m,
+              onTap: () => onSelect(m),
+            ),
         ],
       ),
     );
@@ -451,7 +538,14 @@ class _AiTonePage extends StatelessWidget {
       child: Column(
         children: [
           for (final t in AiTone.values)
-            SelectableOptionCard(label: t.label, selected: profile.aiTone == t, onTap: () => onSelect(t)),
+            SelectableOptionCard(
+              label: t.label,
+              icon: _aiToneStyle(t).$1,
+              iconColor: _aiToneStyle(t).$2,
+              iconBackground: _aiToneStyle(t).$3,
+              selected: profile.aiTone == t,
+              onTap: () => onSelect(t),
+            ),
         ],
       ),
     );

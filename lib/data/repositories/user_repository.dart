@@ -7,11 +7,15 @@ class UserNotifier extends StateNotifier<AppUser> {
       : super(const AppUser(
           id: 'me',
           name: 'Михаил',
-          email: 'berlev.777mihail@gmail.com',
+          email: 'you@example.com',
         ));
 
   void logWeight(double weightKg) {
     state = state.copyWith(weightKg: weightKg);
+  }
+
+  void updateProfile({String? name, String? lastName, String? nickname, String? email}) {
+    state = state.copyWith(name: name, lastName: lastName, nickname: nickname, email: email);
   }
 }
 

@@ -28,7 +28,9 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   AppAvatar(name: user.name, size: 76),
                   const SizedBox(height: AppSpacing.sm),
-                  Text(user.name, style: Theme.of(context).textTheme.headlineMedium),
+                  Text('${user.name}${user.lastName != null ? ' ${user.lastName}' : ''}', style: Theme.of(context).textTheme.headlineMedium),
+                  if (user.nickname != null)
+                    Text(user.nickname!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
                   Text(user.goal.label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.green600, fontWeight: FontWeight.w700)),
                   const SizedBox(height: AppSpacing.lg),
                   Row(
@@ -77,6 +79,8 @@ class ProfileScreen extends ConsumerWidget {
               Text('Личные данные', style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: AppSpacing.lg),
               _row(context, 'Имя', user.name),
+              if (user.lastName != null) _row(context, 'Фамилия', user.lastName!),
+              if (user.nickname != null) _row(context, 'Никнейм', user.nickname!),
               _row(context, 'Email', user.email),
               _row(context, 'Рост', '${user.heightCm} см'),
               _row(context, 'Вес', '${user.weightKg.toStringAsFixed(0)} кг'),

@@ -6,6 +6,7 @@ WorkoutDay _pushDay() => WorkoutDay(
       id: 'push_day',
       title: 'Push Day 💪',
       exercises: [
+        ProgramExercise(exercise: exerciseById('seated_barbell_press'), sets: 4, repsLabel: '8–10', weightKg: 40, restSeconds: 75),
         ProgramExercise(exercise: exerciseById('bench_press'), sets: 4, repsLabel: '8–10', weightKg: 100, restSeconds: 90),
         ProgramExercise(exercise: exerciseById('incline_dumbbell_press'), sets: 3, repsLabel: '10–12', weightKg: 32, restSeconds: 75),
         ProgramExercise(exercise: exerciseById('dumbbell_fly'), sets: 3, repsLabel: '12–15', weightKg: 12, restSeconds: 60),

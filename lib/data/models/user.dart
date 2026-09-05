@@ -169,6 +169,8 @@ class AppUser {
     required this.id,
     required this.name,
     required this.email,
+    this.lastName,
+    this.nickname,
     this.avatarUrl,
     this.goal = FitnessGoal.gainMuscle,
     this.heightCm = 177,
@@ -180,6 +182,8 @@ class AppUser {
   final String id;
   final String name;
   final String email;
+  final String? lastName;
+  final String? nickname;
   final String? avatarUrl;
   final FitnessGoal goal;
   final int heightCm;
@@ -187,11 +191,19 @@ class AppUser {
   final double startWeightKg;
   final int streakDays;
 
-  AppUser copyWith({double? weightKg}) {
+  AppUser copyWith({
+    String? name,
+    String? email,
+    String? lastName,
+    String? nickname,
+    double? weightKg,
+  }) {
     return AppUser(
       id: id,
-      name: name,
-      email: email,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      lastName: lastName ?? this.lastName,
+      nickname: nickname ?? this.nickname,
       avatarUrl: avatarUrl,
       goal: goal,
       heightCm: heightCm,

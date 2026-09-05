@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/animated_emoji.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../data/repositories/workout_repository.dart';
 
@@ -34,7 +35,7 @@ class WorkoutSessionCompleteScreen extends ConsumerWidget {
           child: Column(
             children: [
               const SizedBox(height: AppSpacing.lg),
-              const Text('🔥', style: TextStyle(fontSize: 48)),
+              const AnimatedEmoji('🔥', fontSize: 48),
               const SizedBox(height: AppSpacing.md),
               Text('Тренировка завершена!', style: Theme.of(context).textTheme.headlineLarge, textAlign: TextAlign.center),
               Text(state.day.title, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.ink500)),

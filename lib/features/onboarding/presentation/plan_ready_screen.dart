@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/plan_calculator.dart';
+import '../../../core/widgets/animated_emoji.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../data/models/user.dart';
 import '../../../data/repositories/onboarding_repository.dart';
@@ -24,7 +25,7 @@ class PlanReadyScreen extends ConsumerWidget {
           child: Column(
             children: [
               const SizedBox(height: AppSpacing.md),
-              const Text('🔥', style: TextStyle(fontSize: 48)),
+              const AnimatedEmoji('🔥', fontSize: 48),
               const SizedBox(height: AppSpacing.md),
               Text('Твой план готов!', style: Theme.of(context).textTheme.headlineLarge),
               const SizedBox(height: 6),

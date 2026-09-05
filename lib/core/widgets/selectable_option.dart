@@ -11,6 +11,8 @@ class SelectableOptionCard extends StatelessWidget {
     required this.onTap,
     this.subtitle,
     this.icon,
+    this.iconColor = AppColors.green600,
+    this.iconBackground = AppColors.green50,
   });
 
   final String label;
@@ -18,6 +20,8 @@ class SelectableOptionCard extends StatelessWidget {
   final VoidCallback onTap;
   final String? subtitle;
   final IconData? icon;
+  final Color iconColor;
+  final Color iconBackground;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +41,12 @@ class SelectableOptionCard extends StatelessWidget {
         child: Row(
           children: [
             if (icon != null) ...[
-              Icon(icon, color: selected ? AppColors.green600 : AppColors.ink500),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: iconBackground, borderRadius: BorderRadius.circular(AppRadius.sm)),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
               const SizedBox(width: AppSpacing.sm),
             ],
             Expanded(

@@ -12,12 +12,12 @@ class WelcomeScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           child: Column(
             children: [
-              const Spacer(flex: 3),
-              const RazvitMark(size: 128),
-              const SizedBox(height: AppSpacing.xl),
+              const Spacer(flex: 2),
+              const RazvitMark(size: 88),
+              const SizedBox(height: AppSpacing.lg),
               Text(
                 'Добро пожаловать\nв RAZVIT',
                 textAlign: TextAlign.center,
@@ -29,7 +29,13 @@ class WelcomeScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.ink500),
               ),
-              const Spacer(flex: 4),
+              const SizedBox(height: AppSpacing.xxl),
+              const _FeatureRow(icon: Icons.assignment_outlined, text: 'Персональный план тренировок и питания'),
+              const SizedBox(height: AppSpacing.md),
+              const _FeatureRow(icon: Icons.insights_rounded, text: 'Контроль прогресса и аналитика'),
+              const SizedBox(height: AppSpacing.md),
+              const _FeatureRow(icon: Icons.auto_awesome_rounded, text: 'Поддержка AI-наставника 24/7'),
+              const Spacer(flex: 3),
               ElevatedButton(
                 onPressed: () => context.push('/register'),
                 child: const Text('Начать'),
@@ -50,6 +56,28 @@ class WelcomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _FeatureRow extends StatelessWidget {
+  const _FeatureRow({required this.icon, required this.text});
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(color: AppColors.green50, borderRadius: BorderRadius.circular(AppRadius.sm)),
+          child: Icon(icon, color: AppColors.green600, size: 20),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
+      ],
     );
   }
 }

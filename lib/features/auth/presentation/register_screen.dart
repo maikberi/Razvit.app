@@ -15,6 +15,9 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+  final _firstName = TextEditingController();
+  final _lastName = TextEditingController();
+  final _nickname = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
@@ -25,6 +28,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     setState(() => _loading = false);
+    ref.read(userProvider.notifier).updateProfile(
+          name: _firstName.text.trim().isEmpty ? null : _firstName.text.trim(),
+          lastName: _lastName.text.trim().isEmpty ? null : _lastName.text.trim(),
+          nickname: _nickname.text.trim().isEmpty ? null : _nickname.text.trim(),
+          email: _email.text.trim().isEmpty ? null : _email.text.trim(),
+        );
     ref.read(authProvider.notifier).signIn();
     context.push('/onboarding');
   }
@@ -49,6 +58,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500),
               ),
               const SizedBox(height: AppSpacing.xl),
+              Row(
+                children: [
+                  Expanded(child: AppTextField(label: 'Имя', controller: _firstName, hint: 'Михаил')),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(child: AppTextField(label: 'Фамилия', controller: _lastName, hint: 'Иванов')),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(label: 'Никнейм', controller: _nickname, hint: '@mikhail'),
+              const SizedBox(height: AppSpacing.md),
               AppTextField(label: 'Email', controller: _email, hint: 'you@example.com', keyboardType: TextInputType.emailAddress),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
