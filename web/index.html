@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="RAZVIT — твой путь к лучшей версии себя.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="RAZVIT">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>RAZVIT</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #app-splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #F3F4F6;
+      z-index: 0;
+    }
+    #app-splash img {
+      width: 60vw;
+      height: 60vw;
+      max-width: 420px;
+      max-height: 420px;
+      animation: razvit-splash-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes razvit-splash-pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.07); opacity: 0.85; }
+    }
+    @media (prefers-color-scheme: dark) {
+      #app-splash { background: #0E1116; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app-splash"><img src="assets/assets/logo/razvit_mark.svg" alt="RAZVIT"></div>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
