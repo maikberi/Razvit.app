@@ -9,7 +9,12 @@ extension MealTypeX on MealType {
       };
 }
 
-/// Продукт из базы (на 100 г, если не указано иное).
+/// Продукт из базы (на 100 г, если не указано иное — см. [basisUnit]).
+///
+/// Поля brand/barcode/category/source/sugarPer100g/sodiumPer100g/
+/// servingUnit/micronutrients — расширение под Food Database backend
+/// (см. backend/src/modules/food). Все опциональны, так что существующие
+/// mock-продукты (mock_nutrition.dart) не меняются.
 class FoodItem {
   const FoodItem({
     required this.id,
@@ -21,6 +26,15 @@ class FoodItem {
     this.fiberPer100g = 0,
     this.defaultGrams = 100,
     this.isFavorite = false,
+    this.brand,
+    this.barcode,
+    this.category,
+    this.source = FoodSource.razvit,
+    this.basisUnit = FoodBasisUnit.grams,
+    this.sugarPer100g,
+    this.sodiumPer100g,
+    this.servingUnit,
+    this.micronutrients = const {},
   });
 
   final String id;
@@ -32,6 +46,73 @@ class FoodItem {
   final double fiberPer100g;
   final int defaultGrams;
   final bool isFavorite;
+  final String? brand;
+  final String? barcode;
+  final String? category;
+  final FoodSource source;
+  final FoodBasisUnit basisUnit;
+  final double? sugarPer100g;
+  final double? sodiumPer100g;
+  final String? servingUnit;
+  final Map<String, FoodMicronutrient> micronutrients;
+
+  factory FoodItem.fromJson(Map<String, dynamic> json) => FoodItem(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        caloriesPer100g: (json['caloriesPer100g'] as num).round(),
+        proteinPer100g: (json['proteinPer100g'] as num).toDouble(),
+        fatPer100g: (json['fatPer100g'] as num).toDouble(),
+        carbsPer100g: (json['carbsPer100g'] as num).toDouble(),
+        fiberPer100g: (json['fiberPer100g'] as num?)?.toDouble() ?? 0,
+        defaultGrams: (json['defaultGrams'] as num?)?.round() ?? 100,
+        brand: json['brand'] as String?,
+        barcode: json['barcode'] as String?,
+        category: json['category'] as String?,
+        source: FoodSourceX.fromJson(json['source'] as String?),
+        basisUnit: (json['basisUnit'] as String?) == 'ml' ? FoodBasisUnit.milliliters : FoodBasisUnit.grams,
+        sugarPer100g: (json['sugarPer100g'] as num?)?.toDouble(),
+        sodiumPer100g: (json['sodiumPer100g'] as num?)?.toDouble(),
+        servingUnit: json['servingUnit'] as String?,
+        micronutrients: (json['micronutrients'] as Map<String, dynamic>?)?.map(
+              (key, value) => MapEntry(key, FoodMicronutrient.fromJson(value as Map<String, dynamic>)),
+            ) ??
+            const {},
+      );
+}
+
+enum FoodSource { razvit, usda, off }
+
+extension FoodSourceX on FoodSource {
+  static FoodSource fromJson(String? raw) => switch (raw) {
+        'USDA' => FoodSource.usda,
+        'OFF' => FoodSource.off,
+        _ => FoodSource.razvit,
+      };
+
+  /// Короткая подпись источника для UI (например, в детальной карточке продукта).
+  String get label => switch (this) {
+        FoodSource.razvit => 'RAZVIT',
+        FoodSource.usda => 'USDA',
+        FoodSource.off => 'Open Food Facts',
+      };
+}
+
+enum FoodBasisUnit { grams, milliliters }
+
+extension FoodBasisUnitX on FoodBasisUnit {
+  String get label => this == FoodBasisUnit.milliliters ? 'мл' : 'г';
+}
+
+class FoodMicronutrient {
+  const FoodMicronutrient({required this.amount, required this.unit});
+
+  final double amount;
+  final String unit;
+
+  factory FoodMicronutrient.fromJson(Map<String, dynamic> json) => FoodMicronutrient(
+        amount: (json['amount'] as num).toDouble(),
+        unit: json['unit'] as String,
+      );
 }
 
 /// Запись о приёме конкретного продукта в рамках приёма пищи.

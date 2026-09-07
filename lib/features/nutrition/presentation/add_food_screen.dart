@@ -3,12 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../data/models/nutrition.dart';
 import '../../../data/repositories/nutrition_repository.dart';
-import '../../../data/services/open_food_facts_service.dart';
+import '../../../data/services/food_service.dart';
 import 'food_ui.dart';
 
 class AddFoodScreen extends ConsumerStatefulWidget {
@@ -23,8 +24,13 @@ class AddFoodScreen extends ConsumerStatefulWidget {
 class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   final _search = TextEditingController();
   Timer? _debounce;
+
   List<FoodItem> _onlineResults = [];
+  int _onlinePage = 1;
+  int _onlineTotalPages = 1;
   bool _searchingOnline = false;
+  bool _loadingMore = false;
+  String? _onlineError;
 
   MealType get _type => MealType.values.firstWhere((t) => t.name == widget.mealType, orElse: () => MealType.snack);
 
@@ -38,19 +44,51 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
     setState(() {});
     _debounce?.cancel();
     final trimmed = query.trim();
-    if (trimmed.length < 3) {
-      setState(() => _onlineResults = []);
+    if (trimmed.length < FoodService.minQueryLength) {
+      setState(() {
+        _onlineResults = [];
+        _onlineError = null;
+        _onlinePage = 1;
+        _onlineTotalPages = 1;
+      });
       return;
     }
-    _debounce = Timer(const Duration(milliseconds: 450), () async {
-      setState(() => _searchingOnline = true);
-      final results = await OpenFoodFactsService.search(trimmed);
+    _debounce = Timer(const Duration(milliseconds: 450), () => _runSearch(reset: true));
+  }
+
+  Future<void> _runSearch({required bool reset}) async {
+    final trimmed = _search.text.trim();
+    if (trimmed.length < FoodService.minQueryLength) return;
+
+    setState(() {
+      if (reset) {
+        _searchingOnline = true;
+        _onlinePage = 1;
+      } else {
+        _loadingMore = true;
+      }
+      _onlineError = null;
+    });
+
+    try {
+      final page = reset ? 1 : _onlinePage + 1;
+      final result = await ref.read(foodServiceProvider).search(trimmed, page: page);
       if (!mounted) return;
       setState(() {
-        _onlineResults = results;
+        _onlineResults = reset ? result.items : [..._onlineResults, ...result.items];
+        _onlinePage = result.page;
+        _onlineTotalPages = result.totalPages;
         _searchingOnline = false;
+        _loadingMore = false;
       });
-    });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _onlineError = e.message;
+        _searchingOnline = false;
+        _loadingMore = false;
+      });
+    }
   }
 
   @override
@@ -98,7 +136,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
             ),
             const SizedBox(height: AppSpacing.sm),
             Expanded(
-              child: filtered.isEmpty && onlineExtra.isEmpty && !_searchingOnline
+              child: filtered.isEmpty && onlineExtra.isEmpty && !_searchingOnline && _onlineError == null
                   ? const EmptyState(emoji: '🍽️', title: 'Продукт не найден', subtitle: 'Попробуй изменить запрос')
                   : ListView(
                       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxl),
@@ -107,7 +145,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                           _FoodRow(food: f, onAdd: (grams) => _addFood(f, grams)),
                           const SizedBox(height: 8),
                         ],
-                        if (_searchingOnline || onlineExtra.isNotEmpty) ...[
+                        if (_searchingOnline || onlineExtra.isNotEmpty || _onlineError != null) ...[
                           const SizedBox(height: AppSpacing.sm),
                           Row(
                             children: [
@@ -123,6 +161,17 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                             _FoodRow(food: f, onAdd: (grams) => _addFood(f, grams)),
                             const SizedBox(height: 8),
                           ],
+                          if (_onlineError != null)
+                            _OnlineErrorRow(message: _onlineError!, onRetry: () => _runSearch(reset: _onlineResults.isEmpty)),
+                          if (_onlineError == null && !_searchingOnline && _onlinePage < _onlineTotalPages)
+                            Center(
+                              child: TextButton(
+                                onPressed: _loadingMore ? null : () => _runSearch(reset: false),
+                                child: _loadingMore
+                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                                    : const Text('Показать ещё'),
+                              ),
+                            ),
                         ],
                       ],
                     ),
@@ -189,18 +238,19 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   }
 }
 
-class BarcodeSheet extends StatefulWidget {
+class BarcodeSheet extends ConsumerStatefulWidget {
   const BarcodeSheet({super.key, required this.controller, required this.onAdd});
   final TextEditingController controller;
   final void Function(FoodItem food, int grams) onAdd;
 
   @override
-  State<BarcodeSheet> createState() => _BarcodeSheetState();
+  ConsumerState<BarcodeSheet> createState() => _BarcodeSheetState();
 }
 
-class _BarcodeSheetState extends State<BarcodeSheet> {
+class _BarcodeSheetState extends ConsumerState<BarcodeSheet> {
   bool _loading = false;
   bool _notFound = false;
+  String? _error;
   FoodItem? _found;
 
   Future<void> _lookup() async {
@@ -209,15 +259,24 @@ class _BarcodeSheetState extends State<BarcodeSheet> {
     setState(() {
       _loading = true;
       _notFound = false;
+      _error = null;
       _found = null;
     });
-    final result = await OpenFoodFactsService.lookupBarcode(code);
-    if (!mounted) return;
-    setState(() {
-      _loading = false;
-      _found = result;
-      _notFound = result == null;
-    });
+    try {
+      final result = await ref.read(foodServiceProvider).lookupBarcode(code);
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _found = result;
+        _notFound = result == null;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.message;
+      });
+    }
   }
 
   @override
@@ -231,7 +290,7 @@ class _BarcodeSheetState extends State<BarcodeSheet> {
           Text('Поиск по штрихкоду', style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 6),
           Text(
-            'Введи номер штрихкода — найдём продукт в открытой базе Open Food Facts',
+            'Введи номер штрихкода — найдём продукт в базе RAZVIT',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500),
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -258,7 +317,31 @@ class _BarcodeSheetState extends State<BarcodeSheet> {
           const SizedBox(height: AppSpacing.lg),
           if (_notFound)
             Text('Продукт не найден. Попробуй другой штрихкод или добавь вручную.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.error)),
+          if (_error != null) _OnlineErrorRow(message: _error!, onRetry: _lookup),
           if (_found != null) _FoodRow(food: _found!, onAdd: (grams) => widget.onAdd(_found!, grams)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Компактная строка ошибки сети/сервера с кнопкой "Повторить" —
+/// используется и в онлайн-поиске, и в поиске по штрихкоду.
+class _OnlineErrorRow extends StatelessWidget {
+  const _OnlineErrorRow({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(message, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.error))),
+          TextButton(onPressed: onRetry, child: const Text('Повторить')),
         ],
       ),
     );

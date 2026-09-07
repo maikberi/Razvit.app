@@ -54,7 +54,7 @@ class _AddFoodMethodSheet extends StatelessWidget {
               color: const Color(0xFF3B82F6),
               background: const Color(0xFFEAF1FE),
               title: 'Сканировать штрихкод',
-              subtitle: 'Найдём по базе Open Food Facts',
+              subtitle: 'Найдём в базе продуктов RAZVIT',
               onTap: () {
                 Navigator.of(context).pop();
                 _showBarcode(context, type);
