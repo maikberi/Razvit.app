@@ -10,6 +10,7 @@ import '../../../core/widgets/mascot.dart';
 import '../../../core/widgets/progress_ring.dart';
 import '../../../data/mock/mock_progress.dart';
 import '../../../data/models/workout_session.dart';
+import '../../../data/repositories/health_repository.dart';
 import '../../../data/repositories/nutrition_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
 import '../../../data/repositories/trainer_repository.dart';
@@ -50,6 +51,8 @@ class HomeScreen extends ConsumerWidget {
     final trainer = ref.watch(myTrainerProvider);
     final weightHistory = ref.watch(weightHistoryProvider);
     final sessions = ref.watch(workoutSessionsProvider);
+    final healthConnected = ref.watch(healthConnectedProvider);
+    final steps = ref.watch(dailyStepsProvider);
 
     final calories = meals.fold(0, (s, m) => s + m.calories);
     final protein = meals.fold(0.0, (s, m) => s + m.protein);
@@ -186,6 +189,8 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 10),
+            _StepsCard(connected: healthConnected, steps: steps),
             const SizedBox(height: AppSpacing.xl),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -319,6 +324,76 @@ class _GoalCard extends StatelessWidget {
         const SizedBox(width: 6),
         Text(text, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink700)),
       ],
+    );
+  }
+}
+
+class _StepsCard extends StatelessWidget {
+  const _StepsCard({required this.connected, required this.steps});
+  final bool connected;
+  final int steps;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!connected) {
+      return AppCard(
+        onTap: () => context.push('/settings'),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: AppColors.green50, borderRadius: BorderRadius.circular(AppRadius.sm)),
+              child: const Icon(Icons.directions_walk_rounded, color: AppColors.green600, size: 20),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Подключи Здоровье', style: Theme.of(context).textTheme.titleSmall),
+                  Text('Чтобы отслеживать шаги в приложении', style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.ink300),
+          ],
+        ),
+      );
+    }
+
+    final progress = (steps / dailyStepsGoal).clamp(0.0, 1.0);
+    return AppCard(
+      onTap: () => context.push('/workout-stats'),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: AppColors.green50, borderRadius: BorderRadius.circular(AppRadius.sm)),
+            child: const Icon(Icons.directions_walk_rounded, color: AppColors.green600, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text('$steps', style: Theme.of(context).textTheme.titleMedium),
+                    Text(' / $dailyStepsGoal шагов', style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: AppColors.ink100, color: AppColors.green500),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

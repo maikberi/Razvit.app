@@ -5,6 +5,7 @@ import '../../features/dev/font_preview_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import '../../features/auth/presentation/sign_up_method_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
 import '../../features/home/presentation/notifications_screen.dart';
 import '../../features/nutrition/presentation/add_food_screen.dart';
@@ -40,6 +41,7 @@ final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(path: '/font-preview', builder: (context, state) => const FontPreviewScreen()),
     GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
+    GoRoute(path: '/sign-up-method', builder: (context, state) => const SignUpMethodScreen()),
     GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),

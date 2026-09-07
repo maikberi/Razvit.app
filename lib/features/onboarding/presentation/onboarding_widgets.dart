@@ -58,14 +58,14 @@ class _WavePainter extends CustomPainter {
     ];
     for (final (color, heightFactor, phaseOffset) in layers) {
       final path = Path();
-      final baseY = size.height * (1 - heightFactor * 0.16);
+      final baseY = size.height * (1 - heightFactor * 0.3);
       final phase = (progress + phaseOffset) * 2 * math.pi;
       path.moveTo(0, size.height);
       path.lineTo(0, baseY);
       const steps = 40;
       for (var i = 0; i <= steps; i++) {
         final x = size.width * i / steps;
-        final y = baseY + math.sin((i / steps) * 2 * math.pi + phase) * 14;
+        final y = baseY + math.sin((i / steps) * 2 * math.pi + phase) * 22;
         path.lineTo(x, y);
       }
       path.lineTo(size.width, size.height);

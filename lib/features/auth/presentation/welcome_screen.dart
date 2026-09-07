@@ -67,7 +67,7 @@ class WelcomeScreen extends StatelessWidget {
               FadeSlideIn(
                 delay: const Duration(milliseconds: 620),
                 child: ElevatedButton(
-                  onPressed: () => context.push('/register'),
+                  onPressed: () => context.push('/sign-up-method'),
                   child: const Text('Начать'),
                 ),
               ),

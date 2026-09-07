@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/selectable_option.dart';
+import '../../../data/repositories/health_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -26,6 +27,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
+    final healthConnected = ref.watch(healthConnectedProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Настройки'), leading: const BackButton()),
@@ -61,6 +63,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text('Здоровье', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: AppSpacing.sm),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: SwitchListTile(
+                title: const Text('Подключить Google Fit / Apple Health'),
+                subtitle: const Text('Учёт шагов в приложении'),
+                value: healthConnected,
+                onChanged: (v) => ref.read(healthConnectedProvider.notifier).setConnected(v),
+                activeColor: AppColors.green500,
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text('Уведомления', style: Theme.of(context).textTheme.titleLarge),
