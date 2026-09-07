@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/ru_pluralize.dart';
 import '../../../core/widgets/fade_slide_in.dart';
 import '../../../core/widgets/selectable_option.dart';
 import '../../../data/models/user.dart';
@@ -349,7 +350,7 @@ class _AboutYouPage extends StatelessWidget {
             delay: const Duration(milliseconds: 240),
             child: _MetricSlider(
               label: 'Возраст',
-              value: '$age лет',
+              value: '$age ${yearsLabel(age)}',
               sliderValue: age.toDouble(),
               min: 12,
               max: 90,
@@ -435,7 +436,21 @@ class _MetricSlider extends StatelessWidget {
       children: [
         Text(label, style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 4),
-        Text(value, style: Theme.of(context).textTheme.displayLarge?.copyWith(color: AppColors.green600, fontSize: 38)),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero).animate(animation),
+              child: child,
+            ),
+          ),
+          child: Text(
+            value,
+            key: ValueKey(value),
+            style: Theme.of(context).textTheme.displayLarge?.copyWith(color: AppColors.green600, fontSize: 38),
+          ),
+        ),
         Row(
           children: [
             _StepButton(icon: Icons.remove_rounded, onTap: sliderValue > min ? () => onChanged(sliderValue - 1) : null),

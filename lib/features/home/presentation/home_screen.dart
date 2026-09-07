@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/ru_pluralize.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/mascot.dart';
@@ -20,15 +21,6 @@ import '../../../data/repositories/workout_repository.dart';
 const _statBlue = Color(0xFF3B82F6);
 const _statPurple = Color(0xFF8B5CF6);
 const _weekdayLetters = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-
-String _weeksLabel(int weeks) {
-  final mod100 = weeks % 100;
-  final mod10 = weeks % 10;
-  if (mod100 >= 11 && mod100 <= 14) return 'недель';
-  if (mod10 == 1) return 'неделю';
-  if (mod10 >= 2 && mod10 <= 4) return 'недели';
-  return 'недель';
-}
 
 String _greeting() {
   final hour = DateTime.now().hour;
@@ -580,7 +572,7 @@ class _ProgressCard extends StatelessWidget {
                 Text('${currentWeight.toStringAsFixed(1)} кг', style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 6),
                 Text(
-                  '${delta <= 0 ? '' : '+'}${delta.toStringAsFixed(1)} кг за $weeks ${_weeksLabel(weeks)}',
+                  '${delta <= 0 ? '' : '+'}${delta.toStringAsFixed(1)} кг за $weeks ${weeksLabel(weeks)}',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(color: delta <= 0 ? AppColors.green600 : AppColors.error),
                 ),
               ],
