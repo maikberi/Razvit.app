@@ -7,6 +7,8 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/progress_ring.dart';
 import '../../../data/models/nutrition.dart';
 import '../../../data/repositories/nutrition_repository.dart';
+import 'add_food_method_sheet.dart';
+import 'food_ui.dart';
 
 (IconData, Color, Color) _mealStyle(MealType t) => switch (t) {
       MealType.breakfast => (Icons.free_breakfast_rounded, const Color(0xFFF59E0B), const Color(0xFFFFF4DF)),
@@ -23,7 +25,7 @@ class NutritionScreen extends ConsumerStatefulWidget {
 }
 
 class _NutritionScreenState extends ConsumerState<NutritionScreen> {
-  bool _editMode = false;
+  final Set<MealType> _expanded = {};
 
   @override
   Widget build(BuildContext context) {
@@ -164,16 +166,16 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Приёмы пищи', style: Theme.of(context).textTheme.titleLarge),
-                _LinkText(label: _editMode ? 'Готово' : 'Изменить', onTap: () => setState(() => _editMode = !_editMode)),
-              ],
-            ),
+            Text('Приёмы пищи', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: AppSpacing.sm),
             for (final meal in meals) ...[
-              _MealSection(meal: meal, editMode: _editMode),
+              _MealSection(
+                meal: meal,
+                expanded: _expanded.contains(meal.type),
+                onToggle: () => setState(() {
+                  if (!_expanded.add(meal.type)) _expanded.remove(meal.type);
+                }),
+              ),
               const SizedBox(height: AppSpacing.sm),
             ],
           ],
@@ -209,20 +211,6 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
   }
 }
 
-class _LinkText extends StatelessWidget {
-  const _LinkText({required this.label, required this.onTap});
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green600)),
-    );
-  }
-}
-
 class _QuickAction extends StatelessWidget {
   const _QuickAction({required this.icon, required this.label, required this.onTap});
   final IconData icon;
@@ -245,18 +233,19 @@ class _QuickAction extends StatelessWidget {
   }
 }
 
-class _MealSection extends ConsumerWidget {
-  const _MealSection({required this.meal, required this.editMode});
+class _MealSection extends StatelessWidget {
+  const _MealSection({required this.meal, required this.expanded, required this.onToggle});
   final Meal meal;
-  final bool editMode;
+  final bool expanded;
+  final VoidCallback onToggle;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final style = _mealStyle(meal.type);
     final summary = meal.entries.map((e) => e.food.name).join(', ');
 
     return AppCard(
-      onTap: editMode ? null : () => context.push('/add-food/${meal.type.name}'),
+      onTap: onToggle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -274,49 +263,213 @@ class _MealSection extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(meal.type.label, style: Theme.of(context).textTheme.titleSmall),
-                    Text(
-                      summary.isEmpty ? 'Ничего не добавлено' : summary,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    if (!expanded)
+                      Text(
+                        summary.isEmpty ? 'Ничего не добавлено' : summary,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
               Text('${meal.calories} ккал', style: Theme.of(context).textTheme.titleSmall),
-              if (!editMode) const Icon(Icons.chevron_right_rounded, color: AppColors.ink300),
+              AnimatedRotation(
+                turns: expanded ? 0.5 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.ink300),
+              ),
             ],
           ),
-          if (editMode && meal.entries.isNotEmpty) ...[
-            const Divider(height: AppSpacing.lg),
-            for (var i = 0; i < meal.entries.length; i++)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 220),
+            crossFadeState: expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+            firstChild: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Divider(height: AppSpacing.lg),
+                for (var i = 0; i < meal.entries.length; i++) ...[
+                  _EntryRow(mealType: meal.type, entryIndex: i, entry: meal.entries[i]),
+                  if (i < meal.entries.length - 1) const SizedBox(height: 8),
+                ],
+                if (meal.entries.isNotEmpty) const SizedBox(height: AppSpacing.sm),
+                GestureDetector(
+                  onTap: () => showAddFoodMethodSheet(context, meal.type),
+                  child: const AddFoodRow(label: 'Добавить продукт'),
+                ),
+              ],
+            ),
+            secondChild: const SizedBox(width: double.infinity),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EntryRow extends StatelessWidget {
+  const _EntryRow({required this.mealType, required this.entryIndex, required this.entry});
+  final MealType mealType;
+  final int entryIndex;
+  final FoodEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = foodBadgeColor(entry.food.id);
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      onTap: () => showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => FoodEntryDetailSheet(mealType: mealType, entryIndex: entryIndex),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+            child: Icon(Icons.restaurant_rounded, color: color, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(entry.food.name, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+                Text('${entry.grams} г', style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+          Text('${entry.calories} ккал', style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(width: 4),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.ink300, size: 18),
+        ],
+      ),
+    );
+  }
+}
+
+class FoodEntryDetailSheet extends ConsumerStatefulWidget {
+  const FoodEntryDetailSheet({super.key, required this.mealType, required this.entryIndex});
+  final MealType mealType;
+  final int entryIndex;
+
+  @override
+  ConsumerState<FoodEntryDetailSheet> createState() => _FoodEntryDetailSheetState();
+}
+
+class _FoodEntryDetailSheetState extends ConsumerState<FoodEntryDetailSheet> {
+  @override
+  Widget build(BuildContext context) {
+    final meals = ref.watch(mealsProvider);
+    final meal = meals.firstWhere((m) => m.type == widget.mealType);
+    if (widget.entryIndex >= meal.entries.length) return const SizedBox.shrink();
+    final entry = meal.entries[widget.entryIndex];
+    final food = entry.food;
+    final color = foodBadgeColor(food.id);
+    final ratio = entry.grams / 100;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+                child: Icon(Icons.restaurant_rounded, color: color, size: 30),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text('${meal.entries[i].food.name} · ${meal.entries[i].grams} г', style: Theme.of(context).textTheme.bodyMedium),
-                    ),
-                    Text('${meal.entries[i].calories} ккал', style: Theme.of(context).textTheme.bodySmall),
-                    IconButton(
-                      onPressed: () => ref.read(mealsProvider.notifier).removeFood(meal.type, i),
-                      icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.ink400),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                      visualDensity: VisualDensity.compact,
-                    ),
+                    Text(food.name, style: Theme.of(context).textTheme.headlineMedium),
+                    Text('${entry.grams} г · ${widget.mealType.label}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
                   ],
                 ),
               ),
-          ],
-          if (editMode) ...[
-            const SizedBox(height: AppSpacing.sm),
-            GestureDetector(
-              onTap: () => context.push('/add-food/${meal.type.name}'),
-              child: const AddFoodRow(label: 'Добавить продукт'),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              Expanded(child: _statColumn(context, 'Калории', '${(food.caloriesPer100g * ratio).round()}')),
+              Expanded(child: _statColumn(context, 'Белки', '${(food.proteinPer100g * ratio).toStringAsFixed(0)} г')),
+              Expanded(child: _statColumn(context, 'Жиры', '${(food.fatPer100g * ratio).toStringAsFixed(0)} г')),
+              Expanded(child: _statColumn(context, 'Углеводы', '${(food.carbsPer100g * ratio).toStringAsFixed(0)} г')),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text('Вес порции', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton.filled(
+                onPressed: entry.grams > 10
+                    ? () => ref.read(mealsProvider.notifier).updateGrams(widget.mealType, widget.entryIndex, entry.grams - 10)
+                    : null,
+                icon: const Icon(Icons.remove_rounded),
+                style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+              ),
+              SizedBox(width: 100, child: Text('${entry.grams} г', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium)),
+              IconButton.filled(
+                onPressed: () => ref.read(mealsProvider.notifier).updateGrams(widget.mealType, widget.entryIndex, entry.grams + 10),
+                icon: const Icon(Icons.add_rounded),
+                style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text('Пищевая ценность на 100 г', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: AppSpacing.sm),
+          _nutrientRow(context, 'Калории', '${food.caloriesPer100g} ккал'),
+          _nutrientRow(context, 'Белки', '${food.proteinPer100g.toStringAsFixed(1)} г'),
+          _nutrientRow(context, 'Жиры', '${food.fatPer100g.toStringAsFixed(1)} г'),
+          _nutrientRow(context, 'Углеводы', '${food.carbsPer100g.toStringAsFixed(1)} г'),
+          _nutrientRow(context, 'Клетчатка', '${food.fiberPer100g.toStringAsFixed(1)} г'),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                ref.read(mealsProvider.notifier).removeFood(widget.mealType, widget.entryIndex);
+                Navigator.of(context).pop();
+              },
+              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+              label: const Text('Удалить из приёма пищи', style: TextStyle(color: AppColors.error)),
+              style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.error)),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statColumn(BuildContext context, String label, String value) {
+    return Column(
+      children: [
+        Text(value, style: Theme.of(context).textTheme.titleMedium),
+        Text(label, style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ],
+    );
+  }
+
+  Widget _nutrientRow(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+          Text(value, style: Theme.of(context).textTheme.titleSmall),
         ],
       ),
     );

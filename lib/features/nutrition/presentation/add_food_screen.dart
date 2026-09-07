@@ -9,6 +9,7 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../data/models/nutrition.dart';
 import '../../../data/repositories/nutrition_repository.dart';
 import '../../../data/services/open_food_facts_service.dart';
+import 'food_ui.dart';
 
 class AddFoodScreen extends ConsumerStatefulWidget {
   const AddFoodScreen({super.key, required this.mealType});
@@ -177,7 +178,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => _BarcodeSheet(
+      builder: (sheetContext) => BarcodeSheet(
         controller: controller,
         onAdd: (food, grams) {
           Navigator.of(sheetContext).pop();
@@ -188,16 +189,16 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   }
 }
 
-class _BarcodeSheet extends StatefulWidget {
-  const _BarcodeSheet({required this.controller, required this.onAdd});
+class BarcodeSheet extends StatefulWidget {
+  const BarcodeSheet({super.key, required this.controller, required this.onAdd});
   final TextEditingController controller;
   final void Function(FoodItem food, int grams) onAdd;
 
   @override
-  State<_BarcodeSheet> createState() => _BarcodeSheetState();
+  State<BarcodeSheet> createState() => _BarcodeSheetState();
 }
 
-class _BarcodeSheetState extends State<_BarcodeSheet> {
+class _BarcodeSheetState extends State<BarcodeSheet> {
   bool _loading = false;
   bool _notFound = false;
   FoodItem? _found;
@@ -264,8 +265,6 @@ class _BarcodeSheetState extends State<_BarcodeSheet> {
   }
 }
 
-const _foodBadgeColors = [AppColors.green600, Color(0xFF3B82F6), Color(0xFFF59E0B), Color(0xFF8B5CF6), Color(0xFFEC4899)];
-
 class _FoodRow extends StatelessWidget {
   const _FoodRow({required this.food, required this.onAdd});
   final FoodItem food;
@@ -273,7 +272,7 @@ class _FoodRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _foodBadgeColors[food.id.hashCode.abs() % _foodBadgeColors.length];
+    final color = foodBadgeColor(food.id);
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       onTap: () => showModalBottomSheet(
@@ -329,7 +328,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
   Widget build(BuildContext context) {
     final food = widget.food;
     final ratio = _grams / 100;
-    final color = _foodBadgeColors[food.id.hashCode.abs() % _foodBadgeColors.length];
+    final color = foodBadgeColor(food.id);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl),

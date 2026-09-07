@@ -49,6 +49,23 @@ class MealsNotifier extends StateNotifier<List<Meal>> {
     ];
   }
 
+  void updateGrams(MealType type, int entryIndex, int grams) {
+    state = [
+      for (final meal in state)
+        if (meal.type == type)
+          Meal(
+            type: meal.type,
+            time: meal.time,
+            entries: [
+              for (var i = 0; i < meal.entries.length; i++)
+                if (i == entryIndex) FoodEntry(food: meal.entries[i].food, grams: grams) else meal.entries[i],
+            ],
+          )
+        else
+          meal,
+    ];
+  }
+
   void removeFood(MealType type, int entryIndex) {
     state = [
       for (final meal in state)
