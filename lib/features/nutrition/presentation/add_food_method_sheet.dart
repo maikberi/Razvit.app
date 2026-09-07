@@ -22,12 +22,12 @@ void showAddFoodMethodSheet(BuildContext context, MealType type) {
   );
 }
 
-class _AddFoodMethodSheet extends ConsumerWidget {
+class _AddFoodMethodSheet extends StatelessWidget {
   const _AddFoodMethodSheet({required this.type});
   final MealType type;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -57,7 +57,7 @@ class _AddFoodMethodSheet extends ConsumerWidget {
               subtitle: 'Найдём по базе Open Food Facts',
               onTap: () {
                 Navigator.of(context).pop();
-                _showBarcode(context, ref, type);
+                _showBarcode(context, type);
               },
             ),
             const SizedBox(height: 10),
@@ -69,7 +69,7 @@ class _AddFoodMethodSheet extends ConsumerWidget {
               subtitle: 'AI распознает и посчитает калории',
               onTap: () {
                 Navigator.of(context).pop();
-                _showPhotoAi(context, ref, type);
+                _showPhotoAi(context, type);
               },
             ),
             const SizedBox(height: 10),
@@ -81,7 +81,7 @@ class _AddFoodMethodSheet extends ConsumerWidget {
               subtitle: 'Свои граммы, калории и БЖУ',
               onTap: () {
                 Navigator.of(context).pop();
-                _showManualEntry(context, ref, type);
+                _showManualEntry(context, type);
               },
             ),
           ],
@@ -91,46 +91,40 @@ class _AddFoodMethodSheet extends ConsumerWidget {
   }
 }
 
-void _showBarcode(BuildContext context, WidgetRef ref, MealType type) {
+void _addFoodFromSheet(BuildContext sheetContext, MealType type, FoodItem food, int grams) {
+  Navigator.of(sheetContext).pop();
+  ProviderScope.containerOf(sheetContext, listen: false).read(mealsProvider.notifier).addFood(type, food, grams);
+  ScaffoldMessenger.of(sheetContext).showSnackBar(SnackBar(content: Text('${food.name} добавлено')));
+}
+
+void _showBarcode(BuildContext context, MealType type) {
   final controller = TextEditingController();
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => BarcodeSheet(
       controller: controller,
-      onAdd: (food, grams) {
-        Navigator.of(sheetContext).pop();
-        ref.read(mealsProvider.notifier).addFood(type, food, grams);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${food.name} добавлено')));
-      },
+      onAdd: (food, grams) => _addFoodFromSheet(sheetContext, type, food, grams),
     ),
   );
 }
 
-void _showPhotoAi(BuildContext context, WidgetRef ref, MealType type) {
+void _showPhotoAi(BuildContext context, MealType type) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => _PhotoAiSheet(
-      onAdd: (food, grams) {
-        Navigator.of(sheetContext).pop();
-        ref.read(mealsProvider.notifier).addFood(type, food, grams);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${food.name} добавлено')));
-      },
+      onAdd: (food, grams) => _addFoodFromSheet(sheetContext, type, food, grams),
     ),
   );
 }
 
-void _showManualEntry(BuildContext context, WidgetRef ref, MealType type) {
+void _showManualEntry(BuildContext context, MealType type) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => _ManualEntrySheet(
-      onAdd: (food, grams) {
-        Navigator.of(sheetContext).pop();
-        ref.read(mealsProvider.notifier).addFood(type, food, grams);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${food.name} добавлено')));
-      },
+      onAdd: (food, grams) => _addFoodFromSheet(sheetContext, type, food, grams),
     ),
   );
 }
