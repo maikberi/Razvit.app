@@ -27,7 +27,7 @@ class WelcomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FadeSlideIn(child: const RazvitWordmark(iconSize: 32, fontSize: 24)),
+                      FadeSlideIn(child: const RazvitWordmark(iconSize: 44, fontSize: 34)),
                       const SizedBox(height: 6),
                       FadeSlideIn(
                         delay: const Duration(milliseconds: 100),
