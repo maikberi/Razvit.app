@@ -21,7 +21,8 @@ class MyProgramTab extends ConsumerWidget {
     final today = ref.watch(todayWorkoutProvider);
     final programs = ref.watch(allProgramsProvider);
     final records = ref.watch(personalRecordsProvider);
-    final exercises = ref.watch(exerciseCatalogProvider).where((e) => e.isFavorite).take(4).toList();
+    final catalog = ref.watch(exerciseCatalogProvider);
+    final exercises = catalog.where((e) => e.isFavorite).take(4).toList();
 
     final activeProgram = ref.watch(activeProgramProvider);
     final sessions = ref.watch(workoutSessionsProvider);
@@ -113,6 +114,10 @@ class MyProgramTab extends ConsumerWidget {
               Expanded(
                 child: AppCard(
                   padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                  onTap: () {
+                    final match = catalog.where((e) => e.name == records[i].exerciseName);
+                    if (match.isNotEmpty) context.push('/exercise/${match.first.id}');
+                  },
                   child: Column(
                     children: [
                       Text('${records[i].weightKg.toStringAsFixed(0)} кг', style: Theme.of(context).textTheme.titleMedium),

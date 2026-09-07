@@ -56,17 +56,17 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
-                Expanded(child: _statCard(context, '${user.weightKg.toStringAsFixed(0)} кг', 'Вес')),
+                Expanded(child: _statCard(context, '${user.weightKg.toStringAsFixed(0)} кг', 'Вес', onTap: () => context.push('/workout-stats'))),
                 const SizedBox(width: 10),
-                Expanded(child: _statCard(context, '${user.heightCm} см', 'Рост')),
+                Expanded(child: _statCard(context, '${user.heightCm} см', 'Рост', onTap: () => _showPersonalData(context, user))),
               ],
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: _statCard(context, '${user.streakDays}', 'Дней подряд')),
+                Expanded(child: _statCard(context, '${user.streakDays}', 'Дней подряд', onTap: () => context.push('/workout-calendar'))),
                 const SizedBox(width: 10),
-                Expanded(child: _statCard(context, '$unlockedAchievements', 'Награды')),
+                Expanded(child: _statCard(context, '$unlockedAchievements', 'Награды', onTap: () => context.push('/achievements'))),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -82,8 +82,9 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _statCard(BuildContext context, String value, String label) {
+  Widget _statCard(BuildContext context, String value, String label, {VoidCallback? onTap}) {
     return AppCard(
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

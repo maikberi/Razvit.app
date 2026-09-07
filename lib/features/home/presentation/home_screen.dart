@@ -75,7 +75,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => context.push('/nutrition-stats'),
+                  onTap: () => context.push('/nutrition-plan'),
                   child: SizedBox(
                     width: 64,
                     height: 64,
@@ -135,7 +135,7 @@ class HomeScreen extends ConsumerWidget {
                     value: '$calories',
                     goal: '${plan.calorieGoal} ккал',
                     progress: plan.calorieGoal == 0 ? 0 : calories / plan.calorieGoal,
-                    onTap: () => context.push('/nutrition-stats'),
+                    onTap: () => context.go('/nutrition'),
                   ),
                 ),
                 const SizedBox(width: 10),
