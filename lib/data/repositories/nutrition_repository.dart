@@ -6,7 +6,22 @@ import '../models/nutrition.dart';
 
 final foodCatalogProvider = Provider<List<FoodItem>>((ref) => mockFoods);
 final recipesProvider = Provider<List<Recipe>>((ref) => mockRecipes);
-final nutritionPlanProvider = Provider<NutritionPlan>((ref) => mockNutritionPlan);
+
+class NutritionPlanNotifier extends StateNotifier<NutritionPlan> {
+  NutritionPlanNotifier() : super(mockNutritionPlan);
+
+  void update({int? calorieGoal, int? proteinGoal, int? fatGoal, int? carbsGoal, int? waterGoalMl}) {
+    state = state.copyWith(
+      calorieGoal: calorieGoal,
+      proteinGoal: proteinGoal,
+      fatGoal: fatGoal,
+      carbsGoal: carbsGoal,
+      waterGoalMl: waterGoalMl,
+    );
+  }
+}
+
+final nutritionPlanProvider = StateNotifierProvider<NutritionPlanNotifier, NutritionPlan>((ref) => NutritionPlanNotifier());
 
 /// История питания за последние ~90 дней (без сегодняшнего — он берётся
 /// из реального состояния приёмов пищи и воды).

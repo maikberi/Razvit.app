@@ -35,7 +35,7 @@ class _PlanGeneratingScreenState extends State<PlanGeneratingScreen> with Single
       if (_visible >= _steps.length) {
         t.cancel();
         Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) context.pushReplacement('/plan-motivation');
+          if (mounted) context.pushReplacement('/plan-ready');
         });
       }
     });
@@ -61,9 +61,9 @@ class _PlanGeneratingScreenState extends State<PlanGeneratingScreen> with Single
                 AnimatedBuilder(
                   animation: _pulseController,
                   builder: (context, child) => Transform.scale(scale: 1 + _pulseController.value * 0.08, child: child),
-                  child: const RazvitMark(size: 64),
+                  child: const RazvitMark(size: 148),
                 ),
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.lg),
                 Text('Создаём твой\nперсональный план...', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: AppSpacing.xxl),
                 for (var i = 0; i < _steps.length; i++)

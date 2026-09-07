@@ -90,7 +90,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  ListTile(title: const Text('Изменить пароль'), trailing: const Icon(Icons.chevron_right_rounded), onTap: () {}),
+                  ListTile(title: const Text('Изменить пароль'), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => _showChangePassword(context)),
                   const Divider(height: 1, indent: 16, endIndent: 16),
                   ListTile(
                     title: const Text('Выйти', style: TextStyle(color: AppColors.error)),
@@ -106,6 +106,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const SizedBox(height: AppSpacing.lg),
             Center(child: Text('RAZVIT · версия 1.0.0', style: Theme.of(context).textTheme.bodySmall)),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showChangePassword(BuildContext context) {
+    final current = TextEditingController();
+    final next = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.lg + MediaQuery.of(sheetContext).viewInsets.bottom),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Изменить пароль', style: Theme.of(sheetContext).textTheme.headlineMedium),
+              const SizedBox(height: AppSpacing.lg),
+              TextField(controller: current, obscureText: true, decoration: const InputDecoration(labelText: 'Текущий пароль')),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(controller: next, obscureText: true, decoration: const InputDecoration(labelText: 'Новый пароль')),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Пароль обновлён')));
+                  },
+                  child: const Text('Сохранить'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

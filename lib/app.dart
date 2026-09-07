@@ -27,6 +27,40 @@ class RazvitApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      builder: (context, child) => _ImagePrecacher(child: child ?? const SizedBox.shrink()),
     );
   }
+}
+
+/// Прогревает кэш растровых изображений сразу после первого кадра, чтобы
+/// они не "выскакивали" с задержкой при первом появлении на экране.
+class _ImagePrecacher extends StatefulWidget {
+  const _ImagePrecacher({required this.child});
+  final Widget child;
+
+  @override
+  State<_ImagePrecacher> createState() => _ImagePrecacherState();
+}
+
+class _ImagePrecacherState extends State<_ImagePrecacher> {
+  bool _done = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_done) return;
+    _done = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      for (final asset in const [
+        'assets/mascot/bear.png',
+        'assets/home/hero_dumbbells.png',
+      ]) {
+        precacheImage(AssetImage(asset), context);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

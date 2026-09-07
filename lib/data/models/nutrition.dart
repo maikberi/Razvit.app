@@ -126,4 +126,23 @@ class NutritionPlan {
   final int waterGoalMl;
   final DateTime validUntil;
   final int progressPercent;
+
+  NutritionPlan copyWith({
+    int? calorieGoal,
+    int? proteinGoal,
+    int? fatGoal,
+    int? carbsGoal,
+    int? waterGoalMl,
+  }) {
+    return NutritionPlan(
+      title: title,
+      calorieGoal: calorieGoal ?? this.calorieGoal,
+      proteinGoal: proteinGoal ?? this.proteinGoal,
+      fatGoal: fatGoal ?? this.fatGoal,
+      carbsGoal: carbsGoal ?? this.carbsGoal,
+      waterGoalMl: waterGoalMl ?? this.waterGoalMl,
+      validUntil: validUntil,
+      progressPercent: progressPercent,
+    );
+  }
 }

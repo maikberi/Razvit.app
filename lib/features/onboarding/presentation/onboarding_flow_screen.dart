@@ -71,7 +71,7 @@ class OnboardingFlowScreen extends ConsumerStatefulWidget {
 class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
   int _page = 0;
   bool _forward = true;
-  static const _total = 10;
+  static const _total = 9;
 
   int _age = 25;
   int _height = 177;
@@ -109,13 +109,13 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
         return p.experience != null;
       case 4:
         return p.place != null;
-      case 6:
+      case 5:
         return p.workoutsPerWeek != null;
-      case 7:
+      case 6:
         return p.duration != null;
-      case 8:
+      case 7:
         return p.motivation != null;
-      case 9:
+      case 8:
         return p.aiTone != null;
       default:
         return true;
@@ -203,10 +203,9 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
                           ),
                         3 => _ExperiencePage(profile: profile, onSelect: notifier.setExperience),
                         4 => _PlaceEquipmentPage(profile: profile, onPlace: notifier.setPlace, onToggleEquipment: notifier.toggleEquipment),
-                        5 => _LimitationsPage(profile: profile, onToggle: notifier.toggleLimitation, onClear: notifier.clearLimitations),
-                        6 => _WorkoutsPerWeekPage(profile: profile, onSelect: notifier.setWorkoutsPerWeek),
-                        7 => _DurationPage(profile: profile, onSelect: notifier.setDuration),
-                        8 => _MotivationPage(profile: profile, onSelect: notifier.setMotivation),
+                        5 => _WorkoutsPerWeekPage(profile: profile, onSelect: notifier.setWorkoutsPerWeek),
+                        6 => _DurationPage(profile: profile, onSelect: notifier.setDuration),
+                        7 => _MotivationPage(profile: profile, onSelect: notifier.setMotivation),
                         _ => _AiTonePage(profile: profile, onSelect: notifier.setAiTone),
                       },
                     ),
@@ -544,43 +543,6 @@ class _PlaceEquipmentPage extends StatelessWidget {
               children: [
                 for (final eq in HomeEquipment.values)
                   SelectableChip(label: eq.label, selected: profile.equipment.contains(eq), onTap: () => onToggleEquipment(eq)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LimitationsPage extends StatelessWidget {
-  const _LimitationsPage({required this.profile, required this.onToggle, required this.onClear});
-  final OnboardingProfile profile;
-  final ValueChanged<BodyLimitation> onToggle;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return _QuestionScaffold(
-      title: 'Есть ли ограничения или травмы?',
-      subtitle: 'Отметь зоны на схеме — учтём при подборе упражнений',
-      child: Column(
-        children: [
-          FadeSlideIn(
-            delay: const Duration(milliseconds: 120),
-            child: BodyDiagram(selected: profile.limitations, onToggle: onToggle),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          FadeSlideIn(
-            delay: const Duration(milliseconds: 260),
-            child: Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              alignment: WrapAlignment.center,
-              children: [
-                for (final l in BodyLimitation.values)
-                  SelectableChip(label: l.label, selected: profile.limitations.contains(l), onTap: () => onToggle(l)),
-                SelectableChip(label: 'Нет ограничений', selected: profile.limitations.isEmpty, onTap: onClear),
               ],
             ),
           ),

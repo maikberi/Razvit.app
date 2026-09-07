@@ -96,7 +96,6 @@ class SelectableChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 16, vertical: dense ? 9 : 10),
-        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: selected ? AppColors.green500 : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -104,7 +103,6 @@ class SelectableChip extends StatelessWidget {
         ),
         child: Text(
           label,
-          textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: (dense ? Theme.of(context).textTheme.labelSmall : Theme.of(context).textTheme.labelMedium)?.copyWith(

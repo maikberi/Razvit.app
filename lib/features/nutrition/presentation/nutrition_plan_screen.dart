@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/progress_ring.dart';
+import '../../../data/models/nutrition.dart';
 import '../../../data/repositories/nutrition_repository.dart';
 
 class NutritionPlanScreen extends ConsumerWidget {
@@ -79,11 +80,20 @@ class NutritionPlanScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(onPressed: () {}, child: const Text('Редактировать план')),
+              child: ElevatedButton(onPressed: () => _showEditSheet(context, ref), child: const Text('Редактировать план')),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showEditSheet(BuildContext context, WidgetRef ref) {
+    final plan = ref.read(nutritionPlanProvider);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _EditPlanSheet(plan: plan),
     );
   }
 
@@ -103,6 +113,88 @@ class NutritionPlanScreen extends ConsumerWidget {
                 Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EditPlanSheet extends ConsumerStatefulWidget {
+  const _EditPlanSheet({required this.plan});
+  final NutritionPlan plan;
+
+  @override
+  ConsumerState<_EditPlanSheet> createState() => _EditPlanSheetState();
+}
+
+class _EditPlanSheetState extends ConsumerState<_EditPlanSheet> {
+  late int _calories = widget.plan.calorieGoal;
+  late int _protein = widget.plan.proteinGoal;
+  late int _fat = widget.plan.fatGoal;
+  late int _carbs = widget.plan.carbsGoal;
+  late int _waterMl = widget.plan.waterGoalMl;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.lg + MediaQuery.of(context).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Редактировать план', style: Theme.of(context).textTheme.headlineMedium),
+            const SizedBox(height: AppSpacing.lg),
+            _stepperRow('Калории', '$_calories ккал', () => setState(() => _calories = (_calories - 50).clamp(1000, 5000)), () => setState(() => _calories = (_calories + 50).clamp(1000, 5000))),
+            _stepperRow('Белки', '$_protein г', () => setState(() => _protein = (_protein - 5).clamp(20, 400)), () => setState(() => _protein = (_protein + 5).clamp(20, 400))),
+            _stepperRow('Жиры', '$_fat г', () => setState(() => _fat = (_fat - 5).clamp(10, 300)), () => setState(() => _fat = (_fat + 5).clamp(10, 300))),
+            _stepperRow('Углеводы', '$_carbs г', () => setState(() => _carbs = (_carbs - 5).clamp(20, 600)), () => setState(() => _carbs = (_carbs + 5).clamp(20, 600))),
+            _stepperRow(
+              'Вода',
+              '${(_waterMl / 1000).toStringAsFixed(1)} л',
+              () => setState(() => _waterMl = (_waterMl - 100).clamp(500, 6000)),
+              () => setState(() => _waterMl = (_waterMl + 100).clamp(500, 6000)),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  ref.read(nutritionPlanProvider.notifier).update(
+                        calorieGoal: _calories,
+                        proteinGoal: _protein,
+                        fatGoal: _fat,
+                        carbsGoal: _carbs,
+                        waterGoalMl: _waterMl,
+                      );
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Сохранить'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _stepperRow(String label, String value, VoidCallback onMinus, VoidCallback onPlus) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyLarge)),
+          IconButton.filled(
+            onPressed: onMinus,
+            icon: const Icon(Icons.remove_rounded),
+            style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+          ),
+          SizedBox(width: 84, child: Text(value, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleSmall)),
+          IconButton.filled(
+            onPressed: onPlus,
+            icon: const Icon(Icons.add_rounded),
+            style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
           ),
         ],
       ),

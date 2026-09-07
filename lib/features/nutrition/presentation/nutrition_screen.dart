@@ -61,7 +61,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                     boxShadow: AppShadows.card,
                   ),
                   child: IconButton(
-                    onPressed: () => context.push('/workout-calendar'),
+                    onPressed: () => context.push('/nutrition-stats'),
                     icon: const Icon(Icons.calendar_today_outlined, size: 20),
                     visualDensity: VisualDensity.compact,
                   ),

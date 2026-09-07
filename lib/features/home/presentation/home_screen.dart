@@ -120,7 +120,7 @@ class HomeScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Мои показатели', style: Theme.of(context).textTheme.titleLarge),
-                _LinkText(label: 'Настроить', onTap: () => context.push('/settings')),
+                _LinkText(label: 'Настроить', onTap: () => context.push('/nutrition-plan')),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
