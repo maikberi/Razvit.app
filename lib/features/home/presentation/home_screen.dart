@@ -9,6 +9,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/mascot.dart';
 import '../../../core/widgets/progress_ring.dart';
+import '../../../core/widgets/reveal_on_visible.dart';
 import '../../../data/mock/mock_progress.dart';
 import '../../../data/models/workout_session.dart';
 import '../../../data/repositories/health_repository.dart';
@@ -30,11 +31,29 @@ String _greeting() {
   return 'Добрый вечер';
 }
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  late final bool _showIntro;
+
+  @override
+  void initState() {
+    super.initState();
+    _showIntro = ref.read(showHomeIntroProvider);
+    if (_showIntro) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(showHomeIntroProvider.notifier).state = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final today = ref.watch(todayWorkoutProvider);
     final meals = ref.watch(mealsProvider);
@@ -52,190 +71,219 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xxl),
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      style: Theme.of(context).textTheme.headlineLarge,
-                      children: [
-                        TextSpan(text: '${_greeting()},\n'),
-                        TextSpan(text: '${user.name}! 👋', style: const TextStyle(color: AppColors.green600)),
-                      ],
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => context.push('/nutrition-plan'),
-                  child: SizedBox(
-                    width: 64,
-                    height: 64,
-                    child: ProgressRing(
-                      progress: plan.progressPercent / 100,
-                      size: 64,
-                      strokeWidth: 6,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('${plan.progressPercent}%', style: Theme.of(context).textTheme.titleSmall),
-                          Text('Прогресс', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8)),
-                        ],
+        child: RevealVisibilityScope(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xxl),
+            children: [
+              RevealOnVisible(
+                active: _showIntro,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: Theme.of(context).textTheme.headlineLarge,
+                          children: [
+                            TextSpan(text: '${_greeting()},\n'),
+                            TextSpan(text: '${user.name}! 👋', style: const TextStyle(color: AppColors.green600)),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text('Ты на ${plan.progressPercent}% ближе к своей цели!', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
-            const SizedBox(height: AppSpacing.lg),
-            _GoalCard(title: today.title, exercises: today.exercises.length, minutes: today.estimatedDuration.inMinutes, volumeKg: today.estimatedVolumeKg),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => context.push('/workout-session'),
-                style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).cardTheme.color, side: BorderSide.none, elevation: 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Начать тренировку'),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.arrow_forward_rounded, size: 18),
+                    GestureDetector(
+                      onTap: () => context.push('/nutrition-plan'),
+                      child: SizedBox(
+                        width: 64,
+                        height: 64,
+                        child: ProgressRing(
+                          progress: plan.progressPercent / 100,
+                          size: 64,
+                          strokeWidth: 6,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('${plan.progressPercent}%', style: Theme.of(context).textTheme.titleSmall),
+                              Text('Прогресс', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Мои показатели', style: Theme.of(context).textTheme.titleLarge),
-                _LinkText(label: 'Настроить', onTap: () => context.push('/nutrition-plan')),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: _TodayStatCard(
-                    icon: Icons.local_fire_department_rounded,
-                    color: AppColors.green600,
-                    background: AppColors.green50,
-                    label: 'Калории',
-                    value: '$calories',
-                    goal: '${plan.calorieGoal} ккал',
-                    progress: plan.calorieGoal == 0 ? 0 : calories / plan.calorieGoal,
-                    onTap: () => context.go('/nutrition'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _TodayStatCard(
-                    icon: Icons.egg_alt_rounded,
-                    color: _statBlue,
-                    background: const Color(0xFFEAF1FE),
-                    label: 'Белки',
-                    value: protein.toStringAsFixed(0),
-                    goal: '${plan.proteinGoal} г',
-                    progress: plan.proteinGoal == 0 ? 0 : protein / plan.proteinGoal,
-                    onTap: () => context.go('/nutrition'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _TodayStatCard(
-                    icon: Icons.water_drop_rounded,
-                    color: AppColors.water,
-                    background: const Color(0xFFE0FAFE),
-                    label: 'Вода',
-                    value: (water / 1000).toStringAsFixed(1),
-                    goal: '${(plan.waterGoalMl / 1000).toStringAsFixed(1)} л',
-                    progress: plan.waterGoalMl == 0 ? 0 : water / plan.waterGoalMl,
-                    onTap: () => context.go('/nutrition'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _TodayStatCard(
-                    icon: Icons.monitor_weight_rounded,
-                    color: _statPurple,
-                    background: const Color(0xFFF2ECFE),
-                    label: 'Вес',
-                    value: user.weightKg.toStringAsFixed(0),
-                    goal: 'кг',
-                    trailing: Text(
-                      '${weightDelta <= 0 ? '↓' : '↑'} ${weightDelta.abs().toStringAsFixed(1)} кг',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: weightDelta <= 0 ? AppColors.green600 : AppColors.error),
+              const SizedBox(height: 6),
+              Text('Ты на ${plan.progressPercent}% ближе к своей цели!', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+              const SizedBox(height: AppSpacing.lg),
+              RevealOnVisible(
+                active: _showIntro,
+                child: Column(
+                  children: [
+                    _GoalCard(title: today.title, exercises: today.exercises.length, minutes: today.estimatedDuration.inMinutes, volumeKg: today.estimatedVolumeKg),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () => context.push('/workout-session'),
+                        style: OutlinedButton.styleFrom(backgroundColor: Theme.of(context).cardTheme.color, side: BorderSide.none, elevation: 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Начать тренировку'),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward_rounded, size: 18),
+                          ],
+                        ),
+                      ),
                     ),
-                    onTap: () => context.push('/workout-stats'),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            _StepsCard(connected: healthConnected, steps: steps),
-            const SizedBox(height: AppSpacing.xl),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Календарь тренировок', style: Theme.of(context).textTheme.titleLarge),
-                _LinkText(label: 'Смотреть все', onTap: () => context.push('/workout-calendar')),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            _WeekCalendar(sessions: sessions),
-            const SizedBox(height: AppSpacing.xl),
-            _StreakCard(streakDays: user.streakDays),
-            const SizedBox(height: AppSpacing.xl),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Прогресс', style: Theme.of(context).textTheme.titleLarge),
-                _LinkText(label: 'Подробнее', onTap: () => context.push('/workout-stats')),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            _ProgressCard(history: weightHistory, currentWeight: user.weightKg),
-            const SizedBox(height: AppSpacing.xl),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Тренировки', style: Theme.of(context).textTheme.titleLarge),
-                _LinkText(label: 'Смотреть все', onTap: () => context.push('/workouts')),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            _WorkoutRow(
-              icon: Icons.fitness_center_rounded,
-              color: _statBlue,
-              background: const Color(0xFFEAF1FE),
-              title: today.title,
-              subtitle: '${today.estimatedDuration.inMinutes} мин • ${today.exercises.length} упражнений',
-              tag: 'Силовая тренировка',
-              onTap: () => context.push('/workout-session'),
-            ),
-            const SizedBox(height: 10),
-            _WorkoutRow(
-              icon: Icons.directions_run_rounded,
-              color: _statPurple,
-              background: const Color(0xFFF2ECFE),
-              title: 'Кардио',
-              subtitle: '30 мин • Средняя интенсивность',
-              tag: 'Беговая дорожка',
-              onTap: () => context.push('/workouts'),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            _TrainerCard(name: trainer.name, isOnline: trainer.isOnline, rating: trainer.rating, seed: trainer.avatarSeed, id: trainer.id),
-          ],
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Мои показатели', style: Theme.of(context).textTheme.titleLarge),
+                  _LinkText(label: 'Настроить', onTap: () => context.push('/nutrition-plan')),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              RevealOnVisible(
+                active: _showIntro,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _TodayStatCard(
+                            icon: Icons.local_fire_department_rounded,
+                            color: AppColors.green600,
+                            background: AppColors.green50,
+                            label: 'Калории',
+                            value: '$calories',
+                            goal: '${plan.calorieGoal} ккал',
+                            progress: plan.calorieGoal == 0 ? 0 : calories / plan.calorieGoal,
+                            onTap: () => context.go('/nutrition'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _TodayStatCard(
+                            icon: Icons.egg_alt_rounded,
+                            color: _statBlue,
+                            background: const Color(0xFFEAF1FE),
+                            label: 'Белки',
+                            value: protein.toStringAsFixed(0),
+                            goal: '${plan.proteinGoal} г',
+                            progress: plan.proteinGoal == 0 ? 0 : protein / plan.proteinGoal,
+                            onTap: () => context.go('/nutrition'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _TodayStatCard(
+                            icon: Icons.water_drop_rounded,
+                            color: AppColors.water,
+                            background: const Color(0xFFE0FAFE),
+                            label: 'Вода',
+                            value: (water / 1000).toStringAsFixed(1),
+                            goal: '${(plan.waterGoalMl / 1000).toStringAsFixed(1)} л',
+                            progress: plan.waterGoalMl == 0 ? 0 : water / plan.waterGoalMl,
+                            onTap: () => context.go('/nutrition'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _TodayStatCard(
+                            icon: Icons.monitor_weight_rounded,
+                            color: _statPurple,
+                            background: const Color(0xFFF2ECFE),
+                            label: 'Вес',
+                            value: user.weightKg.toStringAsFixed(0),
+                            goal: 'кг',
+                            trailing: Text(
+                              '${weightDelta <= 0 ? '↓' : '↑'} ${weightDelta.abs().toStringAsFixed(1)} кг',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(color: weightDelta <= 0 ? AppColors.green600 : AppColors.error),
+                            ),
+                            onTap: () => context.push('/workout-stats'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    _StepsCard(connected: healthConnected, steps: steps),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Календарь тренировок', style: Theme.of(context).textTheme.titleLarge),
+                  _LinkText(label: 'Смотреть все', onTap: () => context.push('/workout-calendar')),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              RevealOnVisible(active: _showIntro, child: _WeekCalendar(sessions: sessions)),
+              const SizedBox(height: AppSpacing.xl),
+              RevealOnVisible(active: _showIntro, child: _StreakCard(streakDays: user.streakDays)),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Прогресс', style: Theme.of(context).textTheme.titleLarge),
+                  _LinkText(label: 'Подробнее', onTap: () => context.push('/workout-stats')),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              RevealOnVisible(active: _showIntro, child: _ProgressCard(history: weightHistory, currentWeight: user.weightKg)),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Тренировки', style: Theme.of(context).textTheme.titleLarge),
+                  _LinkText(label: 'Смотреть все', onTap: () => context.push('/workouts')),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              RevealOnVisible(
+                active: _showIntro,
+                child: Column(
+                  children: [
+                    _WorkoutRow(
+                      icon: Icons.fitness_center_rounded,
+                      color: _statBlue,
+                      background: const Color(0xFFEAF1FE),
+                      title: today.title,
+                      subtitle: '${today.estimatedDuration.inMinutes} мин • ${today.exercises.length} упражнений',
+                      tag: 'Силовая тренировка',
+                      onTap: () => context.push('/workout-session'),
+                    ),
+                    const SizedBox(height: 10),
+                    _WorkoutRow(
+                      icon: Icons.directions_run_rounded,
+                      color: _statPurple,
+                      background: const Color(0xFFF2ECFE),
+                      title: 'Кардио',
+                      subtitle: '30 мин • Средняя интенсивность',
+                      tag: 'Беговая дорожка',
+                      onTap: () => context.push('/workouts'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              RevealOnVisible(
+                active: _showIntro,
+                child: _TrainerCard(name: trainer.name, isOnline: trainer.isOnline, rating: trainer.rating, seed: trainer.avatarSeed, id: trainer.id),
+              ),
+            ],
+          ),
         ),
       ),
     );

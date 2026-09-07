@@ -350,7 +350,8 @@ class _AboutYouPage extends StatelessWidget {
             delay: const Duration(milliseconds: 240),
             child: _MetricSlider(
               label: 'Возраст',
-              value: '$age ${yearsLabel(age)}',
+              numberText: '$age',
+              unitText: yearsLabel(age),
               sliderValue: age.toDouble(),
               min: 12,
               max: 90,
@@ -387,7 +388,8 @@ class _HeightWeightPage extends StatelessWidget {
             delay: const Duration(milliseconds: 120),
             child: _MetricSlider(
               label: 'Рост',
-              value: '$height см',
+              numberText: '$height',
+              unitText: 'см',
               sliderValue: height.toDouble(),
               min: 120,
               max: 220,
@@ -399,7 +401,8 @@ class _HeightWeightPage extends StatelessWidget {
             delay: const Duration(milliseconds: 200),
             child: _MetricSlider(
               label: 'Вес',
-              value: '${weight.toStringAsFixed(0)} кг',
+              numberText: weight.toStringAsFixed(0),
+              unitText: 'кг',
               sliderValue: weight.clamp(35, 200),
               min: 35,
               max: 200,
@@ -415,7 +418,8 @@ class _HeightWeightPage extends StatelessWidget {
 class _MetricSlider extends StatelessWidget {
   const _MetricSlider({
     required this.label,
-    required this.value,
+    required this.numberText,
+    required this.unitText,
     required this.sliderValue,
     required this.min,
     required this.max,
@@ -423,7 +427,8 @@ class _MetricSlider extends StatelessWidget {
   });
 
   final String label;
-  final String value;
+  final String numberText;
+  final String unitText;
   final double sliderValue;
   final double min;
   final double max;
@@ -431,25 +436,38 @@ class _MetricSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final valueStyle = Theme.of(context).textTheme.displayLarge?.copyWith(color: AppColors.green600, fontSize: 38);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 4),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 220),
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero).animate(animation),
-              child: child,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(numberText, style: valueStyle),
+            const SizedBox(width: 8),
+            ClipRect(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 260),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(begin: const Offset(0, 0.45), end: Offset.zero).animate(animation),
+                    child: child,
+                  ),
+                ),
+                child: Text(
+                  unitText,
+                  key: ValueKey(unitText),
+                  style: valueStyle,
+                ),
+              ),
             ),
-          ),
-          child: Text(
-            value,
-            key: ValueKey(value),
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(color: AppColors.green600, fontSize: 38),
-          ),
+          ],
         ),
         Row(
           children: [

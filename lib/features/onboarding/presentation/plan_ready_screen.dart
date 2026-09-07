@@ -131,6 +131,7 @@ class PlanReadyScreen extends ConsumerWidget {
                         ref
                             .read(onboardingCompletedProvider.notifier)
                             .complete();
+                        ref.read(showHomeIntroProvider.notifier).state = true;
                         context.go('/home');
                       },
                       child: const Text('Начать путь'),

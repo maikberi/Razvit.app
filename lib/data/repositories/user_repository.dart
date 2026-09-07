@@ -39,3 +39,7 @@ class AuthNotifier extends StateNotifier<bool> {
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, bool>((ref) => AuthNotifier());
+
+/// Взводится сразу после завершения онбординга — экран "Главная"
+/// один раз проигрывает приветственную анимацию появления и сбрасывает флаг.
+final showHomeIntroProvider = StateProvider<bool>((ref) => false);
