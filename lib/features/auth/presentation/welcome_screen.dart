@@ -25,13 +25,12 @@ class WelcomeScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md, AppSpacing.xl, 0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       TweenAnimationBuilder<double>(
                         tween: Tween(begin: 0.5, end: 1),
                         duration: const Duration(milliseconds: 750),
                         curve: Curves.elasticOut,
-                        builder: (context, scale, child) => Transform.scale(scale: scale, alignment: Alignment.centerLeft, child: child),
+                        builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
                         child: const RazvitWordmark(iconSize: 44, fontSize: 34),
                       ),
                       const SizedBox(height: 6),
@@ -39,6 +38,7 @@ class WelcomeScreen extends StatelessWidget {
                         delay: const Duration(milliseconds: 100),
                         child: Text(
                           'Твой путь к лучшей версии себя',
+                          textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.ink500),
                         ),
                       ),
