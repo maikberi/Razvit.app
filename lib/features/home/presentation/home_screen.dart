@@ -317,41 +317,50 @@ class _GoalCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.xl),
       child: Container(
         color: AppColors.green50,
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
-          children: [
-            Positioned(
-              right: -16,
-              top: 0,
-              bottom: 0,
-              child: Image.asset(
-                'assets/home/hero_dumbbells.png',
-                width: 210,
-                fit: BoxFit.contain,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: FractionallySizedBox(
-                widthFactor: 0.6,
-                alignment: Alignment.topLeft,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Сегодня по плану', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green700)),
-                    const SizedBox(height: 4),
-                    Text(title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.ink900)),
-                    const SizedBox(height: AppSpacing.sm),
-                    _bullet(context, Icons.format_list_bulleted_rounded, '$exercises упражнений'),
-                    const SizedBox(height: 4),
-                    _bullet(context, Icons.timer_outlined, '$minutes минут'),
-                    const SizedBox(height: 4),
-                    _bullet(context, Icons.bar_chart_rounded, '${volumeKg.round()} кг объём'),
-                  ],
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Сегодня по плану', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.green700)),
+                      const SizedBox(height: 4),
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.ink900),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _bullet(context, Icons.format_list_bulleted_rounded, '$exercises упражнений'),
+                      const SizedBox(height: 4),
+                      _bullet(context, Icons.timer_outlined, '$minutes минут'),
+                      const SizedBox(height: 4),
+                      _bullet(context, Icons.bar_chart_rounded, '${volumeKg.round()} кг объём'),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+              SizedBox(
+                width: 118,
+                child: OverflowBox(
+                  minWidth: 118,
+                  maxWidth: 170,
+                  alignment: Alignment.centerLeft,
+                  child: Image.asset(
+                    'assets/home/hero_dumbbells.png',
+                    width: 170,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

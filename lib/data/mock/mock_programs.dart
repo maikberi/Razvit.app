@@ -4,7 +4,7 @@ import 'mock_exercises.dart';
 
 WorkoutDay _pushDay() => WorkoutDay(
       id: 'push_day',
-      title: 'Push Day 💪',
+      title: 'Push Day',
       exercises: [
         ProgramExercise(exercise: exerciseById('seated_barbell_press'), sets: 4, repsLabel: '8–10', weightKg: 40, restSeconds: 75),
         ProgramExercise(exercise: exerciseById('bench_press'), sets: 4, repsLabel: '8–10', weightKg: 100, restSeconds: 90),
