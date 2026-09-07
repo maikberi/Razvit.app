@@ -54,6 +54,7 @@ class _ImagePrecacherState extends State<_ImagePrecacher> {
       if (!mounted) return;
       for (final asset in const [
         'assets/mascot/bear.png',
+        'assets/mascot/welcome_bear.png',
         'assets/home/hero_dumbbells.png',
       ]) {
         precacheImage(AssetImage(asset), context);

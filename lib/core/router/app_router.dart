@@ -41,7 +41,20 @@ final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(path: '/font-preview', builder: (context, state) => const FontPreviewScreen()),
     GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
-    GoRoute(path: '/sign-up-method', builder: (context, state) => const SignUpMethodScreen()),
+    GoRoute(
+      path: '/sign-up-method',
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const SignUpMethodScreen(),
+        transitionDuration: const Duration(milliseconds: 380),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+          final scale = Tween(begin: 0.97, end: 1.0).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+          return FadeTransition(opacity: fade, child: ScaleTransition(scale: scale, child: child));
+        },
+      ),
+    ),
     GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),

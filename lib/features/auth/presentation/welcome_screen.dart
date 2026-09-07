@@ -27,7 +27,13 @@ class WelcomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FadeSlideIn(child: const RazvitWordmark(iconSize: 44, fontSize: 34)),
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.5, end: 1),
+                        duration: const Duration(milliseconds: 750),
+                        curve: Curves.elasticOut,
+                        builder: (context, scale, child) => Transform.scale(scale: scale, alignment: Alignment.centerLeft, child: child),
+                        child: const RazvitWordmark(iconSize: 44, fontSize: 34),
+                      ),
                       const SizedBox(height: 6),
                       FadeSlideIn(
                         delay: const Duration(milliseconds: 100),
@@ -47,10 +53,19 @@ class WelcomeScreen extends StatelessWidget {
                     builder: (context, scale, child) => Transform.scale(scale: scale, alignment: Alignment.bottomCenter, child: child),
                     child: SizedBox(
                       width: double.infinity,
-                      child: Image.asset(
-                        'assets/mascot/welcome_bear.png',
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
+                      child: ShaderMask(
+                        shaderCallback: (rect) => const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.white, Colors.white, Colors.transparent],
+                          stops: [0.0, 0.8, 1.0],
+                        ).createShader(rect),
+                        blendMode: BlendMode.dstIn,
+                        child: Image.asset(
+                          'assets/mascot/welcome_bear.png',
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                        ),
                       ),
                     ),
                   ),
