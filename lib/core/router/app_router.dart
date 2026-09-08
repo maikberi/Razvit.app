@@ -7,6 +7,7 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/sign_up_method_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
+import '../../data/models/nutrition.dart';
 import '../../features/home/presentation/notifications_screen.dart';
 import '../../features/nutrition/presentation/add_food_screen.dart';
 import '../../features/nutrition/presentation/nutrition_plan_screen.dart';
@@ -70,8 +71,11 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/workout-calendar', builder: (context, state) => const WorkoutCalendarScreen()),
     GoRoute(path: '/workout-stats', builder: (context, state) => const WorkoutStatsScreen()),
     GoRoute(
-      path: '/add-food/:mealType',
-      builder: (context, state) => AddFoodScreen(mealType: state.pathParameters['mealType']!),
+      path: '/add-food',
+      builder: (context, state) => AddFoodScreen(
+        mealId: state.uri.queryParameters['mealId']!,
+        mealType: MealType.values.byName(state.uri.queryParameters['mealType']!),
+      ),
     ),
     GoRoute(path: '/recipes', builder: (context, state) => const RecipesScreen()),
     GoRoute(path: '/nutrition-plan', builder: (context, state) => const NutritionPlanScreen()),

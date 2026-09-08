@@ -69,6 +69,13 @@ class FoodService {
     return FoodItem.fromJson(json['data'] as Map<String, dynamic>);
   }
 
+  /// Недавно использованные продукты текущего пользователя (для Recent Foods).
+  Future<List<FoodItem>> getRecent() async {
+    final json = await _client.getJson('/api/v1/foods/recent');
+    final data = (json['data'] as List<dynamic>? ?? const []).cast<Map<String, dynamic>>();
+    return data.map(FoodItem.fromJson).toList();
+  }
+
   FoodSearchResult _parsePage(Map<String, dynamic> json) {
     final data = (json['data'] as List<dynamic>? ?? const []).cast<Map<String, dynamic>>();
     final meta = json['meta'] as Map<String, dynamic>? ?? const {};

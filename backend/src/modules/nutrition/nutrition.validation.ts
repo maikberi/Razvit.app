@@ -63,3 +63,33 @@ export type CalculateMealBody = z.infer<typeof calculateMealSchema>;
 export type CalculateRecipeBody = z.infer<typeof calculateRecipeSchema>;
 export type CalculateDayBody = z.infer<typeof calculateDaySchema>;
 export type CalculateWeekBody = z.infer<typeof calculateWeekSchema>;
+
+export const dateQuerySchema = z.object({
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be YYYY-MM-DD')
+    .optional(),
+});
+
+export const updateTargetsSchema = z.object({
+  title: z.string().min(1).optional(),
+  calorieGoal: z.number().int().min(0),
+  proteinGoal: z.number().int().min(0),
+  fatGoal: z.number().int().min(0),
+  carbsGoal: z.number().int().min(0),
+  waterGoalMl: z.number().int().min(0),
+});
+
+export const addWaterSchema = z.object({
+  amountMl: z.number().int().positive('amountMl must be > 0'),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be YYYY-MM-DD')
+    .optional(),
+});
+
+export const removeLastWaterQuerySchema = dateQuerySchema;
+
+export type DateQuery = z.infer<typeof dateQuerySchema>;
+export type UpdateTargetsBody = z.infer<typeof updateTargetsSchema>;
+export type AddWaterBody = z.infer<typeof addWaterSchema>;

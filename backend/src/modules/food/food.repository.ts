@@ -170,6 +170,30 @@ export class FoodRepository {
     return rows;
   }
 
+  /** Отмечает продукт как недавно использованный конкретным пользователем (для Recent Foods). */
+  async touchRecent(userId: string, foodId: string): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO recent_foods (user_id, food_id, last_used_at, use_count)
+       VALUES ($1, $2, now(), 1)
+       ON CONFLICT (user_id, food_id)
+       DO UPDATE SET last_used_at = now(), use_count = recent_foods.use_count + 1`,
+      [userId, foodId],
+    );
+  }
+
+  /** Последние использованные продукты пользователя, самые свежие — первыми. */
+  async findRecent(userId: string, limit = 12): Promise<FoodRow[]> {
+    const { rows } = await this.pool.query<FoodRow>(
+      `SELECT foods.* FROM recent_foods
+       JOIN foods ON foods.id = recent_foods.food_id
+       WHERE recent_foods.user_id = $1
+       ORDER BY recent_foods.last_used_at DESC
+       LIMIT $2`,
+      [userId, limit],
+    );
+    return rows;
+  }
+
   async getAliases(foodId: string): Promise<AliasRow[]> {
     const { rows } = await this.pool.query<AliasRow>('SELECT * FROM food_aliases WHERE food_id = $1', [foodId]);
     return rows;

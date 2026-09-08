@@ -4,27 +4,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
-import '../../../data/mock/mock_nutrition.dart';
 import '../../../data/models/nutrition.dart';
-import '../../../data/repositories/nutrition_repository.dart';
+import '../../../data/repositories/nutrition_day_repository.dart';
+import '../../../data/services/nutrition_api_service.dart';
 import 'add_food_screen.dart' show BarcodeSheet;
 import 'food_ui.dart';
 
 /// Открывает выбор способа добавления еды: из базы, штрихкод, фото (AI)
-/// или вручную.
-void showAddFoodMethodSheet(BuildContext context, MealType type) {
+/// или вручную — в конкретный приём пищи [mealId] (реальный id с backend).
+void showAddFoodMethodSheet(BuildContext context, {required String mealId, required MealType mealType}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    builder: (context) => _AddFoodMethodSheet(type: type),
+    builder: (context) => _AddFoodMethodSheet(mealId: mealId, mealType: mealType),
   );
 }
 
 class _AddFoodMethodSheet extends StatelessWidget {
-  const _AddFoodMethodSheet({required this.type});
-  final MealType type;
+  const _AddFoodMethodSheet({required this.mealId, required this.mealType});
+  final String mealId;
+  final MealType mealType;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,7 @@ class _AddFoodMethodSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Добавить в «${type.label.toLowerCase()}»', style: Theme.of(context).textTheme.headlineMedium),
+            Text('Добавить в «${mealType.label.toLowerCase()}»', style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: AppSpacing.lg),
             _MethodTile(
               icon: Icons.search_rounded,
@@ -45,7 +47,7 @@ class _AddFoodMethodSheet extends StatelessWidget {
               subtitle: 'Поиск среди тысяч продуктов',
               onTap: () {
                 Navigator.of(context).pop();
-                context.push('/add-food/${type.name}');
+                context.push('/add-food?mealId=$mealId&mealType=${mealType.name}');
               },
             ),
             const SizedBox(height: 10),
@@ -57,7 +59,7 @@ class _AddFoodMethodSheet extends StatelessWidget {
               subtitle: 'Найдём в базе продуктов RAZVIT',
               onTap: () {
                 Navigator.of(context).pop();
-                _showBarcode(context, type);
+                _showBarcode(context, mealId);
               },
             ),
             const SizedBox(height: 10),
@@ -69,7 +71,7 @@ class _AddFoodMethodSheet extends StatelessWidget {
               subtitle: 'AI распознает и посчитает калории',
               onTap: () {
                 Navigator.of(context).pop();
-                _showPhotoAi(context, type);
+                _showPhotoAi(context, mealId);
               },
             ),
             const SizedBox(height: 10),
@@ -81,7 +83,7 @@ class _AddFoodMethodSheet extends StatelessWidget {
               subtitle: 'Свои граммы, калории и БЖУ',
               onTap: () {
                 Navigator.of(context).pop();
-                _showManualEntry(context, type);
+                _showManualEntry(context, mealId);
               },
             ),
           ],
@@ -91,40 +93,72 @@ class _AddFoodMethodSheet extends StatelessWidget {
   }
 }
 
-void _addFoodFromSheet(BuildContext sheetContext, MealType type, FoodItem food, int grams) {
+/// Добавляет продукт в приём пищи через реальный backend и обновляет день.
+/// [sheetContext] — контекст ТЕКУЩЕГО (открытого сейчас) шита, а не
+/// исходного, который открыл цепочку шитов — только он гарантированно
+/// смонтирован в момент вызова (см. урок про устаревший WidgetRef выше
+/// по истории проекта: нельзя использовать context уже закрытого шита
+/// после await).
+Future<void> _addFoodFromSheet(
+  BuildContext sheetContext,
+  String mealId, {
+  String? foodId,
+  String? name,
+  ManualNutrients? nutrients,
+  required int grams,
+}) async {
+  final container = ProviderScope.containerOf(sheetContext, listen: false);
+  final messenger = ScaffoldMessenger.of(sheetContext);
   Navigator.of(sheetContext).pop();
-  ProviderScope.containerOf(sheetContext, listen: false).read(mealsProvider.notifier).addFood(type, food, grams);
-  ScaffoldMessenger.of(sheetContext).showSnackBar(SnackBar(content: Text('${food.name} добавлено')));
+  try {
+    await container.read(nutritionDayProvider.notifier).addFoodItem(
+          mealId: mealId,
+          foodId: foodId,
+          name: name,
+          nutrients: nutrients,
+          grams: grams.toDouble(),
+        );
+    messenger.showSnackBar(SnackBar(content: Text('${name ?? "Продукт"} добавлено')));
+  } on ApiException catch (e) {
+    messenger.showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
+  }
 }
 
-void _showBarcode(BuildContext context, MealType type) {
+/// Публичные точки входа для "Быстрого добавления" на Nutrition Home
+/// Screen — открывают конкретный способ добавления напрямую, минуя шит
+/// выбора способа (он уже выбран нажатием соответствующей кнопки).
+void openBarcodeLookup(BuildContext context, String mealId) => _showBarcode(context, mealId);
+void openPhotoAi(BuildContext context, String mealId) => _showPhotoAi(context, mealId);
+void openManualEntry(BuildContext context, String mealId) => _showManualEntry(context, mealId);
+
+void _showBarcode(BuildContext context, String mealId) {
   final controller = TextEditingController();
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => BarcodeSheet(
       controller: controller,
-      onAdd: (food, grams) => _addFoodFromSheet(sheetContext, type, food, grams),
+      onAdd: (food, grams) => _addFoodFromSheet(sheetContext, mealId, foodId: food.id, name: food.name, grams: grams),
     ),
   );
 }
 
-void _showPhotoAi(BuildContext context, MealType type) {
+void _showPhotoAi(BuildContext context, String mealId) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => _PhotoAiSheet(
-      onAdd: (food, grams) => _addFoodFromSheet(sheetContext, type, food, grams),
+      onAdd: (name, nutrients, grams) => _addFoodFromSheet(sheetContext, mealId, name: name, nutrients: nutrients, grams: grams),
     ),
   );
 }
 
-void _showManualEntry(BuildContext context, MealType type) {
+void _showManualEntry(BuildContext context, String mealId) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => _ManualEntrySheet(
-      onAdd: (food, grams) => _addFoodFromSheet(sheetContext, type, food, grams),
+      onAdd: (name, nutrients, grams) => _addFoodFromSheet(sheetContext, mealId, name: name, nutrients: nutrients, grams: grams),
     ),
   );
 }
@@ -176,9 +210,20 @@ class _MethodTile extends StatelessWidget {
   }
 }
 
+/// Мок-"распознавание" блюда по фото — реального AI ещё нет (нужен
+/// отдельный внешний сервис компьютерного зрения на backend). Но
+/// результат добавляется в приём пищи по-настоящему: как ручная запись
+/// с распознанным названием и оценёнными нутриентами.
+const _mockRecognitionCandidates = [
+  (name: 'Овсянка с фруктами', calories: 120.0, protein: 4.0, fat: 3.0, carbs: 20.0, grams: 250),
+  (name: 'Куриная грудка с овощами', calories: 140.0, protein: 20.0, fat: 4.0, carbs: 5.0, grams: 300),
+  (name: 'Салат Цезарь', calories: 190.0, protein: 8.0, fat: 15.0, carbs: 6.0, grams: 220),
+  (name: 'Паста Болоньезе', calories: 160.0, protein: 7.0, fat: 5.0, carbs: 22.0, grams: 280),
+];
+
 class _PhotoAiSheet extends StatefulWidget {
   const _PhotoAiSheet({required this.onAdd});
-  final void Function(FoodItem food, int grams) onAdd;
+  final void Function(String name, ManualNutrients nutrients, int grams) onAdd;
 
   @override
   State<_PhotoAiSheet> createState() => _PhotoAiSheetState();
@@ -188,17 +233,17 @@ enum _PhotoAiStage { idle, analyzing, result }
 
 class _PhotoAiSheetState extends State<_PhotoAiSheet> {
   _PhotoAiStage _stage = _PhotoAiStage.idle;
-  FoodItem? _recognized;
+  ({String name, double calories, double protein, double fat, double carbs, int grams})? _recognized;
   int _grams = 100;
 
   Future<void> _takePhoto() async {
     setState(() => _stage = _PhotoAiStage.analyzing);
     await Future.delayed(const Duration(milliseconds: 1400));
     if (!mounted) return;
-    final food = mockFoods[Random().nextInt(mockFoods.length)];
+    final result = _mockRecognitionCandidates[Random().nextInt(_mockRecognitionCandidates.length)];
     setState(() {
-      _recognized = food;
-      _grams = food.defaultGrams;
+      _recognized = result;
+      _grams = result.grams;
       _stage = _PhotoAiStage.result;
     });
   }
@@ -228,7 +273,7 @@ class _PhotoAiSheetState extends State<_PhotoAiSheet> {
                       Text('AI анализирует фото...', style: TextStyle(color: Colors.white70)),
                     ],
                   ),
-                _PhotoAiStage.result => Icon(Icons.restaurant_rounded, color: foodBadgeColor(_recognized!.id), size: 56),
+                _PhotoAiStage.result => Icon(Icons.restaurant_rounded, color: foodBadgeColor(_recognized!.name), size: 56),
               },
             ),
           ),
@@ -251,7 +296,7 @@ class _PhotoAiSheetState extends State<_PhotoAiSheet> {
                 Expanded(
                   child: Text('Похоже на «${_recognized!.name}»', style: Theme.of(context).textTheme.titleMedium),
                 ),
-                Text('${(_recognized!.caloriesPer100g * _grams / 100).round()} ккал', style: Theme.of(context).textTheme.titleMedium),
+                Text('${(_recognized!.calories * _grams / 100).round()} ккал', style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -274,7 +319,14 @@ class _PhotoAiSheetState extends State<_PhotoAiSheet> {
             const SizedBox(height: AppSpacing.lg),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(onPressed: () => widget.onAdd(_recognized!, _grams), child: const Text('Добавить продукт')),
+              child: ElevatedButton(
+                onPressed: () => widget.onAdd(
+                  _recognized!.name,
+                  ManualNutrients(calories: _recognized!.calories, protein: _recognized!.protein, fat: _recognized!.fat, carbohydrates: _recognized!.carbs),
+                  _grams,
+                ),
+                child: const Text('Добавить продукт'),
+              ),
             ),
             const SizedBox(height: AppSpacing.sm),
             SizedBox(
@@ -290,7 +342,7 @@ class _PhotoAiSheetState extends State<_PhotoAiSheet> {
 
 class _ManualEntrySheet extends StatefulWidget {
   const _ManualEntrySheet({required this.onAdd});
-  final void Function(FoodItem food, int grams) onAdd;
+  final void Function(String name, ManualNutrients nutrients, int grams) onAdd;
 
   @override
   State<_ManualEntrySheet> createState() => _ManualEntrySheetState();
@@ -310,16 +362,13 @@ class _ManualEntrySheetState extends State<_ManualEntrySheet> {
     final grams = int.parse(_grams.text);
     final calories = int.parse(_calories.text);
     final ratio = 100 / grams;
-    final food = FoodItem(
-      id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
-      name: _name.text.trim(),
-      caloriesPer100g: (calories * ratio).round(),
-      proteinPer100g: (double.tryParse(_protein.text) ?? 0) * ratio,
-      fatPer100g: (double.tryParse(_fat.text) ?? 0) * ratio,
-      carbsPer100g: (double.tryParse(_carbs.text) ?? 0) * ratio,
-      defaultGrams: grams,
+    final nutrients = ManualNutrients(
+      calories: calories * ratio,
+      protein: (double.tryParse(_protein.text) ?? 0) * ratio,
+      fat: (double.tryParse(_fat.text) ?? 0) * ratio,
+      carbohydrates: (double.tryParse(_carbs.text) ?? 0) * ratio,
     );
-    widget.onAdd(food, grams);
+    widget.onAdd(_name.text.trim(), nutrients, grams);
   }
 
   @override

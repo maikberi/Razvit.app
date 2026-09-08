@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:razvit/core/network/api_client.dart';
+import 'package:razvit/data/models/nutrition.dart';
 import 'package:razvit/data/services/food_service.dart';
 import 'package:razvit/features/nutrition/presentation/add_food_screen.dart';
 
@@ -16,7 +17,7 @@ FoodService _serviceWith(Future<http.Response> Function(http.Request) handler) {
 Widget _wrap(FoodService foodService) {
   return ProviderScope(
     overrides: [foodServiceProvider.overrideWithValue(foodService)],
-    child: const MaterialApp(home: AddFoodScreen(mealType: 'breakfast')),
+    child: const MaterialApp(home: AddFoodScreen(mealId: 'meal-1', mealType: MealType.breakfast)),
   );
 }
 

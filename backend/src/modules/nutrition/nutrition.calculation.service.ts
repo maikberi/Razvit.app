@@ -183,6 +183,39 @@ export class NutritionCalculationService {
     return round(this.sumRaw(meals.flat()));
   }
 
+  private accumulate(profiles: NutrientProfile[]): RawProfile {
+    const raw = emptyRaw();
+    for (const p of profiles) {
+      raw.calories += p.calories;
+      raw.protein += p.protein;
+      raw.fat += p.fat;
+      raw.carbohydrates += p.carbohydrates;
+      raw.fiber += p.fiber;
+      if (p.sugar != null) {
+        raw.sugar = (raw.sugar ?? 0) + p.sugar;
+        raw.sugarKnown = true;
+      }
+      if (p.sodium != null) {
+        raw.sodium = (raw.sodium ?? 0) + p.sodium;
+        raw.sodiumKnown = true;
+      }
+      for (const [key, { amount, unit }] of Object.entries(p.micronutrients)) {
+        const existing = raw.micronutrients[key];
+        raw.micronutrients[key] = { amount: (existing?.amount ?? 0) + amount, unit };
+      }
+    }
+    return raw;
+  }
+
+  /**
+   * Складывает несколько уже посчитанных NutrientProfile (например, итоги
+   * приёмов пищи -> итог за день). В отличие от forMeal/forFoodAmount,
+   * НЕ масштабирует по граммам — просто точная сумма готовых значений.
+   */
+  sumProfiles(profiles: NutrientProfile[]): NutrientProfile {
+    return round(this.accumulate(profiles));
+  }
+
   /**
    * Week: агрегированная статистика по уже посчитанным дневным итогам
    * (например, взятым из истории питания) — суммарно за неделю и
@@ -193,26 +226,7 @@ export class NutritionCalculationService {
       const zero = round(emptyRaw());
       return { total: zero, dailyAverage: zero };
     }
-    const raw = emptyRaw();
-    for (const day of dailyTotals) {
-      raw.calories += day.calories;
-      raw.protein += day.protein;
-      raw.fat += day.fat;
-      raw.carbohydrates += day.carbohydrates;
-      raw.fiber += day.fiber;
-      if (day.sugar != null) {
-        raw.sugar = (raw.sugar ?? 0) + day.sugar;
-        raw.sugarKnown = true;
-      }
-      if (day.sodium != null) {
-        raw.sodium = (raw.sodium ?? 0) + day.sodium;
-        raw.sodiumKnown = true;
-      }
-      for (const [key, { amount, unit }] of Object.entries(day.micronutrients)) {
-        const existing = raw.micronutrients[key];
-        raw.micronutrients[key] = { amount: (existing?.amount ?? 0) + amount, unit };
-      }
-    }
+    const raw = this.accumulate(dailyTotals);
     const n = dailyTotals.length;
     const total = round(raw);
     const averageRaw: RawProfile = {

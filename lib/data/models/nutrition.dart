@@ -208,6 +208,21 @@ class NutritionPlan {
   final DateTime validUntil;
   final int progressPercent;
 
+  /// Из ответа backend (GET/PUT /nutrition/targets) — там нет validUntil
+  /// (это не длительность плана, а просто цели) и progressPercent
+  /// (он есть только в контексте конкретного дня, см. DailyNutritionSummary),
+  /// поэтому progressPercent передаётся отдельно вызывающей стороной.
+  factory NutritionPlan.fromTargetsJson(Map<String, dynamic> json, {int progressPercent = 0}) => NutritionPlan(
+        title: json['title'] as String,
+        calorieGoal: (json['calorieGoal'] as num).round(),
+        proteinGoal: (json['proteinGoal'] as num).round(),
+        fatGoal: (json['fatGoal'] as num).round(),
+        carbsGoal: (json['carbsGoal'] as num).round(),
+        waterGoalMl: (json['waterGoalMl'] as num).round(),
+        validUntil: DateTime.now(),
+        progressPercent: progressPercent,
+      );
+
   NutritionPlan copyWith({
     int? calorieGoal,
     int? proteinGoal,

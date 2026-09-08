@@ -5,5 +5,6 @@ declare module 'express-serve-static-core' {
     validatedBody?: unknown;
     validatedQuery?: unknown;
     validatedParams?: unknown;
+    userId?: string;
   }
 }

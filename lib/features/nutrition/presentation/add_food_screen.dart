@@ -8,14 +8,19 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../data/models/nutrition.dart';
-import '../../../data/repositories/nutrition_repository.dart';
+import '../../../data/repositories/nutrition_day_repository.dart';
 import '../../../data/services/food_service.dart';
 import 'food_ui.dart';
 
+/// Экран поиска продукта для добавления в конкретный приём пищи
+/// ([mealId] — реальный id из backend). Все данные — из Food Database
+/// backend (локальный каталог RAZVIT + автоматически подтянутые
+/// USDA/Open Food Facts), никакого мок-каталога.
 class AddFoodScreen extends ConsumerStatefulWidget {
-  const AddFoodScreen({super.key, required this.mealType});
+  const AddFoodScreen({super.key, required this.mealId, required this.mealType});
 
-  final String mealType;
+  final String mealId;
+  final MealType mealType;
 
   @override
   ConsumerState<AddFoodScreen> createState() => _AddFoodScreenState();
@@ -25,14 +30,13 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   final _search = TextEditingController();
   Timer? _debounce;
 
-  List<FoodItem> _onlineResults = [];
-  int _onlinePage = 1;
-  int _onlineTotalPages = 1;
-  bool _searchingOnline = false;
+  List<FoodItem> _results = [];
+  int _page = 1;
+  int _totalPages = 1;
+  bool _searching = false;
   bool _loadingMore = false;
-  String? _onlineError;
-
-  MealType get _type => MealType.values.firstWhere((t) => t.name == widget.mealType, orElse: () => MealType.snack);
+  String? _searchError;
+  bool _adding = false;
 
   @override
   void dispose() {
@@ -46,10 +50,10 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
     final trimmed = query.trim();
     if (trimmed.length < FoodService.minQueryLength) {
       setState(() {
-        _onlineResults = [];
-        _onlineError = null;
-        _onlinePage = 1;
-        _onlineTotalPages = 1;
+        _results = [];
+        _searchError = null;
+        _page = 1;
+        _totalPages = 1;
       });
       return;
     }
@@ -62,45 +66,53 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
 
     setState(() {
       if (reset) {
-        _searchingOnline = true;
-        _onlinePage = 1;
+        _searching = true;
+        _page = 1;
       } else {
         _loadingMore = true;
       }
-      _onlineError = null;
+      _searchError = null;
     });
 
     try {
-      final page = reset ? 1 : _onlinePage + 1;
+      final page = reset ? 1 : _page + 1;
       final result = await ref.read(foodServiceProvider).search(trimmed, page: page);
       if (!mounted) return;
       setState(() {
-        _onlineResults = reset ? result.items : [..._onlineResults, ...result.items];
-        _onlinePage = result.page;
-        _onlineTotalPages = result.totalPages;
-        _searchingOnline = false;
+        _results = reset ? result.items : [..._results, ...result.items];
+        _page = result.page;
+        _totalPages = result.totalPages;
+        _searching = false;
         _loadingMore = false;
       });
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
-        _onlineError = e.message;
-        _searchingOnline = false;
+        _searchError = e.message;
+        _searching = false;
         _loadingMore = false;
       });
     }
   }
 
+  Future<void> _addFood(FoodItem food, int grams) async {
+    setState(() => _adding = true);
+    try {
+      await ref.read(nutritionDayProvider.notifier).addFoodItem(mealId: widget.mealId, foodId: food.id, grams: grams.toDouble());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${food.name} добавлено')));
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
+    } finally {
+      if (mounted) setState(() => _adding = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final foods = ref.watch(foodCatalogProvider);
-    final query = _search.text.trim().toLowerCase();
-    final filtered = query.isEmpty ? foods : foods.where((f) => f.name.toLowerCase().contains(query)).toList();
-    final localIds = filtered.map((f) => f.id).toSet();
-    final onlineExtra = _onlineResults.where((f) => !localIds.contains(f.id)).toList();
-
     return Scaffold(
-      appBar: AppBar(title: Text('Добавить продукт · ${_type.label}'), leading: const BackButton()),
+      appBar: AppBar(title: Text('Добавить продукт · ${widget.mealType.label}'), leading: const BackButton()),
       body: SafeArea(
         child: Column(
           children: [
@@ -108,113 +120,54 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: TextField(
                 controller: _search,
+                autofocus: true,
                 onChanged: _onQueryChanged,
                 decoration: const InputDecoration(hintText: 'Найти продукт', prefixIcon: Icon(Icons.search_rounded, color: AppColors.ink400)),
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _showBarcodeLookup(context),
-                      icon: const Icon(Icons.qr_code_scanner_rounded),
-                      label: const Text('Штрихкод'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _showPhotoPlaceholder(context),
-                      icon: const Icon(Icons.camera_alt_outlined),
-                      label: const Text('Фото'),
-                    ),
-                  ),
-                ],
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _showBarcodeLookup(context),
+                  icon: const Icon(Icons.qr_code_scanner_rounded),
+                  label: const Text('Ввести по штрихкоду'),
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
+            if (_adding) const LinearProgressIndicator(minHeight: 2),
             Expanded(
-              child: filtered.isEmpty && onlineExtra.isEmpty && !_searchingOnline && _onlineError == null
-                  ? const EmptyState(emoji: '🍽️', title: 'Продукт не найден', subtitle: 'Попробуй изменить запрос')
-                  : ListView(
-                      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxl),
-                      children: [
-                        for (final f in filtered) ...[
-                          _FoodRow(food: f, onAdd: (grams) => _addFood(f, grams)),
-                          const SizedBox(height: 8),
-                        ],
-                        if (_searchingOnline || onlineExtra.isNotEmpty || _onlineError != null) ...[
-                          const SizedBox(height: AppSpacing.sm),
-                          Row(
-                            children: [
-                              Text('Найдено в базе продуктов', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.ink500)),
-                              if (_searchingOnline) ...[
-                                const SizedBox(width: 8),
-                                const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2)),
-                              ],
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          for (final f in onlineExtra) ...[
-                            _FoodRow(food: f, onAdd: (grams) => _addFood(f, grams)),
-                            const SizedBox(height: 8),
-                          ],
-                          if (_onlineError != null)
-                            _OnlineErrorRow(message: _onlineError!, onRetry: () => _runSearch(reset: _onlineResults.isEmpty)),
-                          if (_onlineError == null && !_searchingOnline && _onlinePage < _onlineTotalPages)
-                            Center(
-                              child: TextButton(
-                                onPressed: _loadingMore ? null : () => _runSearch(reset: false),
-                                child: _loadingMore
-                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                                    : const Text('Показать ещё'),
+              child: _search.text.trim().length < FoodService.minQueryLength
+                  ? const EmptyState(emoji: '🔍', title: 'Начни вводить название', subtitle: 'Например: «курица», «овсянка», «яблоко»')
+                  : _results.isEmpty && !_searching && _searchError == null
+                      ? const EmptyState(emoji: '🍽️', title: 'Продукт не найден', subtitle: 'Попробуй изменить запрос или введи вручную')
+                      : ListView(
+                          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxl),
+                          children: [
+                            if (_searching)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                                child: Center(child: CircularProgressIndicator()),
                               ),
-                            ),
-                        ],
-                      ],
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _addFood(FoodItem food, int grams) {
-    ref.read(mealsProvider.notifier).addFood(_type, food, grams);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${food.name} добавлено')));
-  }
-
-  void _showPhotoPlaceholder(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Добавление по фотографии', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: AppSpacing.lg),
-            AspectRatio(
-              aspectRatio: 1,
-              child: Container(
-                decoration: BoxDecoration(color: AppColors.ink900, borderRadius: BorderRadius.circular(AppRadius.lg)),
-                child: const Center(child: Icon(Icons.camera_alt_rounded, color: Colors.white38, size: 64)),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Наведи камеру на блюдо — RAZVIT определит калорийность',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Закрыть')),
+                            for (final f in _results) ...[
+                              _FoodRow(food: f, onAdd: (grams) => _addFood(f, grams)),
+                              const SizedBox(height: 8),
+                            ],
+                            if (_searchError != null)
+                              _OnlineErrorRow(message: _searchError!, onRetry: () => _runSearch(reset: _results.isEmpty)),
+                            if (_searchError == null && !_searching && _page < _totalPages)
+                              Center(
+                                child: TextButton(
+                                  onPressed: _loadingMore ? null : () => _runSearch(reset: false),
+                                  child: _loadingMore
+                                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                                      : const Text('Показать ещё'),
+                                ),
+                              ),
+                          ],
+                        ),
             ),
           ],
         ),
@@ -300,6 +253,7 @@ class _BarcodeSheetState extends ConsumerState<BarcodeSheet> {
                 child: TextField(
                   controller: widget.controller,
                   keyboardType: TextInputType.number,
+                  autofocus: true,
                   decoration: const InputDecoration(hintText: 'Например, 4600000000000'),
                   onSubmitted: (_) => _lookup(),
                 ),

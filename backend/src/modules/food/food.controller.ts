@@ -48,6 +48,12 @@ export class FoodController {
     res.status(200).json({ data: serializeFood(food, micronutrients) });
   });
 
+  /** GET /foods/recent — последние использованные продукты текущего пользователя. */
+  getRecent = asyncHandler(async (req, res) => {
+    const foods = await this.foodService.getRecent(req.userId as string);
+    res.status(200).json({ data: foods.map((f) => serializeFood(f)) });
+  });
+
   /** POST /foods — создание собственного (source=RAZVIT) продукта. 409 при дубле по штрихкоду. */
   create = asyncHandler(async (req, res) => {
     const body = req.validatedBody as CreateFoodBody;

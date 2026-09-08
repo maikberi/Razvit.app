@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { DuplicateFoodError, FoodNotFoundError } from '../modules/food/food.service';
 import { serializeFood } from '../modules/food/food.serializer';
+import { ForbiddenError, MealItemNotFoundError, MealNotFoundError } from '../modules/meal/meal.service';
 
 /** Единая точка превращения ошибок в HTTP-ответ по контракту {error:{code,message,details}}. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -17,6 +18,18 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
         details: { existing: serializeFood(err.existing) },
       },
     });
+    return;
+  }
+  if (err instanceof MealNotFoundError) {
+    res.status(404).json({ error: { code: 'MEAL_NOT_FOUND', message: 'Приём пищи не найден' } });
+    return;
+  }
+  if (err instanceof MealItemNotFoundError) {
+    res.status(404).json({ error: { code: 'MEAL_ITEM_NOT_FOUND', message: 'Запись не найдена' } });
+    return;
+  }
+  if (err instanceof ForbiddenError) {
+    res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Нет доступа к этому ресурсу' } });
     return;
   }
 

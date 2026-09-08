@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/env.dart';
+import '../identity/device_identity.dart';
 
 /// Ошибка обращения к backend. [statusCode] == null означает сетевую
 /// проблему (нет интернета/сервер недоступен/таймаут) — отличаем от
@@ -31,18 +32,41 @@ class ApiClient {
   final http.Client _client;
   final String _baseUrl;
 
+  Map<String, String> get _headers {
+    final headers = {'Content-Type': 'application/json'};
+    try {
+      headers['X-Device-Id'] = DeviceIdentity.current;
+    } on StateError {
+      // DeviceIdentity ещё не загружен (например, в юнит-тестах, где
+      // main() не вызывался) — просто не добавляем заголовок; эндпоинты,
+      // которым он не нужен, отработают как обычно.
+    }
+    return headers;
+  }
+
   Future<Map<String, dynamic>> getJson(String path, {Map<String, String>? query}) {
     final uri = Uri.parse('$_baseUrl$path').replace(queryParameters: query);
-    return _send(() => _client.get(uri).timeout(const Duration(seconds: 8)));
+    return _send(() => _client.get(uri, headers: _headers).timeout(const Duration(seconds: 8)));
   }
 
   Future<Map<String, dynamic>> postJson(String path, Map<String, dynamic> body) {
     final uri = Uri.parse('$_baseUrl$path');
-    return _send(
-      () => _client
-          .post(uri, headers: const {'Content-Type': 'application/json'}, body: jsonEncode(body))
-          .timeout(const Duration(seconds: 8)),
-    );
+    return _send(() => _client.post(uri, headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 8)));
+  }
+
+  Future<Map<String, dynamic>> putJson(String path, Map<String, dynamic> body) {
+    final uri = Uri.parse('$_baseUrl$path');
+    return _send(() => _client.put(uri, headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 8)));
+  }
+
+  Future<Map<String, dynamic>> patchJson(String path, Map<String, dynamic> body) {
+    final uri = Uri.parse('$_baseUrl$path');
+    return _send(() => _client.patch(uri, headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 8)));
+  }
+
+  Future<Map<String, dynamic>> delete(String path, {Map<String, String>? query}) {
+    final uri = Uri.parse('$_baseUrl$path').replace(queryParameters: query);
+    return _send(() => _client.delete(uri, headers: _headers).timeout(const Duration(seconds: 8)));
   }
 
   Future<Map<String, dynamic>> _send(Future<http.Response> Function() request) async {

@@ -77,4 +77,8 @@ export class FoodService {
   async listLocal(params: SearchParams): Promise<PagedResult<FoodRow>> {
     return this.repo.search(params);
   }
+
+  async getRecent(userId: string, limit = 12): Promise<FoodRow[]> {
+    return this.repo.findRecent(userId, limit);
+  }
 }
