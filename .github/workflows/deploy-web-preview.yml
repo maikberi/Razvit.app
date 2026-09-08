@@ -29,7 +29,7 @@ jobs:
 
       - run: flutter pub get
 
-      - run: flutter build web --release --base-href /Razvit.app/ --dart-define=API_BASE_URL=https://razvit-backend.onrender.com
+      - run: flutter build web --release --base-href /Razvit.app/ --dart-define=API_BASE_URL=https://d5d5hv10f54ore51u2f9.y0g3kng5.apigw.yandexcloud.net
 
       - uses: actions/upload-pages-artifact@v3
         with:
