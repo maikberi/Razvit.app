@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +13,7 @@ import '../../../core/widgets/progress_ring.dart';
 import '../../../data/models/nutrition.dart';
 import '../../../data/models/nutrition_day.dart';
 import '../../../data/repositories/nutrition_day_repository.dart';
+import '../../../data/services/nutrition_api_service.dart';
 import 'add_food_method_sheet.dart';
 import 'food_ui.dart';
 
@@ -85,8 +88,18 @@ class _NutritionContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(nutritionDayProvider.notifier);
     final recentFoodsAsync = ref.watch(recentFoodsProvider);
+    final isTransitioning = ref.watch(isDateTransitioningProvider);
     final currentMealType = _currentMealTypeByTime();
     final currentMeal = summary.mealOf(currentMealType);
+
+    Future<void> handleDateChange(Future<void> Function() change) async {
+      try {
+        await change();
+      } on ApiException catch (e) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
+      }
+    }
 
     return RefreshIndicator(
       onRefresh: notifier.refresh,
@@ -96,8 +109,9 @@ class _NutritionContent extends ConsumerWidget {
           _DateHeader(
             date: summary.date,
             isToday: notifier.isToday,
-            onPrev: notifier.goToPreviousDay,
-            onNext: notifier.isToday ? null : notifier.goToNextDay,
+            isLoading: isTransitioning,
+            onPrev: () => handleDateChange(notifier.goToPreviousDay),
+            onNext: notifier.isToday ? null : () => handleDateChange(notifier.goToNextDay),
             onPickDate: () async {
               final picked = await showDatePicker(
                 context: context,
@@ -105,23 +119,25 @@ class _NutritionContent extends ConsumerWidget {
                 firstDate: DateTime.now().subtract(const Duration(days: 365)),
                 lastDate: DateTime.now(),
               );
-              if (picked != null) await notifier.changeDate(picked);
+              if (picked != null) await handleDateChange(() => notifier.changeDate(picked));
             },
             onOpenStats: () => context.push('/nutrition-stats'),
           ),
           const SizedBox(height: AppSpacing.sm),
-          _CalorieCard(summary: summary),
+          // Данные дня плавно приглушаются на время фоновой подгрузки ещё не
+          // закэшированной даты — сами числа при этом не исчезают и не
+          // прыгают, только чуть теряют контраст (см. isDateTransitioningProvider).
+          AnimatedOpacity(
+            opacity: isTransitioning ? 0.5 : 1,
+            duration: const Duration(milliseconds: 150),
+            child: _CalorieCard(summary: summary),
+          ),
           const SizedBox(height: AppSpacing.lg),
           Text('Быстрое добавление', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: AppSpacing.sm),
           _QuickAddRow(mealId: currentMeal.id, mealType: currentMealType),
           const SizedBox(height: AppSpacing.lg),
-          _WaterCard(
-            consumedMl: summary.waterConsumedMl,
-            goalMl: summary.targets.waterGoalMl,
-            onAdd: () => notifier.addWater(250),
-            onUndo: summary.waterConsumedMl > 0 ? notifier.removeLastWater : null,
-          ),
+          _WaterCard(consumedMl: summary.waterConsumedMl, goalMl: summary.targets.waterGoalMl),
           const SizedBox(height: AppSpacing.lg),
           recentFoodsAsync.when(
             data: (foods) => foods.isEmpty
@@ -135,10 +151,18 @@ class _NutritionContent extends ConsumerWidget {
           ),
           Text('Приёмы пищи', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: AppSpacing.sm),
-          for (final meal in summary.meals) ...[
-            _MealSection(meal: meal, expanded: expanded.contains(meal.type), onToggle: () => onToggleMeal(meal.type)),
-            const SizedBox(height: AppSpacing.sm),
-          ],
+          AnimatedOpacity(
+            opacity: isTransitioning ? 0.5 : 1,
+            duration: const Duration(milliseconds: 150),
+            child: Column(
+              children: [
+                for (final meal in summary.meals) ...[
+                  _MealSection(meal: meal, expanded: expanded.contains(meal.type), onToggle: () => onToggleMeal(meal.type)),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -149,6 +173,7 @@ class _DateHeader extends StatelessWidget {
   const _DateHeader({
     required this.date,
     required this.isToday,
+    required this.isLoading,
     required this.onPrev,
     required this.onNext,
     required this.onPickDate,
@@ -157,6 +182,7 @@ class _DateHeader extends StatelessWidget {
 
   final DateTime date;
   final bool isToday;
+  final bool isLoading;
   final VoidCallback onPrev;
   final VoidCallback? onNext;
   final VoidCallback onPickDate;
@@ -175,8 +201,18 @@ class _DateHeader extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(label, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(width: 4),
-                const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.ink500),
+                const SizedBox(width: 6),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 150),
+                  child: isLoading
+                      ? const SizedBox(
+                          key: ValueKey('loading'),
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.ink400),
+                        )
+                      : const Icon(Icons.keyboard_arrow_down_rounded, key: ValueKey('arrow'), size: 18, color: AppColors.ink500),
+                ),
               ],
             ),
           ),
@@ -336,15 +372,43 @@ class _QuickAddButton extends StatelessWidget {
   }
 }
 
-class _WaterCard extends StatelessWidget {
-  const _WaterCard({required this.consumedMl, required this.goalMl, required this.onAdd, this.onUndo});
+/// Карточка воды сама управляет своим busy-состоянием — при нажатии
+/// "+"/undo крутится только маленький спиннер на самой кнопке, весь
+/// остальной экран (и даже остальная часть этой карточки) не перестраивается
+/// в loading. Backend уже возвращает готовое consumedMl в ответе на
+/// мутацию (см. NutritionDayNotifier._patchWater) — полного перезапроса
+/// дня для воды не происходит вообще.
+class _WaterCard extends ConsumerStatefulWidget {
+  const _WaterCard({required this.consumedMl, required this.goalMl});
   final int consumedMl;
   final int goalMl;
-  final VoidCallback onAdd;
-  final VoidCallback? onUndo;
+
+  @override
+  ConsumerState<_WaterCard> createState() => _WaterCardState();
+}
+
+class _WaterCardState extends ConsumerState<_WaterCard> {
+  bool _busy = false;
+
+  Future<void> _run(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await action();
+    } on ApiException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final consumedMl = widget.consumedMl;
+    final goalMl = widget.goalMl;
+    final notifier = ref.read(nutritionDayProvider.notifier);
+
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,9 +420,9 @@ class _WaterCard extends StatelessWidget {
               Row(
                 children: [
                   Text('${(consumedMl / 1000).toStringAsFixed(1)} / ${(goalMl / 1000).toStringAsFixed(1)} л', style: Theme.of(context).textTheme.bodyMedium),
-                  if (onUndo != null)
+                  if (consumedMl > 0)
                     IconButton(
-                      onPressed: onUndo,
+                      onPressed: _busy ? null : () => _run(notifier.removeLastWater),
                       icon: const Icon(Icons.undo_rounded, size: 18, color: AppColors.ink400),
                       visualDensity: VisualDensity.compact,
                     ),
@@ -376,12 +440,17 @@ class _WaterCard extends StatelessWidget {
                 ),
               const Spacer(),
               GestureDetector(
-                onTap: onAdd,
+                onTap: _busy ? null : () => _run(() => notifier.addWater(250)),
                 child: Container(
                   width: 26,
                   height: 26,
                   decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle),
-                  child: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                  child: _busy
+                      ? const Padding(
+                          padding: EdgeInsets.all(5),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.add_rounded, size: 16, color: Colors.white),
                 ),
               ),
             ],
@@ -404,8 +473,10 @@ class _RecentFoodsSection extends StatelessWidget {
       children: [
         Text('Недавние продукты', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: AppSpacing.sm),
+        // Фиксированная высота строки — карточки внутри одинаковой высоты
+        // независимо от длины названия продукта (см. _RecentFoodChip).
         SizedBox(
-          height: 92,
+          height: 132,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: foods.length,
@@ -418,50 +489,281 @@ class _RecentFoodsSection extends StatelessWidget {
   }
 }
 
-class _RecentFoodChip extends ConsumerWidget {
+/// Карточка недавнего продукта: фиксированный размер, название — максимум
+/// 2 строки с многоточием (никогда не ломает layout), кнопка "+" всегда в
+/// одном и том же месте (низ-право). Тап по карточке или по "+" — одно и
+/// то же действие: открыть компактный выбор количества (см. секцию 6
+/// в постановке задачи), а не добавить продукт мгновенно и непонятно.
+class _RecentFoodChip extends StatelessWidget {
   const _RecentFoodChip({required this.food, required this.mealId});
   final FoodItem food;
   final String mealId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final color = foodBadgeColor(food.id);
-    return GestureDetector(
-      onTap: () => _quickAdd(context, ref),
-      child: Container(
-        width: 96,
+    return SizedBox(
+      width: 132,
+      height: 132,
+      child: AppCard(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          boxShadow: AppShadows.card,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        onTap: () => _showFoodQuantitySheet(context, food: food, mealId: mealId),
+        child: Stack(
           children: [
-            Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-              child: Icon(Icons.restaurant_rounded, color: color, size: 15),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+                  child: Icon(Icons.restaurant_rounded, color: color, size: 15),
+                ),
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.only(right: 22),
+                  child: SizedBox(
+                    height: 32,
+                    child: Text(
+                      food.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 22),
+                  child: Text(
+                    '${food.caloriesPer100g} ккал/100г',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.ink500),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 6),
-            Text(food.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700)),
-            Text('${food.caloriesPer100g} ккал', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.ink500)),
+            const Positioned(right: 0, bottom: 0, child: _AddBadge()),
           ],
         ),
       ),
     );
   }
+}
 
-  Future<void> _quickAdd(BuildContext context, WidgetRef ref) async {
-    final messenger = ScaffoldMessenger.of(context);
+class _AddBadge extends StatelessWidget {
+  const _AddBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 26,
+      height: 26,
+      decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle),
+      child: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+    );
+  }
+}
+
+void _showFoodQuantitySheet(BuildContext context, {required FoodItem food, required String mealId}) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => _FoodQuantitySheet(food: food, mealId: mealId),
+  );
+}
+
+/// Компактный выбор количества для быстрого добавления (из Recent Foods):
+/// название, шаг по граммам, живой пересчёт КБЖУ через существующий чистый
+/// расчётный эндпоинт backend (POST /nutrition/calculate/food — тот же
+/// Nutrition Engine, никакой математики во Flutter), кнопка "Добавить" с
+/// коротким подтверждением успеха вместо мгновенного молчаливого добавления.
+class _FoodQuantitySheet extends ConsumerStatefulWidget {
+  const _FoodQuantitySheet({required this.food, required this.mealId});
+  final FoodItem food;
+  final String mealId;
+
+  @override
+  ConsumerState<_FoodQuantitySheet> createState() => _FoodQuantitySheetState();
+}
+
+class _FoodQuantitySheetState extends ConsumerState<_FoodQuantitySheet> {
+  late int _grams = widget.food.defaultGrams;
+  Timer? _debounce;
+  NutrientPreview? _preview;
+  bool _adding = false;
+  bool _added = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _recalculate();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _setGrams(int grams) {
+    if (grams <= 0) return;
+    setState(() {
+      _grams = grams;
+      _preview = null;
+    });
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), _recalculate);
+  }
+
+  Future<void> _recalculate() async {
+    final requestedGrams = _grams;
     try {
-      await ref.read(nutritionDayProvider.notifier).addFoodItem(mealId: mealId, foodId: food.id, grams: food.defaultGrams.toDouble());
-      messenger.showSnackBar(SnackBar(content: Text('${food.name} добавлено · ${food.defaultGrams} г')));
+      final preview = await ref.read(nutritionApiServiceProvider).calculateFood(foodId: widget.food.id, grams: requestedGrams.toDouble());
+      if (!mounted || requestedGrams != _grams) return; // граммы уже сменились — этот ответ устарел
+      setState(() => _preview = preview);
+    } on ApiException {
+      // Тихо: цифры превью просто не покажутся, но добавление всё равно
+      // сработает — реальный расчёт при сохранении всегда делает backend.
+    }
+  }
+
+  Future<void> _add() async {
+    final container = ProviderScope.containerOf(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _adding = true);
+    try {
+      await container.read(nutritionDayProvider.notifier).addFoodItem(mealId: widget.mealId, foodId: widget.food.id, grams: _grams.toDouble());
+      if (!mounted) return;
+      setState(() {
+        _adding = false;
+        _added = true;
+      });
+      await Future.delayed(const Duration(milliseconds: 450));
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      messenger.showSnackBar(SnackBar(content: Text('${widget.food.name} добавлено')));
     } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _adding = false);
       messenger.showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final food = widget.food;
+    final color = foodBadgeColor(food.id);
+    final preview = _preview;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+                child: Icon(Icons.restaurant_rounded, color: color, size: 24),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(food.name, style: Theme.of(context).textTheme.headlineMedium),
+                    Text('${food.caloriesPer100g} ккал / 100 г', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text('Количество', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton.filled(
+                onPressed: _grams > 10 ? () => _setGrams(_grams - 10) : null,
+                icon: const Icon(Icons.remove_rounded),
+                style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+              ),
+              SizedBox(width: 100, child: Text('$_grams г', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium)),
+              IconButton.filled(
+                onPressed: () => _setGrams(_grams + 10),
+                icon: const Icon(Icons.add_rounded),
+                style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 150),
+            child: preview == null
+                ? const Padding(
+                    key: ValueKey('calculating'),
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                    child: Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))),
+                  )
+                : Column(
+                    key: const ValueKey('preview'),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Итого', style: Theme.of(context).textTheme.titleSmall),
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        children: [
+                          Expanded(child: _statColumn(context, 'Калории', '${preview.calories}')),
+                          Expanded(child: _statColumn(context, 'Белки', '${preview.protein.toStringAsFixed(1)} г')),
+                          Expanded(child: _statColumn(context, 'Жиры', '${preview.fat.toStringAsFixed(1)} г')),
+                          Expanded(child: _statColumn(context, 'Углеводы', '${preview.carbohydrates.toStringAsFixed(1)} г')),
+                        ],
+                      ),
+                    ],
+                  ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _adding || _added ? null : _add,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: _added
+                    ? const Row(
+                        key: ValueKey('done'),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [Icon(Icons.check_rounded), SizedBox(width: 8), Text('Добавлено')],
+                      )
+                    : _adding
+                        ? const SizedBox(
+                            key: ValueKey('busy'),
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                          )
+                        : const Text('Добавить', key: ValueKey('idle')),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statColumn(BuildContext context, String label, String value) {
+    return Column(
+      children: [
+        Text(value, style: Theme.of(context).textTheme.titleMedium),
+        Text(label, style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ],
+    );
   }
 }
 

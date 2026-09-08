@@ -140,4 +140,23 @@ class DailyNutritionSummary {
   }
 
   MealData mealOf(MealType type) => meals.firstWhere((m) => m.type == type);
+
+  /// Точечное обновление одного поля (сейчас — только вода) без полного
+  /// перезапроса дня: используется, когда backend уже вернул готовое новое
+  /// значение в ответе мутации (см. NutritionApiService.addWater).
+  DailyNutritionSummary copyWith({int? waterConsumedMl}) => DailyNutritionSummary(
+        date: date,
+        meals: meals,
+        consumedCalories: consumedCalories,
+        consumedProtein: consumedProtein,
+        consumedFat: consumedFat,
+        consumedCarbs: consumedCarbs,
+        targets: targets,
+        remainingCalories: remainingCalories,
+        remainingProtein: remainingProtein,
+        remainingFat: remainingFat,
+        remainingCarbs: remainingCarbs,
+        progressPercent: progressPercent,
+        waterConsumedMl: waterConsumedMl ?? this.waterConsumedMl,
+      );
 }

@@ -38,6 +38,29 @@ class ManualNutrients {
       };
 }
 
+/// Превью КБЖУ для выбранного количества — результат чистого расчётного
+/// эндпоинта (без сохранения), см. calculateFood ниже.
+class NutrientPreview {
+  const NutrientPreview({
+    required this.calories,
+    required this.protein,
+    required this.fat,
+    required this.carbohydrates,
+  });
+
+  final int calories;
+  final double protein;
+  final double fat;
+  final double carbohydrates;
+
+  factory NutrientPreview.fromJson(Map<String, dynamic> json) => NutrientPreview(
+        calories: (json['calories'] as num).round(),
+        protein: (json['protein'] as num).toDouble(),
+        fat: (json['fat'] as num).toDouble(),
+        carbohydrates: (json['carbohydrates'] as num).toDouble(),
+      );
+}
+
 /// Всё, что нужно Nutrition Home Screen: дневная сводка (приёмы пищи +
 /// цели + вода, посчитанные backend'ом), изменение приёмов пищи, воды
 /// и целей. Никакой математики здесь нет — только вызовы API.
@@ -45,6 +68,14 @@ class NutritionApiService {
   NutritionApiService({ApiClient? client}) : _client = client ?? ApiClient();
 
   final ApiClient _client;
+
+  /// Чистый расчёт (ничего не сохраняет) — используется для live-превью
+  /// КБЖУ при выборе количества, чтобы не дублировать формулу Nutrition
+  /// Engine во Flutter (см. backend nutrition.controller.calculateFood).
+  Future<NutrientPreview> calculateFood({required String foodId, required double grams}) async {
+    final json = await _client.postJson('/api/v1/nutrition/calculate/food', {'foodId': foodId, 'grams': grams});
+    return NutrientPreview.fromJson(json['data'] as Map<String, dynamic>);
+  }
 
   Future<DailyNutritionSummary> getDaily(DateTime date) async {
     final json = await _client.getJson('/api/v1/nutrition/daily', query: {'date': _formatDate(date)});
