@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { createApp } from '../src/app';
 import { pool } from '../src/db/pool';
 import { runMigrations } from '../src/db/migrate';
+import { authHeaderForUser } from './testAuth';
 
 const app = createApp();
 
@@ -19,7 +20,7 @@ afterAll(async () => {
 });
 
 function userHeader(userId: string) {
-  return { 'X-Device-Id': userId };
+  return authHeaderForUser(userId);
 }
 
 async function createFood(overrides: Record<string, unknown> = {}) {
@@ -30,10 +31,10 @@ async function createFood(overrides: Record<string, unknown> = {}) {
 }
 
 describe('Meal API', () => {
-  it('без X-Device-Id — 400', async () => {
+  it('без авторизации — 401', async () => {
     const res = await request(app).get('/api/v1/meals');
-    expect(res.status).toBe(400);
-    expect(res.body.error.code).toBe('DEVICE_ID_REQUIRED');
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHORIZED');
   });
 
   it('GET /meals создаёт 4 приёма пищи (breakfast/lunch/dinner/snack) на дату, если их ещё нет', async () => {

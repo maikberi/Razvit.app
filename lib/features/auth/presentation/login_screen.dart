@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/razvit_logo.dart';
@@ -18,11 +19,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
+  bool _loading = false;
 
-  void _login() {
-    ref.read(authProvider.notifier).signIn();
-    ref.read(onboardingCompletedProvider.notifier).complete();
-    context.go('/home');
+  Future<void> _login() async {
+    final email = _email.text.trim();
+    final password = _password.text;
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Введи email и пароль')));
+      return;
+    }
+
+    setState(() => _loading = true);
+    final container = ProviderScope.containerOf(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await container.read(authProvider.notifier).login(email: email, password: password);
+      if (!mounted) return;
+      container.read(onboardingCompletedProvider.notifier).complete();
+      context.go('/home');
+    } on ApiException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -64,7 +83,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              ElevatedButton(onPressed: _login, child: const Text('Войти')),
+              ElevatedButton(
+                onPressed: _loading ? null : _login,
+                child: _loading
+                    ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                    : const Text('Войти'),
+              ),
               const SizedBox(height: AppSpacing.xl),
             ],
           ),

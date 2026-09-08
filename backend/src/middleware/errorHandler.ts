@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { EmailAlreadyRegisteredError, InvalidCredentialsError } from '../modules/auth/auth.service';
 import { DuplicateFoodError, FoodNotFoundError } from '../modules/food/food.service';
 import { serializeFood } from '../modules/food/food.serializer';
 import { ForbiddenError, MealItemNotFoundError, MealNotFoundError } from '../modules/meal/meal.service';
@@ -30,6 +31,14 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   }
   if (err instanceof ForbiddenError) {
     res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Нет доступа к этому ресурсу' } });
+    return;
+  }
+  if (err instanceof EmailAlreadyRegisteredError) {
+    res.status(409).json({ error: { code: 'EMAIL_ALREADY_REGISTERED', message: 'Этот email уже зарегистрирован' } });
+    return;
+  }
+  if (err instanceof InvalidCredentialsError) {
+    res.status(401).json({ error: { code: 'INVALID_CREDENTIALS', message: 'Неверный email или пароль' } });
     return;
   }
 

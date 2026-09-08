@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../../db/pool';
-import { deviceUser } from '../../middleware/deviceUser';
+import { authUser } from '../../middleware/authUser';
 import { validate } from '../../middleware/validate';
 import { FoodRepository } from '../food/food.repository';
 import { MealRepository } from '../meal/meal.repository';
@@ -44,14 +44,14 @@ nutritionRouter.post('/nutrition/calculate/day', validate(calculateDaySchema, 'b
 nutritionRouter.post('/nutrition/calculate/week', validate(calculateWeekSchema, 'body'), controller.calculateWeek);
 
 // Данные конкретного пользователя (устройства) — цели, вода, дневная сводка.
-nutritionRouter.get('/nutrition/daily', deviceUser, validate(dateQuerySchema, 'query'), dailyController.getDaily);
-nutritionRouter.get('/nutrition/targets', deviceUser, dailyController.getTargets);
-nutritionRouter.put('/nutrition/targets', deviceUser, validate(updateTargetsSchema, 'body'), dailyController.updateTargets);
-nutritionRouter.get('/nutrition/water', deviceUser, validate(dateQuerySchema, 'query'), dailyController.getWater);
-nutritionRouter.post('/nutrition/water', deviceUser, validate(addWaterSchema, 'body'), dailyController.addWater);
+nutritionRouter.get('/nutrition/daily', authUser, validate(dateQuerySchema, 'query'), dailyController.getDaily);
+nutritionRouter.get('/nutrition/targets', authUser, dailyController.getTargets);
+nutritionRouter.put('/nutrition/targets', authUser, validate(updateTargetsSchema, 'body'), dailyController.updateTargets);
+nutritionRouter.get('/nutrition/water', authUser, validate(dateQuerySchema, 'query'), dailyController.getWater);
+nutritionRouter.post('/nutrition/water', authUser, validate(addWaterSchema, 'body'), dailyController.addWater);
 nutritionRouter.delete(
   '/nutrition/water/last',
-  deviceUser,
+  authUser,
   validate(dateQuerySchema, 'query'),
   dailyController.removeLastWater,
 );

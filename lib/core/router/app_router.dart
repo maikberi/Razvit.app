@@ -36,9 +36,17 @@ import '../../features/workouts/presentation/workouts_screen.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Куда попадает пользователь при холодном старте. По умолчанию — экран
+/// приветствия; main.dart переключает на '/home' ДО runApp(), если на
+/// устройстве есть сохранённая сессия и backend её подтвердил (см. main.dart).
+/// `appRouter` ниже — top-level `final`, инициализируется лениво при первом
+/// обращении (в app.dart), поэтому значение, выставленное в main() до
+/// runApp(), успевает попасть в GoRouter.
+String initialRoute = '/welcome';
+
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: '/welcome',
+  initialLocation: initialRoute,
   routes: [
     GoRoute(path: '/font-preview', builder: (context, state) => const FontPreviewScreen()),
     GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),

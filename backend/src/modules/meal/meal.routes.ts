@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../../db/pool';
-import { deviceUser } from '../../middleware/deviceUser';
+import { authUser } from '../../middleware/authUser';
 import { validate } from '../../middleware/validate';
 import { FoodRepository } from '../food/food.repository';
 import { NutritionCalculationService } from '../nutrition/nutrition.calculation.service';
@@ -17,25 +17,25 @@ const controller = new MealController(service);
 
 export const mealRouter = Router();
 
-// deviceUser подключается к каждому роуту отдельно (а не через router.use),
+// authUser подключается к каждому роуту отдельно (а не через router.use),
 // иначе он перехватывал бы вообще все запросы под /api/v1, включая
 // маршруты других модулей (foodRouter/nutritionRouter), смонтированных
 // на тот же префикс после mealRouter в app.ts.
-mealRouter.get('/meals', deviceUser, validate(dateQuerySchema, 'query'), controller.getDay);
+mealRouter.get('/meals', authUser, validate(dateQuerySchema, 'query'), controller.getDay);
 mealRouter.post(
   '/meals/:id/items',
-  deviceUser,
+  authUser,
   validate(mealIdParamSchema, 'params'),
   validate(addMealItemSchema, 'body'),
   controller.addItem,
 );
 mealRouter.patch(
   '/meal-items/:id',
-  deviceUser,
+  authUser,
   validate(mealItemIdParamSchema, 'params'),
   validate(updateMealItemSchema, 'body'),
   controller.updateItem,
 );
-mealRouter.delete('/meal-items/:id', deviceUser, validate(mealItemIdParamSchema, 'params'), controller.deleteItem);
+mealRouter.delete('/meal-items/:id', authUser, validate(mealItemIdParamSchema, 'params'), controller.deleteItem);
 
 export { MealRepository, MealService };

@@ -1,14 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/session/session.dart';
 import '../models/user.dart';
+import '../services/auth_api_service.dart';
 
 class UserNotifier extends StateNotifier<AppUser> {
-  UserNotifier()
-      : super(const AppUser(
-          id: 'me',
-          name: 'Михаил',
-          email: 'you@example.com',
-        ));
+  UserNotifier({AppUser? initial})
+      : super(initial ??
+            const AppUser(
+              id: '',
+              name: '',
+              email: '',
+            ));
+
+  void setFromAuth(AuthUser user) {
+    state = AppUser(id: user.id, name: user.name, email: user.email);
+  }
 
   void logWeight(double weightKg) {
     state = state.copyWith(weightKg: weightKg);
@@ -31,14 +38,46 @@ class OnboardingCompletionNotifier extends StateNotifier<bool> {
 final onboardingCompletedProvider =
     StateNotifierProvider<OnboardingCompletionNotifier, bool>((ref) => OnboardingCompletionNotifier());
 
-/// Флаг авторизации (mock) — управляет тем, показываем ли экраны Auth.
-class AuthNotifier extends StateNotifier<bool> {
-  AuthNotifier() : super(false);
-  void signIn() => state = true;
-  void signOut() => state = false;
+enum AuthStatus { checking, authenticated, unauthenticated }
+
+/// Настоящая авторизация: регистрация/вход идут через backend
+/// (modules/auth), токен сохраняется на устройстве (core/session/session.dart)
+/// и переживает перезапуск приложения — при старте main.dart сам проверяет
+/// сохранённый токен через /auth/me ещё до первого кадра (см. main.dart),
+/// поэтому здесь `checking` практически никогда не остаётся надолго.
+class AuthNotifier extends StateNotifier<AuthStatus> {
+  AuthNotifier(this._ref, {AuthStatus initial = AuthStatus.unauthenticated}) : super(initial);
+
+  final Ref _ref;
+  AuthApiService get _service => _ref.read(authApiServiceProvider);
+
+  Future<void> register({required String email, required String password, required String name}) async {
+    final result = await _service.register(email: email, password: password, name: name);
+    await Session.setToken(result.token);
+    _ref.read(userProvider.notifier).setFromAuth(result.user);
+    state = AuthStatus.authenticated;
+  }
+
+  Future<void> login({required String email, required String password}) async {
+    final result = await _service.login(email: email, password: password);
+    await Session.setToken(result.token);
+    _ref.read(userProvider.notifier).setFromAuth(result.user);
+    state = AuthStatus.authenticated;
+  }
+
+  /// Временный локальный вход для кнопок Google/Apple/Telegram/VK на экране
+  /// выбора способа регистрации — реального OAuth с этими провайдерами
+  /// пока нет, поэтому сессия НЕ сохраняется и не переживёт перезапуск
+  /// (в отличие от входа по email/паролю). См. sign_up_method_screen.dart.
+  void signInLocalOnly() => state = AuthStatus.authenticated;
+
+  void signOut() {
+    Session.clear();
+    state = AuthStatus.unauthenticated;
+  }
 }
 
-final authProvider = StateNotifierProvider<AuthNotifier, bool>((ref) => AuthNotifier());
+final authProvider = StateNotifierProvider<AuthNotifier, AuthStatus>((ref) => AuthNotifier(ref));
 
 /// Взводится сразу после завершения онбординга — экран "Главная"
 /// один раз проигрывает приветственную анимацию появления и сбрасывает флаг.

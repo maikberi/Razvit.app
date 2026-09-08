@@ -32,7 +32,7 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
       _AuthProvider.vk => 'Гость VK',
     };
     ref.read(userProvider.notifier).updateProfile(name: name);
-    ref.read(authProvider.notifier).signIn();
+    ref.read(authProvider.notifier).signInLocalOnly();
     context.push('/onboarding');
   }
 

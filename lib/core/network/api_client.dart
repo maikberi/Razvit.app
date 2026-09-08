@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/env.dart';
-import '../identity/device_identity.dart';
+import '../session/session.dart';
 
 /// Ошибка обращения к backend. [statusCode] == null означает сетевую
 /// проблему (нет интернета/сервер недоступен/таймаут) — отличаем от
@@ -34,12 +34,9 @@ class ApiClient {
 
   Map<String, String> get _headers {
     final headers = {'Content-Type': 'application/json'};
-    try {
-      headers['X-Device-Id'] = DeviceIdentity.current;
-    } on StateError {
-      // DeviceIdentity ещё не загружен (например, в юнит-тестах, где
-      // main() не вызывался) — просто не добавляем заголовок; эндпоинты,
-      // которым он не нужен, отработают как обычно.
+    final token = Session.token;
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
     }
     return headers;
   }

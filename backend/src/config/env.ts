@@ -29,4 +29,5 @@ export const env = {
   // для Yandex Managed PostgreSQL — она принимает соединения только по TLS).
   // Не обязателен для хостингов без такого требования (например Render).
   databaseSslCa: process.env.DATABASE_SSL_CA,
+  jwtSecret: isTest ? (process.env.JWT_SECRET ?? 'test-secret-not-for-production') : required('JWT_SECRET'),
 };

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/fade_slide_in.dart';
@@ -64,18 +65,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _register() async {
+    final firstName = _firstName.text.trim();
+    final lastName = _lastName.text.trim();
+    final email = _email.text.trim();
+    final password = _password.text;
+
+    if (firstName.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Заполни имя, email и пароль')));
+      return;
+    }
+
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (!mounted) return;
-    setState(() => _loading = false);
-    ref.read(userProvider.notifier).updateProfile(
-          name: _firstName.text.trim().isEmpty ? null : _firstName.text.trim(),
-          lastName: _lastName.text.trim().isEmpty ? null : _lastName.text.trim(),
-          nickname: _nickname.text.trim().isEmpty ? null : _nickname.text.trim(),
-          email: _email.text.trim().isEmpty ? null : _email.text.trim(),
-        );
-    ref.read(authProvider.notifier).signIn();
-    context.push('/onboarding');
+    final container = ProviderScope.containerOf(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await container.read(authProvider.notifier).register(
+            email: email,
+            password: password,
+            name: lastName.isEmpty ? firstName : '$firstName $lastName',
+          );
+      if (!mounted) return;
+      if (_nickname.text.trim().isNotEmpty) {
+        container.read(userProvider.notifier).updateProfile(nickname: _nickname.text.trim());
+      }
+      context.push('/onboarding');
+    } on ApiException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
