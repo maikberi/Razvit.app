@@ -1,11 +1,18 @@
 # Render Blueprint — описывает, что нужно развернуть: сервер backend'а
-# RAZVIT (Food Database) + бесплатную PostgreSQL рядом с ним.
+# RAZVIT (Food Database).
+#
+# База данных — Yandex Managed PostgreSQL (не Render), поэтому DATABASE_URL
+# и DATABASE_SSL_CA сюда не вписываются, а вводятся вручную в панели Render
+# (Environment) после создания кластера в Yandex Cloud:
+#   - DATABASE_URL — строка подключения из консоли Yandex Cloud
+#     (postgresql://user:password@host:6432/dbname)
+#   - DATABASE_SSL_CA — содержимое корневого сертификата Yandex Cloud
+#     (скачивается в консоли на странице кластера, вставляется как есть,
+#     включая строки BEGIN/END CERTIFICATE)
 #
 # Как использовать: на render.com выбрать "New" -> "Blueprint", указать
-# этот GitHub-репозиторий — Render сам прочитает этот файл и создаст оба
-# сервиса. Никакие пароли/ключи сюда не вписываются — они либо
-# генерируются Render автоматически (пароль базы), либо вводятся в панели
-# Render после создания (USDA_API_KEY).
+# этот GitHub-репозиторий — Render создаст web-сервис, а DATABASE_URL/
+# DATABASE_SSL_CA/USDA_API_KEY нужно будет вписать в панели Render вручную.
 
 services:
   - type: web
@@ -19,14 +26,10 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: razvit-db
-          property: connectionString
+        sync: false # вписать вручную — строка подключения к Yandex Managed PostgreSQL
+      - key: DATABASE_SSL_CA
+        sync: false # вписать вручную — PEM-сертификат Yandex Cloud
       - key: OPEN_FOOD_FACTS_BASE_URL
         value: https://world.openfoodfacts.org
       - key: USDA_API_KEY
         sync: false # необязательно; можно вписать позже в панели Render — без него USDA просто не участвует в поиске
-
-databases:
-  - name: razvit-db
-    plan: free

@@ -25,4 +25,8 @@ export const env = {
     : required('DATABASE_URL'),
   usdaApiKey: process.env.USDA_API_KEY ?? '',
   openFoodFactsBaseUrl: process.env.OPEN_FOOD_FACTS_BASE_URL ?? 'https://world.openfoodfacts.org',
+  // PEM-содержимое корневого сертификата для SSL-подключения к БД (нужен
+  // для Yandex Managed PostgreSQL — она принимает соединения только по TLS).
+  // Не обязателен для хостингов без такого требования (например Render).
+  databaseSslCa: process.env.DATABASE_SSL_CA,
 };

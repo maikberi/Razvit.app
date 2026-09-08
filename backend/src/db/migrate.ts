@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Pool } from 'pg';
 import { env } from '../config/env';
+import { pgSslConfig } from './ssl';
 
 /**
  * Простой раннер SQL-миграций: применяет по порядку файлы из db/migrations,
@@ -9,7 +10,7 @@ import { env } from '../config/env';
  * Без внешних зависимостей — этого достаточно для одного backend-сервиса.
  */
 export async function runMigrations(databaseUrl: string = env.databaseUrl): Promise<void> {
-  const pool = new Pool({ connectionString: databaseUrl });
+  const pool = new Pool({ connectionString: databaseUrl, ssl: pgSslConfig() });
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
