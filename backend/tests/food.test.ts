@@ -1,10 +1,15 @@
 import request from 'supertest';
 import { createApp } from '../src/app';
 import { pool } from '../src/db/pool';
+import { runMigrations } from '../src/db/migrate';
 import { FoodRepository } from '../src/modules/food/food.repository';
 import { FoodService } from '../src/modules/food/food.service';
 
 const app = createApp();
+
+beforeAll(async () => {
+  await runMigrations();
+});
 
 beforeEach(async () => {
   await pool.query('TRUNCATE foods RESTART IDENTITY CASCADE');

@@ -1,14 +1,8 @@
-import { NextFunction, Request, Response } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler';
 import { FoodService } from './food.service';
 import { FoodSearchService } from './food.search.service';
 import { serializeFood, serializePage } from './food.serializer';
 import { CreateFoodBody, SearchQuery } from './food.validation';
-
-function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    fn(req, res, next).catch(next);
-  };
-}
 
 export class FoodController {
   constructor(

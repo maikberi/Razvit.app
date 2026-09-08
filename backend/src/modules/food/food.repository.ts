@@ -153,6 +153,23 @@ export class FoodRepository {
     return rows;
   }
 
+  /** Пакетная загрузка продуктов по id — для расчёта Meal/Recipe/Day одним запросом вместо N. */
+  async findByIds(ids: string[]): Promise<FoodRow[]> {
+    if (ids.length === 0) return [];
+    const { rows } = await this.pool.query<FoodRow>('SELECT * FROM foods WHERE id = ANY($1::uuid[])', [ids]);
+    return rows;
+  }
+
+  /** Пакетная загрузка микронутриентов сразу для нескольких продуктов. */
+  async getMicronutrientsForFoods(foodIds: string[]): Promise<MicronutrientRow[]> {
+    if (foodIds.length === 0) return [];
+    const { rows } = await this.pool.query<MicronutrientRow>(
+      'SELECT * FROM food_micronutrients WHERE food_id = ANY($1::uuid[]) ORDER BY food_id, key',
+      [foodIds],
+    );
+    return rows;
+  }
+
   async getAliases(foodId: string): Promise<AliasRow[]> {
     const { rows } = await this.pool.query<AliasRow>('SELECT * FROM food_aliases WHERE food_id = $1', [foodId]);
     return rows;
