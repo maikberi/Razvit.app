@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'core/auth/social_redirect_gateway.dart';
 import 'core/network/api_client.dart';
 import 'app.dart';
 import 'core/router/app_router.dart' as router;
@@ -16,7 +17,13 @@ Future<void> main() async {
   await Session.ensureLoaded();
 
   AppUser? restoredUser;
-  if (Session.isLoggedIn) {
+  final vkCallbackRoute = SocialRedirectGateway.vkCallbackInitialRoute();
+  if (vkCallbackRoute != null) {
+    // Вернулись из VK OAuth — сразу на экран обработки кода, сессию из
+    // хранилища в этом случае не проверяем (VkCallbackScreen сам выставит
+    // актуальную после успешного обмена кода на токен).
+    router.initialRoute = vkCallbackRoute;
+  } else if (Session.isLoggedIn) {
     try {
       final me = await _fetchCurrentUserWithRetry();
       restoredUser = AppUser(id: me.id, name: me.name, email: me.email);
