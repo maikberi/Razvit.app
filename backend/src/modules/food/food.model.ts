@@ -22,6 +22,7 @@ export interface FoodRow {
   serving_size: string | null;
   serving_unit: string | null;
   image_url: string | null;
+  emoji: string | null;
   verified: boolean;
   created_at: Date;
   updated_at: Date;
@@ -61,6 +62,7 @@ export interface CreateFoodInput {
   servingSize?: number | null;
   servingUnit?: string | null;
   imageUrl?: string | null;
+  emoji?: string | null;
   verified?: boolean;
   micronutrients?: { key: string; amount: number; unit: string }[];
   aliases?: string[];

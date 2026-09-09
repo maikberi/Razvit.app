@@ -512,7 +512,7 @@ class _RecentFoodChip extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 30, iconSize: 15, onTap: foodPhotoTap(context, food.imageUrl)),
+                FoodThumbnail(id: food.id, imageUrl: food.imageUrl, emoji: food.emoji, size: 30, iconSize: 15, onTap: foodPhotoTap(context, food.imageUrl)),
                 const SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.only(right: 22),
@@ -658,7 +658,7 @@ class _FoodQuantitySheetState extends ConsumerState<_FoodQuantitySheet> {
         children: [
           Row(
             children: [
-              FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 52, iconSize: 24, onTap: foodPhotoTap(context, food.imageUrl)),
+              FoodThumbnail(id: food.id, imageUrl: food.imageUrl, emoji: food.emoji, size: 52, iconSize: 24, onTap: foodPhotoTap(context, food.imageUrl)),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -863,7 +863,7 @@ class _MealItemsPreview extends StatelessWidget {
               left: i * (_size - _overlap),
               child: Container(
                 decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: borderColor, width: 1.5)),
-                child: FoodThumbnail(id: shown[i].foodId ?? shown[i].name, imageUrl: shown[i].imageUrl, size: _size, iconSize: 11),
+                child: FoodThumbnail(id: shown[i].foodId ?? shown[i].name, imageUrl: shown[i].imageUrl, emoji: shown[i].emoji, size: _size, iconSize: 11),
               ),
             ),
           if (extra > 0)
@@ -899,7 +899,7 @@ class _EntryRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, size: 38, iconSize: 18, onTap: foodPhotoTap(context, entry.imageUrl)),
+          FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, emoji: entry.emoji, size: 38, iconSize: 18, onTap: foodPhotoTap(context, entry.imageUrl)),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -979,7 +979,7 @@ class _MealEntryDetailSheetState extends ConsumerState<MealEntryDetailSheet> {
             children: [
               Row(
                 children: [
-                  FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, size: 64, iconSize: 30, onTap: foodPhotoTap(context, entry.imageUrl)),
+                  FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, emoji: entry.emoji, size: 64, iconSize: 30, onTap: foodPhotoTap(context, entry.imageUrl)),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(

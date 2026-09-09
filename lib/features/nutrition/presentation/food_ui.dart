@@ -7,32 +7,39 @@ const foodBadgeColors = [AppColors.green600, Color(0xFF3B82F6), Color(0xFFF59E0B
 Color foodBadgeColor(String id) => foodBadgeColors[id.hashCode.abs() % foodBadgeColors.length];
 
 /// Круглая миниатюра продукта: фото, если у продукта оно есть (сейчас
-/// реально приходит только от Open Food Facts), иначе — тот же цветной
-/// значок-заглушка, что был раньше везде. Фото показывается только после
-/// успешной загрузки — до и в случае ошибки виден значок, чтобы никогда
-/// не было пустого места или "прыжка" макета.
+/// реально приходит только от Open Food Facts), иначе — эмодзи продукта
+/// (у безбрендовой эталонной базы — банан, молоко и т.п., см. миграцию
+/// 013_reference_foods.sql), а если нет и его — тот же цветной значок-
+/// заглушка, что был раньше везде. Фото показывается только после
+/// успешной загрузки — до и в случае ошибки виден эмодзи/значок, чтобы
+/// никогда не было пустого места или "прыжка" макета.
 ///
 /// [onTap], если задан, вешается прямо на миниатюру отдельным жестом
 /// (obscure hit-test), поэтому работает даже когда сама миниатюра лежит
 /// внутри более крупной тappable-строки (открывающей что-то своё) — тап
 /// именно по фото не долетает до строки-обёртки.
 class FoodThumbnail extends StatelessWidget {
-  const FoodThumbnail({super.key, required this.id, required this.imageUrl, required this.size, this.iconSize, this.onTap});
+  const FoodThumbnail({super.key, required this.id, required this.imageUrl, required this.size, this.iconSize, this.emoji, this.onTap});
 
   final String id;
   final String? imageUrl;
   final double size;
   final double? iconSize;
+  final String? emoji;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final color = foodBadgeColor(id);
+    final hasEmoji = emoji != null && emoji!.isNotEmpty;
     final icon = Container(
       width: size,
       height: size,
+      alignment: Alignment.center,
       decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-      child: Icon(Icons.restaurant_rounded, color: color, size: iconSize ?? size * 0.45),
+      child: hasEmoji
+          ? Text(emoji!, style: TextStyle(fontSize: (iconSize ?? size * 0.45) * 1.3))
+          : Icon(Icons.restaurant_rounded, color: color, size: iconSize ?? size * 0.45),
     );
     final url = imageUrl;
     final content = (url == null || url.isEmpty)

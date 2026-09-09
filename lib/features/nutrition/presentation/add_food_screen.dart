@@ -363,7 +363,7 @@ class _FoodRowState extends State<_FoodRow> {
       ),
       child: Row(
         children: [
-          FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 44, iconSize: 20, onTap: foodPhotoTap(context, food.imageUrl)),
+          FoodThumbnail(id: food.id, imageUrl: food.imageUrl, emoji: food.emoji, size: 44, iconSize: 20, onTap: foodPhotoTap(context, food.imageUrl)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -465,7 +465,7 @@ class ProductDetailSheetState extends State<ProductDetailSheet> {
         children: [
           Row(
             children: [
-              FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 64, iconSize: 30, onTap: foodPhotoTap(context, food.imageUrl)),
+              FoodThumbnail(id: food.id, imageUrl: food.imageUrl, emoji: food.emoji, size: 64, iconSize: 30, onTap: foodPhotoTap(context, food.imageUrl)),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(

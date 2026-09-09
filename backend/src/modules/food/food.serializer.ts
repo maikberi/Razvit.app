@@ -25,6 +25,7 @@ export interface FoodDTO {
   defaultGrams: number;
   servingUnit: string | null;
   imageUrl: string | null;
+  emoji: string | null;
   micronutrients: Record<string, { amount: number; unit: string }>;
   createdAt: string;
   updatedAt: string;
@@ -50,6 +51,7 @@ export function serializeFood(food: FoodRow, micronutrients: MicronutrientRow[] 
     defaultGrams: food.serving_size != null ? Number(food.serving_size) : 100,
     servingUnit: food.serving_unit,
     imageUrl: food.image_url,
+    emoji: food.emoji,
     micronutrients: micronutrients.reduce<Record<string, { amount: number; unit: string }>>((acc, m) => {
       acc[m.key] = { amount: Number(m.amount), unit: m.unit };
       return acc;
