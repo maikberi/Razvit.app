@@ -207,3 +207,16 @@ describe('Food Database API', () => {
     });
   });
 });
+
+describe('GET /admin/import/off-russia (защита ключом)', () => {
+  it('без key — 422 (обязателен схемой)', async () => {
+    const res = await request(app).get('/api/v1/admin/import/off-russia');
+    expect(res.status).toBe(422);
+  });
+
+  it('с любым key, но без настроенного ADMIN_IMPORT_KEY на сервере — 403', async () => {
+    const res = await request(app).get('/api/v1/admin/import/off-russia?key=whatever');
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
+  });
+});

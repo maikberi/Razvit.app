@@ -33,6 +33,39 @@ export class OpenFoodFactsClient {
     }
   }
 
+  /**
+   * Продукты, у которых в OFF указана страна продажи (для наполнения
+   * каталога заранее — российских брендов почти нет ни в USDA (это
+   * американская база), ни в результатах живого текстового поиска по OFF
+   * (у него слабый fuzzy-match по кириллице), хотя в самой базе OFF они
+   * есть — просто через полнотекстовый поиск не находятся). Постранично,
+   * без ограничения по числу совпадений с запросом — используется
+   * FoodImportService для разовой пакетной загрузки.
+   */
+  async searchByCountry(country: string, page: number, pageSize: number): Promise<CreateFoodInput[]> {
+    try {
+      const url = new URL(`${this.baseUrl}/cgi/search.pl`);
+      url.searchParams.set('action', 'process');
+      url.searchParams.set('json', '1');
+      url.searchParams.set('page', String(page));
+      url.searchParams.set('page_size', String(pageSize));
+      url.searchParams.set('tagtype_0', 'countries');
+      url.searchParams.set('tag_contains_0', 'contains');
+      url.searchParams.set('tag_0', country);
+      url.searchParams.set(
+        'fields',
+        'code,product_name,product_name_ru,brands,nutriments,serving_size,serving_quantity,image_front_small_url',
+      );
+
+      const res = await fetchWithTimeout(url.toString(), 15000);
+      if (!res.ok) return [];
+      const data = (await res.json()) as { products?: unknown[] };
+      return (data.products ?? []).map(toFoodInput).filter((f): f is CreateFoodInput => f !== null);
+    } catch {
+      return [];
+    }
+  }
+
   async lookupBarcode(barcode: string): Promise<CreateFoodInput | null> {
     const code = barcode.trim();
     if (!code) return null;

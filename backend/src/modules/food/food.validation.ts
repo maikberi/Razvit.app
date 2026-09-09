@@ -48,3 +48,9 @@ export const barcodeParamSchema = z.object({
 export const idParamSchema = z.object({
   id: z.string().uuid('id must be a valid UUID'),
 });
+
+export const importQuerySchema = z.object({
+  key: z.string().min(1, 'key is required'),
+  page: z.coerce.number().int().min(1).default(1),
+});
+export type ImportQuery = z.infer<typeof importQuerySchema>;

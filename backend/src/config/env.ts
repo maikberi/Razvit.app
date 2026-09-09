@@ -44,4 +44,8 @@ export const env = {
   // Токен бота из @BotFather (secret!) — нужен для проверки подписи
   // Telegram Login (POST /auth/telegram). Необязателен по той же схеме.
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
+  // Пароль для разового наполнения каталога продуктами из Open Food Facts
+  // (GET /admin/import/off-russia?key=...). Без этой переменной эндпоинт
+  // всегда отвечает 403 — так что по умолчанию он выключен.
+  adminImportKey: process.env.ADMIN_IMPORT_KEY,
 };
