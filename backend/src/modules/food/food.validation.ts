@@ -35,8 +35,14 @@ export const searchQuerySchema = z.object({
 
 export type SearchQuery = z.infer<typeof searchQuerySchema>;
 
+// Реальные штрихкоды товаров (EAN-8/UPC-A/EAN-13/GTIN-14) — только цифры,
+// 6-14 знаков. Отсекает мусор (буквы, QR-контент и т.п.) ещё до похода
+// в базу/внешние API.
 export const barcodeParamSchema = z.object({
-  barcode: z.string().trim().min(1, 'barcode is required'),
+  barcode: z
+    .string()
+    .trim()
+    .regex(/^\d{6,14}$/, 'barcode must be 6-14 digits'),
 });
 
 export const idParamSchema = z.object({

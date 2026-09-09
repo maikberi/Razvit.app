@@ -10,6 +10,7 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../data/models/nutrition.dart';
 import '../../../data/repositories/nutrition_day_repository.dart';
 import '../../../data/services/food_service.dart';
+import 'barcode_scanner_screen.dart';
 import 'food_ui.dart';
 
 /// Экран поиска продукта для добавления в конкретный приём пищи
@@ -176,17 +177,8 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   }
 
   void _showBarcodeLookup(BuildContext context) {
-    final controller = TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => BarcodeSheet(
-        controller: controller,
-        onAdd: (food, grams) {
-          Navigator.of(sheetContext).pop();
-          _addFood(food, grams);
-        },
-      ),
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => BarcodeScannerScreen(onAdd: (food, grams) => _addFood(food, grams))),
     );
   }
 }
@@ -206,9 +198,20 @@ class _BarcodeSheetState extends ConsumerState<BarcodeSheet> {
   String? _error;
   FoodItem? _found;
 
+  static final _validBarcode = RegExp(r'^\d{6,14}$');
+
   Future<void> _lookup() async {
     final code = widget.controller.text.trim();
     if (code.isEmpty) return;
+    if (!_validBarcode.hasMatch(code)) {
+      setState(() {
+        _loading = false;
+        _notFound = false;
+        _found = null;
+        _error = 'Некорректный штрихкод — только цифры, от 6 до 14 знаков';
+      });
+      return;
+    }
     setState(() {
       _loading = true;
       _notFound = false;
@@ -314,7 +317,7 @@ class _FoodRow extends StatelessWidget {
       onTap: () => showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder: (context) => _ProductDetailSheet(food: food, onAdd: onAdd),
+        builder: (context) => ProductDetailSheet(food: food, onAdd: onAdd),
       ),
       child: Row(
         children: [
@@ -351,16 +354,16 @@ class _FoodRow extends StatelessWidget {
   }
 }
 
-class _ProductDetailSheet extends StatefulWidget {
-  const _ProductDetailSheet({required this.food, required this.onAdd});
+class ProductDetailSheet extends StatefulWidget {
+  const ProductDetailSheet({super.key, required this.food, required this.onAdd});
   final FoodItem food;
   final ValueChanged<int> onAdd;
 
   @override
-  State<_ProductDetailSheet> createState() => _ProductDetailSheetState();
+  State<ProductDetailSheet> createState() => ProductDetailSheetState();
 }
 
-class _ProductDetailSheetState extends State<_ProductDetailSheet> {
+class ProductDetailSheetState extends State<ProductDetailSheet> {
   late int _grams = widget.food.defaultGrams;
 
   @override

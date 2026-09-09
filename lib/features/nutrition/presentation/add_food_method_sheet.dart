@@ -10,7 +10,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../data/models/nutrition.dart';
 import '../../../data/repositories/nutrition_day_repository.dart';
 import '../../../data/services/nutrition_api_service.dart';
-import 'add_food_screen.dart' show BarcodeSheet;
+import 'barcode_scanner_screen.dart';
 import 'food_ui.dart';
 
 /// Открывает выбор способа добавления еды: из базы, штрихкод, фото (AI)
@@ -107,9 +107,23 @@ Future<void> _addFoodFromSheet(
   ManualNutrients? nutrients,
   required int grams,
 }) async {
-  final container = ProviderScope.containerOf(sheetContext, listen: false);
-  final messenger = ScaffoldMessenger.of(sheetContext);
   Navigator.of(sheetContext).pop();
+  await _completeAdd(sheetContext, mealId, foodId: foodId, name: name, nutrients: nutrients, grams: grams);
+}
+
+/// То же самое, но без попытки закрыть шит — для потока сканера
+/// штрихкода (BarcodeScannerScreen сам закрывает и результат, и себя
+/// ДО вызова onAdd, поэтому здесь закрывать уже нечего).
+Future<void> _completeAdd(
+  BuildContext context,
+  String mealId, {
+  String? foodId,
+  String? name,
+  ManualNutrients? nutrients,
+  required int grams,
+}) async {
+  final container = ProviderScope.containerOf(context, listen: false);
+  final messenger = ScaffoldMessenger.of(context);
   try {
     await container.read(nutritionDayProvider.notifier).addFoodItem(
           mealId: mealId,
@@ -132,13 +146,11 @@ void openPhotoAi(BuildContext context, String mealId) => _showPhotoAi(context, m
 void openManualEntry(BuildContext context, String mealId) => _showManualEntry(context, mealId);
 
 void _showBarcode(BuildContext context, String mealId) {
-  final controller = TextEditingController();
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (sheetContext) => BarcodeSheet(
-      controller: controller,
-      onAdd: (food, grams) => _addFoodFromSheet(sheetContext, mealId, foodId: food.id, name: food.name, grams: grams),
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => BarcodeScannerScreen(
+        onAdd: (food, grams) => _completeAdd(context, mealId, foodId: food.id, name: food.name, grams: grams),
+      ),
     ),
   );
 }

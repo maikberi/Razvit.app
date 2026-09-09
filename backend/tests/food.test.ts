@@ -80,6 +80,14 @@ describe('Food Database API', () => {
     expect(res.body.error.code).toBe('FOOD_NOT_FOUND');
   });
 
+  it('возвращает 422 для невалидного штрихкода (не только цифры / неправильная длина)', async () => {
+    const notDigits = await request(app).get('/api/v1/foods/barcode/abc123');
+    expect(notDigits.status).toBe(422);
+
+    const tooShort = await request(app).get('/api/v1/foods/barcode/123');
+    expect(tooShort.status).toBe(422);
+  });
+
   describe('защита от дублей', () => {
     it('запрещает создать второй продукт с уже занятым штрихкодом (409)', async () => {
       const payload = { name: 'Йогурт', calories: 60, protein: 5, fat: 2, carbohydrates: 6, barcode: '4600000000099' };
