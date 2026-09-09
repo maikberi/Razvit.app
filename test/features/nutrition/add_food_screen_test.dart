@@ -94,40 +94,44 @@ void main() {
     expect(attempt, 2);
   });
 
-  testWidgets('показывает кнопку "Показать ещё", когда есть следующая страница', (tester) async {
+  testWidgets('подгружает следующую страницу сама при докрутке до конца (infinite scroll)', (tester) async {
+    final page1Items = List.generate(
+      12,
+      (i) => '{"id":"ext-p1-$i","name":"Продукт страницы один №$i","caloriesPer100g":90,'
+          '"proteinPer100g":1,"fatPer100g":1,"carbsPer100g":1,"source":"OFF"}',
+    ).join(',');
+
     final service = _serviceWith((req) async {
       final page = req.url.queryParameters['page'];
       if (page == '2') {
         return http.Response(
           '{"data":[{"id":"ext-2","name":"Второй продукт со страницы 2","caloriesPer100g":90,'
           '"proteinPer100g":1,"fatPer100g":1,"carbsPer100g":1,"source":"OFF"}],'
-          '"meta":{"page":2,"perPage":1,"total":2,"totalPages":2}}',
+          '"meta":{"page":2,"perPage":12,"total":13,"totalPages":2}}',
           200,
           headers: _jsonHeaders,
         );
       }
       return http.Response(
-        '{"data":[{"id":"ext-1","name":"Первый продукт со страницы 1","caloriesPer100g":80,'
-        '"proteinPer100g":1,"fatPer100g":1,"carbsPer100g":1,"source":"OFF"}],'
-        '"meta":{"page":1,"perPage":1,"total":2,"totalPages":2}}',
+        '{"data":[$page1Items],"meta":{"page":1,"perPage":12,"total":13,"totalPages":2}}',
         200,
         headers: _jsonHeaders,
       );
     });
 
     await tester.pumpWidget(_wrap(service));
-    await tester.enterText(find.byType(TextField).first, 'пагинация запрос');
+    await tester.enterText(find.byType(TextField).first, 'много продуктов');
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
 
-    expect(find.text('Первый продукт со страницы 1'), findsOneWidget);
-    expect(find.text('Показать ещё'), findsOneWidget);
+    expect(find.text('Продукт страницы один №0'), findsOneWidget);
+    expect(find.text('Второй продукт со страницы 2'), findsNothing);
+    // Без ручной кнопки — только докрутка вниз.
+    expect(find.text('Показать ещё'), findsNothing);
 
-    await tester.tap(find.text('Показать ещё'));
+    await tester.fling(find.byType(ListView), const Offset(0, -3000), 4000);
     await tester.pumpAndSettle();
 
-    expect(find.text('Первый продукт со страницы 1'), findsOneWidget);
     expect(find.text('Второй продукт со страницы 2'), findsOneWidget);
-    expect(find.text('Показать ещё'), findsNothing);
   });
 }

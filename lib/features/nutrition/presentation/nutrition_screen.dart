@@ -512,7 +512,7 @@ class _RecentFoodChip extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 30, iconSize: 15),
+                FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 30, iconSize: 15, onTap: foodPhotoTap(context, food.imageUrl)),
                 const SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.only(right: 22),
@@ -658,7 +658,7 @@ class _FoodQuantitySheetState extends ConsumerState<_FoodQuantitySheet> {
         children: [
           Row(
             children: [
-              FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 52, iconSize: 24),
+              FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 52, iconSize: 24, onTap: foodPhotoTap(context, food.imageUrl)),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -899,7 +899,7 @@ class _EntryRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, size: 38, iconSize: 18),
+          FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, size: 38, iconSize: 18, onTap: foodPhotoTap(context, entry.imageUrl)),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -979,7 +979,7 @@ class _MealEntryDetailSheetState extends ConsumerState<MealEntryDetailSheet> {
             children: [
               Row(
                 children: [
-                  FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, size: 64, iconSize: 30),
+                  FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, size: 64, iconSize: 30, onTap: foodPhotoTap(context, entry.imageUrl)),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(

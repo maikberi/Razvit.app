@@ -29,6 +29,7 @@ class AddFoodScreen extends ConsumerStatefulWidget {
 
 class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   final _search = TextEditingController();
+  final _scrollController = ScrollController();
   Timer? _debounce;
 
   List<FoodItem> _results = [];
@@ -40,9 +41,26 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   bool _adding = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Бесконечная прокрутка: следующая страница подгружается сама, когда
+    // список долистали почти до конца — без отдельной кнопки "Показать ещё".
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_searching || _loadingMore || _searchError != null || _page >= _totalPages) return;
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 300) {
+      _runSearch(reset: false);
+    }
   }
 
   void _onQueryChanged(String query) {
@@ -145,6 +163,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                   : _results.isEmpty && !_searching && _searchError == null
                       ? const EmptyState(emoji: '🍽️', title: 'Продукт не найден', subtitle: 'Попробуй изменить запрос или введи вручную')
                       : ListView(
+                          controller: _scrollController,
                           padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxl),
                           children: [
                             if (_searching)
@@ -158,13 +177,16 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                             ],
                             if (_searchError != null)
                               _OnlineErrorRow(message: _searchError!, onRetry: () => _runSearch(reset: _results.isEmpty)),
-                            if (_searchError == null && !_searching && _page < _totalPages)
-                              Center(
-                                child: TextButton(
-                                  onPressed: _loadingMore ? null : () => _runSearch(reset: false),
-                                  child: _loadingMore
-                                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                                      : const Text('Показать ещё'),
+                            if (_searchError == null && _loadingMore)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                                child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                              ),
+                            if (_searchError == null && !_searching && !_loadingMore && _page >= _totalPages && _results.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                                child: Center(
+                                  child: Text('Это все найденные продукты', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink400)),
                                 ),
                               ),
                           ],
@@ -275,7 +297,7 @@ class _BarcodeSheetState extends ConsumerState<BarcodeSheet> {
           if (_notFound)
             Text('Продукт не найден. Попробуй другой штрихкод или добавь вручную.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.error)),
           if (_error != null) _OnlineErrorRow(message: _error!, onRetry: _lookup),
-          if (_found != null) _FoodRow(food: _found!, onAdd: (grams) => widget.onAdd(_found!, grams)),
+          if (_found != null) _FoodRow(food: _found!, onAdd: (grams) async => widget.onAdd(_found!, grams)),
         ],
       ),
     );
@@ -305,23 +327,43 @@ class _OnlineErrorRow extends StatelessWidget {
   }
 }
 
-class _FoodRow extends StatelessWidget {
+class _FoodRow extends StatefulWidget {
   const _FoodRow({required this.food, required this.onAdd});
   final FoodItem food;
-  final ValueChanged<int> onAdd;
+  final Future<void> Function(int grams) onAdd;
+
+  @override
+  State<_FoodRow> createState() => _FoodRowState();
+}
+
+class _FoodRowState extends State<_FoodRow> {
+  int _addedCount = 0;
+  bool _busy = false;
+
+  Future<void> _handleQuickAdd() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await widget.onAdd(widget.food.defaultGrams);
+      if (mounted) setState(() => _addedCount++);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final food = widget.food;
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       onTap: () => showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder: (context) => ProductDetailSheet(food: food, onAdd: onAdd),
+        builder: (context) => ProductDetailSheet(food: food, onAdd: (grams) => widget.onAdd(grams)),
       ),
       child: Row(
         children: [
-          FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 44, iconSize: 20),
+          FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 44, iconSize: 20, onTap: foodPhotoTap(context, food.imageUrl)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -343,13 +385,56 @@ class _FoodRow extends StatelessWidget {
               ],
             ),
           ),
-          IconButton.filled(
-            onPressed: () => onAdd(food.defaultGrams),
-            icon: const Icon(Icons.add_rounded),
-            style: IconButton.styleFrom(backgroundColor: AppColors.green500, foregroundColor: Colors.white),
-          ),
+          _QuickAddButton(busy: _busy, addedCount: _addedCount, onTap: _handleQuickAdd),
         ],
       ),
+    );
+  }
+}
+
+/// Кнопка быстрого добавления продукта прямо из списка поиска — до
+/// первого нажатия она нейтральная (не зелёная), чтобы не выглядеть, будто
+/// продукт уже добавлен. Зелёной становится только после реального
+/// добавления, а повторные нажатия добавляют ещё по одной порции и
+/// увеличивают счётчик — как "2 раза нажали — 2 раза добавило".
+class _QuickAddButton extends StatelessWidget {
+  const _QuickAddButton({required this.busy, required this.addedCount, required this.onTap});
+  final bool busy;
+  final int addedCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final added = addedCount > 0;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton.filled(
+          onPressed: busy ? null : onTap,
+          icon: busy
+              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Icon(Icons.add_rounded),
+          style: IconButton.styleFrom(
+            backgroundColor: added ? AppColors.green500 : AppColors.ink100,
+            foregroundColor: added ? Colors.white : AppColors.ink600,
+          ),
+        ),
+        if (added)
+          Positioned(
+            right: -4,
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(color: AppColors.green700, borderRadius: BorderRadius.circular(10)),
+              constraints: const BoxConstraints(minWidth: 16),
+              child: Text(
+                '×$addedCount',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -380,7 +465,7 @@ class ProductDetailSheetState extends State<ProductDetailSheet> {
         children: [
           Row(
             children: [
-              FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 64, iconSize: 30),
+              FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 64, iconSize: 30, onTap: foodPhotoTap(context, food.imageUrl)),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
