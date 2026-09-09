@@ -8,4 +8,10 @@ abstract final class Env {
     'API_BASE_URL',
     defaultValue: 'http://localhost:3000',
   );
+
+  /// OAuth Client ID веб-приложения Google (не секрет — этот id специально
+  /// предназначен для встраивания в клиентский код, см. console.cloud.google.com).
+  /// Пустая строка означает "вход через Google не настроен" — соответствующая
+  /// кнопка тогда просто не должна пытаться его использовать.
+  static const String googleClientId = String.fromEnvironment('GOOGLE_CLIENT_ID');
 }

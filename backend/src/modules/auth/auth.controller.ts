@@ -1,6 +1,6 @@
 import { asyncHandler } from '../../utils/asyncHandler';
 import { AuthService } from './auth.service';
-import { LoginBody, RegisterBody } from './auth.validation';
+import { GoogleAuthBody, LoginBody, RegisterBody } from './auth.validation';
 
 export class AuthController {
   constructor(private readonly service: AuthService) {}
@@ -14,6 +14,12 @@ export class AuthController {
   login = asyncHandler(async (req, res) => {
     const body = req.validatedBody as LoginBody;
     const result = await this.service.login(body.email, body.password);
+    res.status(200).json({ data: result });
+  });
+
+  google = asyncHandler(async (req, res) => {
+    const body = req.validatedBody as GoogleAuthBody;
+    const result = await this.service.loginWithGoogle(body.idToken);
     res.status(200).json({ data: result });
   });
 

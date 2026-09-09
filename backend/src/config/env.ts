@@ -30,4 +30,8 @@ export const env = {
   // Не обязателен для хостингов без такого требования (например Render).
   databaseSslCa: process.env.DATABASE_SSL_CA,
   jwtSecret: isTest ? (process.env.JWT_SECRET ?? 'test-secret-not-for-production') : required('JWT_SECRET'),
+  // Client ID OAuth-приложения Google (console.cloud.google.com) — нужен
+  // для проверки id-токена при входе через Google. Необязателен: без него
+  // просто недоступен POST /auth/google, остальной вход работает как обычно.
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
 };

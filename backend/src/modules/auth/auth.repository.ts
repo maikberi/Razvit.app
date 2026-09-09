@@ -12,8 +12,29 @@ export class AuthRepository {
     return rows[0];
   }
 
+  async createFromGoogle(email: string, name: string, googleId: string): Promise<UserRow> {
+    const { rows } = await this.pool.query<UserRow>(
+      `INSERT INTO users (email, password_hash, name, google_id) VALUES ($1, NULL, $2, $3) RETURNING *`,
+      [email, name, googleId],
+    );
+    return rows[0];
+  }
+
+  async linkGoogleId(userId: string, googleId: string): Promise<UserRow> {
+    const { rows } = await this.pool.query<UserRow>(`UPDATE users SET google_id = $1 WHERE id = $2 RETURNING *`, [
+      googleId,
+      userId,
+    ]);
+    return rows[0];
+  }
+
   async findByEmail(email: string): Promise<UserRow | null> {
     const { rows } = await this.pool.query<UserRow>(`SELECT * FROM users WHERE email = $1`, [email]);
+    return rows[0] ?? null;
+  }
+
+  async findByGoogleId(googleId: string): Promise<UserRow | null> {
+    const { rows } = await this.pool.query<UserRow>(`SELECT * FROM users WHERE google_id = $1`, [googleId]);
     return rows[0] ?? null;
   }
 

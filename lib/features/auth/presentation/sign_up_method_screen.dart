@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/auth/google_auth_gateway.dart';
+import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/fade_slide_in.dart';
 import '../../../core/widgets/pressable_scale.dart';
 import '../../../core/widgets/razvit_logo.dart';
 import '../../../data/repositories/user_repository.dart';
 
-enum _AuthProvider { google, apple, telegram, vk }
+enum _MockAuthProvider { apple, telegram, vk }
 
 class SignUpMethodScreen extends ConsumerStatefulWidget {
   const SignUpMethodScreen({super.key});
@@ -18,18 +21,43 @@ class SignUpMethodScreen extends ConsumerStatefulWidget {
 }
 
 class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
-  _AuthProvider? _loading;
+  Object? _loading; // _MockAuthProvider или 'google', пока идёт соответствующий вход
 
-  Future<void> _continueWith(_AuthProvider provider) async {
+  /// Google — настоящий вход: получаем id-токен от Google, backend сам
+  /// проверяет его и создаёт/находит пользователя (см. AuthNotifier.loginWithGoogle).
+  Future<void> _continueWithGoogle() async {
+    setState(() => _loading = 'google');
+    try {
+      final idToken = await GoogleAuthGateway.signInAndGetIdToken();
+      if (idToken == null) return; // пользователь закрыл окно выбора аккаунта — не ошибка
+      final isNewUser = await ref.read(authProvider.notifier).loginWithGoogle(idToken);
+      if (!mounted) return;
+      if (isNewUser) {
+        context.push('/onboarding');
+      } else {
+        ref.read(onboardingCompletedProvider.notifier).complete();
+        context.go('/home');
+      }
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
+    } on StateError catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
+    } finally {
+      if (mounted) setState(() => _loading = null);
+    }
+  }
+
+  /// Apple/Telegram/VK: реального OAuth с ними пока нет (см. TODO в
+  /// AuthNotifier.signInLocalOnly) — сессия локальная, не переживёт перезапуск.
+  Future<void> _continueWithMock(_MockAuthProvider provider) async {
     setState(() => _loading = provider);
     await Future.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
     setState(() => _loading = null);
     final name = switch (provider) {
-      _AuthProvider.google => 'Гость Google',
-      _AuthProvider.apple => 'Гость Apple',
-      _AuthProvider.telegram => 'Гость Telegram',
-      _AuthProvider.vk => 'Гость VK',
+      _MockAuthProvider.apple => 'Гость Apple',
+      _MockAuthProvider.telegram => 'Гость Telegram',
+      _MockAuthProvider.vk => 'Гость VK',
     };
     ref.read(userProvider.notifier).updateProfile(name: name);
     ref.read(authProvider.notifier).signInLocalOnly();
@@ -66,14 +94,9 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
                 delay: const Duration(milliseconds: 200),
                 child: _ProviderButton(
                   label: 'Продолжить с Google',
-                  loading: _loading == _AuthProvider.google,
-                  onTap: () => _continueWith(_AuthProvider.google),
-                  logo: Container(
-                    width: 22,
-                    height: 22,
-                    alignment: Alignment.center,
-                    child: const Text('G', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF4285F4))),
-                  ),
+                  loading: _loading == 'google',
+                  onTap: _continueWithGoogle,
+                  logo: SvgPicture.asset('assets/logo/Group.svg', width: 22, height: 22),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -81,11 +104,11 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
                 delay: const Duration(milliseconds: 250),
                 child: _ProviderButton(
                   label: 'Продолжить с Apple',
-                  loading: _loading == _AuthProvider.apple,
-                  onTap: () => _continueWith(_AuthProvider.apple),
+                  loading: _loading == _MockAuthProvider.apple,
+                  onTap: () => _continueWithMock(_MockAuthProvider.apple),
                   background: Colors.black,
                   foreground: Colors.white,
-                  logo: const Icon(Icons.apple_rounded, size: 22, color: Colors.white),
+                  logo: SvgPicture.asset('assets/logo/Vector.svg', width: 18, height: 22, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -93,13 +116,9 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
                 delay: const Duration(milliseconds: 300),
                 child: _ProviderButton(
                   label: 'Продолжить с Telegram',
-                  loading: _loading == _AuthProvider.telegram,
-                  onTap: () => _continueWith(_AuthProvider.telegram),
-                  logo: const CircleAvatar(
-                    radius: 11,
-                    backgroundColor: Color(0xFF29A9EA),
-                    child: Icon(Icons.send_rounded, size: 13, color: Colors.white),
-                  ),
+                  loading: _loading == _MockAuthProvider.telegram,
+                  onTap: () => _continueWithMock(_MockAuthProvider.telegram),
+                  logo: SvgPicture.asset('assets/logo/TG.svg', width: 22, height: 18),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -107,15 +126,9 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
                 delay: const Duration(milliseconds: 350),
                 child: _ProviderButton(
                   label: 'Продолжить с VK',
-                  loading: _loading == _AuthProvider.vk,
-                  onTap: () => _continueWith(_AuthProvider.vk),
-                  logo: Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(color: const Color(0xFF0077FF), borderRadius: BorderRadius.circular(6)),
-                    alignment: Alignment.center,
-                    child: const Text('VK', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
-                  ),
+                  loading: _loading == _MockAuthProvider.vk,
+                  onTap: () => _continueWithMock(_MockAuthProvider.vk),
+                  logo: SvgPicture.asset('assets/logo/VK.svg', width: 24, height: 15),
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),

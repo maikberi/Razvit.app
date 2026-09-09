@@ -1,5 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
-import { EmailAlreadyRegisteredError, InvalidCredentialsError } from '../modules/auth/auth.service';
+import {
+  EmailAlreadyRegisteredError,
+  GoogleAuthNotConfiguredError,
+  InvalidCredentialsError,
+  InvalidGoogleTokenError,
+} from '../modules/auth/auth.service';
 import { DuplicateFoodError, FoodNotFoundError } from '../modules/food/food.service';
 import { serializeFood } from '../modules/food/food.serializer';
 import { ForbiddenError, MealItemNotFoundError, MealNotFoundError } from '../modules/meal/meal.service';
@@ -39,6 +44,14 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   }
   if (err instanceof InvalidCredentialsError) {
     res.status(401).json({ error: { code: 'INVALID_CREDENTIALS', message: 'Неверный email или пароль' } });
+    return;
+  }
+  if (err instanceof InvalidGoogleTokenError) {
+    res.status(401).json({ error: { code: 'INVALID_GOOGLE_TOKEN', message: 'Не удалось подтвердить вход через Google' } });
+    return;
+  }
+  if (err instanceof GoogleAuthNotConfiguredError) {
+    res.status(503).json({ error: { code: 'GOOGLE_AUTH_NOT_CONFIGURED', message: 'Вход через Google временно недоступен' } });
     return;
   }
 

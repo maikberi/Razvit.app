@@ -74,10 +74,23 @@ class AuthNotifier extends StateNotifier<AuthStatus> {
     state = AuthStatus.authenticated;
   }
 
-  /// Временный локальный вход для кнопок Google/Apple/Telegram/VK на экране
-  /// выбора способа регистрации — реального OAuth с этими провайдерами
-  /// пока нет, поэтому сессия НЕ сохраняется и не переживёт перезапуск
-  /// (в отличие от входа по email/паролю). См. sign_up_method_screen.dart.
+  /// Вход через Google — [idToken] получен от google_sign_in на клиенте,
+  /// backend сам проверяет его подлинность и создаёт/находит пользователя.
+  /// Возвращает true, если аккаунт создан только что (тогда экран должен
+  /// повести на онбординг), false — если это уже существующий пользователь
+  /// (тогда сразу на /home, как при обычном логине).
+  Future<bool> loginWithGoogle(String idToken) async {
+    final result = await _service.loginWithGoogle(idToken);
+    await Session.setToken(result.token);
+    _ref.read(userProvider.notifier).setFromAuth(result.user);
+    state = AuthStatus.authenticated;
+    return result.isNewUser;
+  }
+
+  /// Временный локальный вход для кнопок Apple/Telegram/VK на экране выбора
+  /// способа регистрации — реального OAuth с этими провайдерами пока нет,
+  /// поэтому сессия НЕ сохраняется и не переживёт перезапуск (в отличие от
+  /// входа по email/паролю и через Google). См. sign_up_method_screen.dart.
   void signInLocalOnly() => state = AuthStatus.authenticated;
 
   void signOut() {

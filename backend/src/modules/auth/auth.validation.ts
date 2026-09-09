@@ -12,3 +12,8 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'пароль обязателен'),
 });
 export type LoginBody = z.infer<typeof loginSchema>;
+
+export const googleAuthSchema = z.object({
+  idToken: z.string().min(1, 'idToken обязателен'),
+});
+export type GoogleAuthBody = z.infer<typeof googleAuthSchema>;
