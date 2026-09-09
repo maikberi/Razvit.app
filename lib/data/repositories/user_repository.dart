@@ -21,12 +21,15 @@ class UserNotifier extends StateNotifier<AppUser> {
     state = state.copyWith(weightKg: weightKg);
   }
 
-  void updateProfile({String? name, String? lastName, String? nickname, String? email}) {
-    state = state.copyWith(name: name, lastName: lastName, nickname: nickname, email: email);
+  void updateProfile(
+      {String? name, String? lastName, String? nickname, String? email}) {
+    state = state.copyWith(
+        name: name, lastName: lastName, nickname: nickname, email: email);
   }
 }
 
-final userProvider = StateNotifierProvider<UserNotifier, AppUser>((ref) => UserNotifier());
+final userProvider =
+    StateNotifierProvider<UserNotifier, AppUser>((ref) => UserNotifier());
 
 /// Простой флаг "прошёл ли пользователь онбординг" — определяет
 /// стартовый экран приложения.
@@ -36,7 +39,8 @@ class OnboardingCompletionNotifier extends StateNotifier<bool> {
 }
 
 final onboardingCompletedProvider =
-    StateNotifierProvider<OnboardingCompletionNotifier, bool>((ref) => OnboardingCompletionNotifier());
+    StateNotifierProvider<OnboardingCompletionNotifier, bool>(
+        (ref) => OnboardingCompletionNotifier());
 
 enum AuthStatus { checking, authenticated, unauthenticated }
 
@@ -46,13 +50,18 @@ enum AuthStatus { checking, authenticated, unauthenticated }
 /// сохранённый токен через /auth/me ещё до первого кадра (см. main.dart),
 /// поэтому здесь `checking` практически никогда не остаётся надолго.
 class AuthNotifier extends StateNotifier<AuthStatus> {
-  AuthNotifier(this._ref, {AuthStatus initial = AuthStatus.unauthenticated}) : super(initial);
+  AuthNotifier(this._ref, {AuthStatus initial = AuthStatus.unauthenticated})
+      : super(initial);
 
   final Ref _ref;
   AuthApiService get _service => _ref.read(authApiServiceProvider);
 
-  Future<void> register({required String email, required String password, required String name}) async {
-    final result = await _service.register(email: email, password: password, name: name);
+  Future<void> register(
+      {required String email,
+      required String password,
+      required String name}) async {
+    final result =
+        await _service.register(email: email, password: password, name: name);
     await Session.setToken(result.token);
     _ref.read(userProvider.notifier).setFromAuth(result.user);
     state = AuthStatus.authenticated;
@@ -77,8 +86,5 @@ class AuthNotifier extends StateNotifier<AuthStatus> {
   }
 }
 
-final authProvider = StateNotifierProvider<AuthNotifier, AuthStatus>((ref) => AuthNotifier(ref));
-
-/// Взводится сразу после завершения онбординга — экран "Главная"
-/// один раз проигрывает приветственную анимацию появления и сбрасывает флаг.
-final showHomeIntroProvider = StateProvider<bool>((ref) => false);
+final authProvider =
+    StateNotifierProvider<AuthNotifier, AuthStatus>((ref) => AuthNotifier(ref));
