@@ -4,13 +4,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/auth/google_auth_gateway.dart';
+import '../../../core/auth/social_redirect_gateway.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/fade_slide_in.dart';
 import '../../../core/widgets/pressable_scale.dart';
 import '../../../data/repositories/user_repository.dart';
 
-enum _MockAuthProvider { apple, telegram, vk }
+enum _MockAuthProvider { apple, telegram }
 
 class SignUpMethodScreen extends ConsumerStatefulWidget {
   const SignUpMethodScreen({super.key});
@@ -46,7 +47,7 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
     }
   }
 
-  /// Apple/Telegram/VK: реального OAuth с ними пока нет (см. TODO в
+  /// Apple/Telegram: реального OAuth с ними пока нет (см. TODO в
   /// AuthNotifier.signInLocalOnly) — сессия локальная, не переживёт перезапуск.
   Future<void> _continueWithMock(_MockAuthProvider provider) async {
     setState(() => _loading = provider);
@@ -56,11 +57,22 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
     final name = switch (provider) {
       _MockAuthProvider.apple => 'Гость Apple',
       _MockAuthProvider.telegram => 'Гость Telegram',
-      _MockAuthProvider.vk => 'Гость VK',
     };
     ref.read(userProvider.notifier).updateProfile(name: name);
     ref.read(authProvider.notifier).signInLocalOnly();
     context.push('/onboarding');
+  }
+
+  /// VK — настоящий вход: уводим на страницу VK через редирект, а обратно
+  /// пользователя принимает /auth/vk-callback (см. VkCallbackScreen и
+  /// core/auth/social_redirect_gateway.dart). Сам экран после нажатия
+  /// исчезает (переход на другой домен), поэтому загрузочный статус не нужен.
+  void _startVk() {
+    try {
+      SocialRedirectGateway.startVkLogin();
+    } on StateError catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
+    }
   }
 
   @override
@@ -108,8 +120,8 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
                 delay: const Duration(milliseconds: 250),
                 child: _ProviderButton(
                   label: 'Войти через VK',
-                  loading: _loading == _MockAuthProvider.vk,
-                  onTap: () => _continueWithMock(_MockAuthProvider.vk),
+                  loading: false,
+                  onTap: _startVk,
                   logo: SvgPicture.asset('assets/logo/VK.svg', width: 26, height: 26, fit: BoxFit.contain),
                 ),
               ),

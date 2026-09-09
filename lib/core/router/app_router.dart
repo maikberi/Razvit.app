@@ -6,6 +6,7 @@ import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/sign_up_method_screen.dart';
+import '../../features/auth/presentation/vk_callback_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
 import '../../data/models/nutrition.dart';
 import '../../features/home/presentation/notifications_screen.dart';
@@ -62,6 +63,13 @@ final GoRouter appRouter = GoRouter(
           final scale = Tween(begin: 0.97, end: 1.0).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
           return FadeTransition(opacity: fade, child: ScaleTransition(scale: scale, child: child));
         },
+      ),
+    ),
+    GoRoute(
+      path: '/auth/vk-callback',
+      builder: (context, state) => VkCallbackScreen(
+        code: state.uri.queryParameters['code'],
+        error: state.uri.queryParameters['error'],
       ),
     ),
     GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),

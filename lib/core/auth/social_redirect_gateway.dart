@@ -1,6 +1,6 @@
-import 'dart:html' as html;
-
 import '../config/env.dart';
+import 'social_redirect_navigate_stub.dart'
+    if (dart.library.html) 'social_redirect_navigate_web.dart' as platform;
 
 /// VK и Telegram Login здесь реализованы через редирект на страницу
 /// провайдера и обратно (а не всплывающее окно/встроенный JS-виджет) —
@@ -36,7 +36,7 @@ abstract final class SocialRedirectGateway {
       'response_type': 'code',
       'v': '5.199',
     });
-    html.window.location.href = uri.toString();
+    platform.navigateTo(uri.toString());
   }
 
   static void startTelegramLogin() {
@@ -50,6 +50,6 @@ abstract final class SocialRedirectGateway {
       'request_access': 'write',
       'return_to': telegramReturnUrl(),
     });
-    html.window.location.href = uri.toString();
+    platform.navigateTo(uri.toString());
   }
 }
