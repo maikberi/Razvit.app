@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { UserRow } from './auth.model';
+import { SOCIAL_ID_COLUMNS, SocialProvider, UserRow } from './auth.model';
 
 export class AuthRepository {
   constructor(private readonly pool: Pool) {}
@@ -12,29 +12,36 @@ export class AuthRepository {
     return rows[0];
   }
 
-  async createFromGoogle(email: string, name: string, googleId: string): Promise<UserRow> {
+  /** Создаёт пользователя, зашедшего через соцсеть (без пароля) —
+   * колонка выбирается из фиксированного набора (SOCIAL_ID_COLUMNS),
+   * никогда из пользовательского ввода, поэтому подстановка имени
+   * колонки в SQL здесь безопасна. */
+  async createFromSocial(provider: SocialProvider, email: string, name: string, socialId: string): Promise<UserRow> {
+    const column = SOCIAL_ID_COLUMNS[provider];
     const { rows } = await this.pool.query<UserRow>(
-      `INSERT INTO users (email, password_hash, name, google_id) VALUES ($1, NULL, $2, $3) RETURNING *`,
-      [email, name, googleId],
+      `INSERT INTO users (email, password_hash, name, ${column}) VALUES ($1, NULL, $2, $3) RETURNING *`,
+      [email, name, socialId],
     );
     return rows[0];
   }
 
-  async linkGoogleId(userId: string, googleId: string): Promise<UserRow> {
-    const { rows } = await this.pool.query<UserRow>(`UPDATE users SET google_id = $1 WHERE id = $2 RETURNING *`, [
-      googleId,
+  async linkSocialId(provider: SocialProvider, userId: string, socialId: string): Promise<UserRow> {
+    const column = SOCIAL_ID_COLUMNS[provider];
+    const { rows } = await this.pool.query<UserRow>(`UPDATE users SET ${column} = $1 WHERE id = $2 RETURNING *`, [
+      socialId,
       userId,
     ]);
     return rows[0];
   }
 
-  async findByEmail(email: string): Promise<UserRow | null> {
-    const { rows } = await this.pool.query<UserRow>(`SELECT * FROM users WHERE email = $1`, [email]);
+  async findBySocialId(provider: SocialProvider, socialId: string): Promise<UserRow | null> {
+    const column = SOCIAL_ID_COLUMNS[provider];
+    const { rows } = await this.pool.query<UserRow>(`SELECT * FROM users WHERE ${column} = $1`, [socialId]);
     return rows[0] ?? null;
   }
 
-  async findByGoogleId(googleId: string): Promise<UserRow | null> {
-    const { rows } = await this.pool.query<UserRow>(`SELECT * FROM users WHERE google_id = $1`, [googleId]);
+  async findByEmail(email: string): Promise<UserRow | null> {
+    const { rows } = await this.pool.query<UserRow>(`SELECT * FROM users WHERE email = $1`, [email]);
     return rows[0] ?? null;
   }
 

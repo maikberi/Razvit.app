@@ -1,13 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
 import {
   EmailAlreadyRegisteredError,
-  GoogleAuthNotConfiguredError,
   InvalidCredentialsError,
-  InvalidGoogleTokenError,
+  InvalidSocialTokenError,
+  SocialAuthNotConfiguredError,
 } from '../modules/auth/auth.service';
+import { SocialProvider } from '../modules/auth/auth.model';
 import { DuplicateFoodError, FoodNotFoundError } from '../modules/food/food.service';
 import { serializeFood } from '../modules/food/food.serializer';
 import { ForbiddenError, MealItemNotFoundError, MealNotFoundError } from '../modules/meal/meal.service';
+
+const SOCIAL_PROVIDER_LABELS: Record<SocialProvider, string> = { google: 'Google', vk: 'VK', telegram: 'Telegram' };
 
 /** Единая точка превращения ошибок в HTTP-ответ по контракту {error:{code,message,details}}. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -46,12 +49,14 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
     res.status(401).json({ error: { code: 'INVALID_CREDENTIALS', message: 'Неверный email или пароль' } });
     return;
   }
-  if (err instanceof InvalidGoogleTokenError) {
-    res.status(401).json({ error: { code: 'INVALID_GOOGLE_TOKEN', message: 'Не удалось подтвердить вход через Google' } });
+  if (err instanceof InvalidSocialTokenError) {
+    const code = `INVALID_${err.provider.toUpperCase()}_TOKEN`;
+    res.status(401).json({ error: { code, message: `Не удалось подтвердить вход через ${SOCIAL_PROVIDER_LABELS[err.provider]}` } });
     return;
   }
-  if (err instanceof GoogleAuthNotConfiguredError) {
-    res.status(503).json({ error: { code: 'GOOGLE_AUTH_NOT_CONFIGURED', message: 'Вход через Google временно недоступен' } });
+  if (err instanceof SocialAuthNotConfiguredError) {
+    const code = `${err.provider.toUpperCase()}_AUTH_NOT_CONFIGURED`;
+    res.status(503).json({ error: { code, message: `Вход через ${SOCIAL_PROVIDER_LABELS[err.provider]} временно недоступен` } });
     return;
   }
 

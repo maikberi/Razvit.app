@@ -2,8 +2,10 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../../config/env';
 import { AuthRepository } from './auth.repository';
-import { UserRow } from './auth.model';
+import { SocialProvider, UserRow } from './auth.model';
 import { GoogleTokenVerifier, RealGoogleTokenVerifier } from './google.verifier';
+import { VkAuthVerifier, RealVkAuthVerifier } from './vk.verifier';
+import { RealTelegramAuthVerifier, TelegramAuthVerifier, TelegramLoginPayload } from './telegram.verifier';
 
 const TOKEN_TTL = '90d';
 const PASSWORD_SALT_ROUNDS = 10;
@@ -20,15 +22,17 @@ export class InvalidCredentialsError extends Error {
   }
 }
 
-export class InvalidGoogleTokenError extends Error {
-  constructor() {
-    super('Invalid Google token');
+/** Общие ошибки для всех соцсетей — не плодим по паре классов на
+ * провайдера, только различаем через .provider. */
+export class SocialAuthNotConfiguredError extends Error {
+  constructor(public readonly provider: SocialProvider) {
+    super(`${provider} sign-in is not configured on this server`);
   }
 }
 
-export class GoogleAuthNotConfiguredError extends Error {
-  constructor() {
-    super('Google sign-in is not configured on this server');
+export class InvalidSocialTokenError extends Error {
+  constructor(public readonly provider: SocialProvider) {
+    super(`Invalid ${provider} token`);
   }
 }
 
@@ -37,18 +41,23 @@ export interface AuthResult {
   user: { id: string; email: string; name: string };
 }
 
-export interface GoogleAuthResult extends AuthResult {
+export interface SocialAuthResult extends AuthResult {
   isNewUser: boolean;
 }
 
 export class AuthService {
   private readonly googleVerifier: GoogleTokenVerifier | null;
+  private readonly vkVerifier: VkAuthVerifier | null;
+  private readonly telegramVerifier: TelegramAuthVerifier | null;
 
   constructor(
     private readonly repository: AuthRepository,
-    googleVerifier?: GoogleTokenVerifier,
+    verifiers?: { google?: GoogleTokenVerifier; vk?: VkAuthVerifier; telegram?: TelegramAuthVerifier },
   ) {
-    this.googleVerifier = googleVerifier ?? (env.googleClientId ? new RealGoogleTokenVerifier(env.googleClientId) : null);
+    this.googleVerifier = verifiers?.google ?? (env.googleClientId ? new RealGoogleTokenVerifier(env.googleClientId) : null);
+    this.vkVerifier =
+      verifiers?.vk ?? (env.vkClientId && env.vkClientSecret ? new RealVkAuthVerifier(env.vkClientId, env.vkClientSecret) : null);
+    this.telegramVerifier = verifiers?.telegram ?? (env.telegramBotToken ? new RealTelegramAuthVerifier(env.telegramBotToken) : null);
   }
 
   async register(email: string, password: string, name: string): Promise<AuthResult> {
@@ -70,26 +79,50 @@ export class AuthService {
     return { token: this.issueToken(user.id), user: toPublicUser(user) };
   }
 
-  async loginWithGoogle(idToken: string): Promise<GoogleAuthResult> {
-    if (!this.googleVerifier) throw new GoogleAuthNotConfiguredError();
-
+  async loginWithGoogle(idToken: string): Promise<SocialAuthResult> {
+    if (!this.googleVerifier) throw new SocialAuthNotConfiguredError('google');
     const payload = await this.googleVerifier.verify(idToken);
-    if (!payload) throw new InvalidGoogleTokenError();
+    if (!payload) throw new InvalidSocialTokenError('google');
+    return this.findOrCreateSocialUser('google', payload.googleId, payload.email, payload.name);
+  }
 
-    const byGoogleId = await this.repository.findByGoogleId(payload.googleId);
-    if (byGoogleId) {
-      return { token: this.issueToken(byGoogleId.id), user: toPublicUser(byGoogleId), isNewUser: false };
+  async loginWithVk(code: string, redirectUri: string): Promise<SocialAuthResult> {
+    if (!this.vkVerifier) throw new SocialAuthNotConfiguredError('vk');
+    const payload = await this.vkVerifier.exchangeCode(code, redirectUri);
+    if (!payload) throw new InvalidSocialTokenError('vk');
+    const email = payload.email ?? `vk${payload.vkId}@users.razvit.local`;
+    return this.findOrCreateSocialUser('vk', payload.vkId, email, payload.name || 'Пользователь VK');
+  }
+
+  async loginWithTelegram(payload: TelegramLoginPayload): Promise<SocialAuthResult> {
+    if (!this.telegramVerifier) throw new SocialAuthNotConfiguredError('telegram');
+    const verified = this.telegramVerifier.verify(payload);
+    if (!verified) throw new InvalidSocialTokenError('telegram');
+    const email = `tg${verified.telegramId}@users.razvit.local`;
+    return this.findOrCreateSocialUser('telegram', verified.telegramId, email, verified.name || 'Пользователь Telegram');
+  }
+
+  /** Общая логика для всех соцсетей: уже привязан — логиним; есть аккаунт
+   * с таким email (например, регистрировался по паролю) — привязываем
+   * соцсеть к нему, не плодим дубликат; иначе — создаём нового пользователя. */
+  private async findOrCreateSocialUser(
+    provider: SocialProvider,
+    socialId: string,
+    email: string,
+    name: string,
+  ): Promise<SocialAuthResult> {
+    const bySocialId = await this.repository.findBySocialId(provider, socialId);
+    if (bySocialId) {
+      return { token: this.issueToken(bySocialId.id), user: toPublicUser(bySocialId), isNewUser: false };
     }
 
-    // Уже есть аккаунт с таким email (регистрировался по паролю) — просто
-    // привязываем Google к нему, а не создаём дубликат пользователя.
-    const byEmail = await this.repository.findByEmail(payload.email);
+    const byEmail = await this.repository.findByEmail(email);
     if (byEmail) {
-      const linked = await this.repository.linkGoogleId(byEmail.id, payload.googleId);
+      const linked = await this.repository.linkSocialId(provider, byEmail.id, socialId);
       return { token: this.issueToken(linked.id), user: toPublicUser(linked), isNewUser: false };
     }
 
-    const created = await this.repository.createFromGoogle(payload.email, payload.name, payload.googleId);
+    const created = await this.repository.createFromSocial(provider, email, name, socialId);
     return { token: this.issueToken(created.id), user: toPublicUser(created), isNewUser: true };
   }
 

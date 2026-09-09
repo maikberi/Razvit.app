@@ -14,4 +14,14 @@ abstract final class Env {
   /// Пустая строка означает "вход через Google не настроен" — соответствующая
   /// кнопка тогда просто не должна пытаться его использовать.
   static const String googleClientId = String.fromEnvironment('GOOGLE_CLIENT_ID');
+
+  /// ID Standalone-приложения VK (vk.com/apps?act=manage) — не секрет,
+  /// используется прямо в URL авторизации. Пустая строка — вход через VK
+  /// не настроен.
+  static const String vkClientId = String.fromEnvironment('VK_CLIENT_ID');
+
+  /// Числовой id бота из @BotFather (не секрет — используется в URL для
+  /// Telegram Login; секретный токен бота знает только backend). Пустая
+  /// строка — вход через Telegram не настроен.
+  static const String telegramBotId = String.fromEnvironment('TELEGRAM_BOT_ID');
 }

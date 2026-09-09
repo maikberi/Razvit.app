@@ -100,39 +100,39 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
                   background: Colors.white,
                   foreground: Colors.black87,
                   bordered: true,
-                  logo: SvgPicture.asset('assets/logo/Group.svg', width: 22, height: 22),
+                  logo: SvgPicture.asset('assets/logo/Group.svg', width: 26, height: 26, fit: BoxFit.contain),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
               FadeSlideIn(
                 delay: const Duration(milliseconds: 250),
                 child: _ProviderButton(
-                  label: 'Продолжить с Apple',
-                  loading: _loading == _MockAuthProvider.apple,
-                  onTap: () => _continueWithMock(_MockAuthProvider.apple),
-                  background: Colors.black,
-                  foreground: Colors.white,
-                  logo: SvgPicture.asset('assets/logo/Vector.svg', width: 18, height: 22, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)),
+                  label: 'Войти через VK',
+                  loading: _loading == _MockAuthProvider.vk,
+                  onTap: () => _continueWithMock(_MockAuthProvider.vk),
+                  logo: SvgPicture.asset('assets/logo/VK.svg', width: 26, height: 26, fit: BoxFit.contain),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
               FadeSlideIn(
                 delay: const Duration(milliseconds: 300),
                 child: _ProviderButton(
-                  label: 'Войти через VK',
-                  loading: _loading == _MockAuthProvider.vk,
-                  onTap: () => _continueWithMock(_MockAuthProvider.vk),
-                  logo: SvgPicture.asset('assets/logo/VK.svg', width: 24, height: 15),
+                  label: 'Войти через Telegram',
+                  loading: _loading == _MockAuthProvider.telegram,
+                  onTap: () => _continueWithMock(_MockAuthProvider.telegram),
+                  logo: SvgPicture.asset('assets/logo/TG.svg', width: 26, height: 26, fit: BoxFit.contain),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
               FadeSlideIn(
                 delay: const Duration(milliseconds: 350),
                 child: _ProviderButton(
-                  label: 'Войти через Telegram',
-                  loading: _loading == _MockAuthProvider.telegram,
-                  onTap: () => _continueWithMock(_MockAuthProvider.telegram),
-                  logo: SvgPicture.asset('assets/logo/TG.svg', width: 22, height: 18),
+                  label: 'Продолжить с Apple',
+                  loading: _loading == _MockAuthProvider.apple,
+                  onTap: () => _continueWithMock(_MockAuthProvider.apple),
+                  background: Colors.black,
+                  foreground: Colors.white,
+                  logo: SvgPicture.asset('assets/logo/Vector.svg', width: 26, height: 26, fit: BoxFit.contain, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)),
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -215,22 +215,24 @@ class _ProviderButton extends StatelessWidget {
       onTap: loading ? () {} : onTap,
       child: Container(
         width: double.infinity,
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        height: 60,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: bordered ? Border.all(color: Theme.of(context).dividerColor) : null,
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             if (loading)
-              SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
+              SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
             else ...[
-              logo,
-              const SizedBox(width: 12),
-              Text(label, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700, color: fg)),
+              // Единый размер бокса под лого — иконки провайдеров разного
+              // "родного" соотношения сторон визуально выглядят одинаково.
+              SizedBox(width: 26, height: 26, child: Center(child: logo)),
+              const SizedBox(width: 16),
+              Text(label, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: fg)),
             ],
           ],
         ),

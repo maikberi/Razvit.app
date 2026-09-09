@@ -1,6 +1,6 @@
 import { asyncHandler } from '../../utils/asyncHandler';
 import { AuthService } from './auth.service';
-import { GoogleAuthBody, LoginBody, RegisterBody } from './auth.validation';
+import { GoogleAuthBody, LoginBody, RegisterBody, TelegramAuthBody, VkAuthBody } from './auth.validation';
 
 export class AuthController {
   constructor(private readonly service: AuthService) {}
@@ -20,6 +20,18 @@ export class AuthController {
   google = asyncHandler(async (req, res) => {
     const body = req.validatedBody as GoogleAuthBody;
     const result = await this.service.loginWithGoogle(body.idToken);
+    res.status(200).json({ data: result });
+  });
+
+  vk = asyncHandler(async (req, res) => {
+    const body = req.validatedBody as VkAuthBody;
+    const result = await this.service.loginWithVk(body.code, body.redirectUri);
+    res.status(200).json({ data: result });
+  });
+
+  telegram = asyncHandler(async (req, res) => {
+    const body = req.validatedBody as TelegramAuthBody;
+    const result = await this.service.loginWithTelegram(body);
     res.status(200).json({ data: result });
   });
 

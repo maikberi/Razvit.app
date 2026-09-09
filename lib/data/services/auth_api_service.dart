@@ -28,12 +28,15 @@ class AuthResult {
       );
 }
 
-class GoogleAuthResult extends AuthResult {
-  const GoogleAuthResult({required super.token, required super.user, required this.isNewUser});
+/// Результат входа через соцсеть (Google/VK/Telegram) — то же, что обычный
+/// AuthResult, плюс признак "аккаунт только что создан" (чтобы фронт решил,
+/// вести на онбординг или сразу на /home, см. AuthNotifier).
+class SocialAuthResult extends AuthResult {
+  const SocialAuthResult({required super.token, required super.user, required this.isNewUser});
 
   final bool isNewUser;
 
-  factory GoogleAuthResult.fromJson(Map<String, dynamic> json) => GoogleAuthResult(
+  factory SocialAuthResult.fromJson(Map<String, dynamic> json) => SocialAuthResult(
         token: json['token'] as String,
         user: AuthUser.fromJson(json['user'] as Map<String, dynamic>),
         isNewUser: json['isNewUser'] as bool,
@@ -57,9 +60,22 @@ class AuthApiService {
     return AuthResult.fromJson(json['data'] as Map<String, dynamic>);
   }
 
-  Future<GoogleAuthResult> loginWithGoogle(String idToken) async {
+  Future<SocialAuthResult> loginWithGoogle(String idToken) async {
     final json = await _client.postJson('/api/v1/auth/google', {'idToken': idToken});
-    return GoogleAuthResult.fromJson(json['data'] as Map<String, dynamic>);
+    return SocialAuthResult.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<SocialAuthResult> loginWithVk({required String code, required String redirectUri}) async {
+    final json = await _client.postJson('/api/v1/auth/vk', {'code': code, 'redirectUri': redirectUri});
+    return SocialAuthResult.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  /// [payload] — те же поля, что Telegram присылает в редиректе (id,
+  /// first_name, ..., auth_date, hash) — передаются backend'у как есть,
+  /// он сам их проверяет.
+  Future<SocialAuthResult> loginWithTelegram(Map<String, dynamic> payload) async {
+    final json = await _client.postJson('/api/v1/auth/telegram', payload);
+    return SocialAuthResult.fromJson(json['data'] as Map<String, dynamic>);
   }
 
   Future<AuthUser> me() async {

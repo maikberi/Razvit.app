@@ -76,21 +76,36 @@ class AuthNotifier extends StateNotifier<AuthStatus> {
 
   /// Вход через Google — [idToken] получен от google_sign_in на клиенте,
   /// backend сам проверяет его подлинность и создаёт/находит пользователя.
-  /// Возвращает true, если аккаунт создан только что (тогда экран должен
-  /// повести на онбординг), false — если это уже существующий пользователь
-  /// (тогда сразу на /home, как при обычном логине).
-  Future<bool> loginWithGoogle(String idToken) async {
-    final result = await _service.loginWithGoogle(idToken);
+  Future<bool> loginWithGoogle(String idToken) => _completeSocialLogin(_service.loginWithGoogle(idToken));
+
+  /// Вход через VK — [code]/[redirectUri] получены из редиректа VK OAuth
+  /// (см. core/auth/social_redirect_gateway.dart), backend сам обменивает
+  /// code на данные пользователя.
+  Future<bool> loginWithVk({required String code, required String redirectUri}) =>
+      _completeSocialLogin(_service.loginWithVk(code: code, redirectUri: redirectUri));
+
+  /// Вход через Telegram Login — [payload] это поля из редиректа Telegram
+  /// (id, first_name, ..., hash), backend сам проверяет подпись.
+  Future<bool> loginWithTelegram(Map<String, dynamic> payload) =>
+      _completeSocialLogin(_service.loginWithTelegram(payload));
+
+  /// Общий хвост входа через соцсеть: сохранить токен, обновить
+  /// пользователя, отметить сессию активной. Возвращает true, если аккаунт
+  /// создан только что (тогда экран должен повести на онбординг), false —
+  /// если это уже существующий пользователь (тогда сразу на /home, как при
+  /// обычном логине).
+  Future<bool> _completeSocialLogin(Future<SocialAuthResult> pending) async {
+    final result = await pending;
     await Session.setToken(result.token);
     _ref.read(userProvider.notifier).setFromAuth(result.user);
     state = AuthStatus.authenticated;
     return result.isNewUser;
   }
 
-  /// Временный локальный вход для кнопок Apple/Telegram/VK на экране выбора
-  /// способа регистрации — реального OAuth с этими провайдерами пока нет,
-  /// поэтому сессия НЕ сохраняется и не переживёт перезапуск (в отличие от
-  /// входа по email/паролю и через Google). См. sign_up_method_screen.dart.
+  /// Временный локальный вход для кнопки Apple на экране выбора способа
+  /// регистрации — реального Sign in with Apple пока нет, поэтому сессия
+  /// НЕ сохраняется и не переживёт перезапуск (в отличие от входа по
+  /// email/паролю и через Google/VK/Telegram). См. sign_up_method_screen.dart.
   void signInLocalOnly() => state = AuthStatus.authenticated;
 
   void signOut() {

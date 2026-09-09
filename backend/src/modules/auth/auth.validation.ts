@@ -17,3 +17,20 @@ export const googleAuthSchema = z.object({
   idToken: z.string().min(1, 'idToken обязателен'),
 });
 export type GoogleAuthBody = z.infer<typeof googleAuthSchema>;
+
+export const vkAuthSchema = z.object({
+  code: z.string().min(1, 'code обязателен'),
+  redirectUri: z.string().min(1, 'redirectUri обязателен'),
+});
+export type VkAuthBody = z.infer<typeof vkAuthSchema>;
+
+export const telegramAuthSchema = z.object({
+  id: z.union([z.string(), z.number()]),
+  first_name: z.string().min(1),
+  last_name: z.string().optional(),
+  username: z.string().optional(),
+  photo_url: z.string().optional(),
+  auth_date: z.union([z.string(), z.number()]),
+  hash: z.string().min(1),
+});
+export type TelegramAuthBody = z.infer<typeof telegramAuthSchema>;
