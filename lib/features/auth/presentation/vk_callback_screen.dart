@@ -46,16 +46,7 @@ class _VkCallbackScreenState extends ConsumerState<VkCallbackScreen> {
     final codeVerifier = widget.codeVerifier;
     final state = widget.state;
     if (widget.error != null || code == null || code.isEmpty || deviceId == null || codeVerifier == null || state == null) {
-      // ВРЕМЕННО: подробности вместо общего "отменён", чтобы понять,
-      // что именно пришло от VK — уберём после диагностики.
-      final missing = [
-        if (widget.error != null) 'error=${widget.error}',
-        if (code == null || code.isEmpty) 'code отсутствует',
-        if (deviceId == null) 'deviceId отсутствует',
-        if (codeVerifier == null) 'codeVerifier отсутствует (state mismatch?)',
-        if (state == null) 'state отсутствует',
-      ].join(', ');
-      _fail('Вход через VK отменён [$missing]');
+      _fail('Вход через VK отменён');
       return;
     }
     try {
