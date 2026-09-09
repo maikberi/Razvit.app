@@ -232,8 +232,21 @@ export class FoodRepository {
           OR brand ILIKE '%' || $${qIdx} || '%'
           OR EXISTS (SELECT 1 FROM food_aliases fa WHERE fa.food_id = foods.id AND fa.normalized_alias % $${qIdx}))`,
       );
-      rankSelect = `, similarity(normalized_name, $${qIdx}) AS rank`;
-      orderBy = 'ORDER BY rank DESC, name ASC';
+      // Простое совпадение по названию ("Банан") должно опережать составные
+      // блюда/товары, где запрос — лишь одно из слов ("Данонино ягода-банан",
+      // "Венский завтрак банан ..."), даже если у них похожая триграммная
+      // похожесть. Поэтому сначала группируем по "качеству" совпадения
+      // (match_tier), и только внутри группы сортируем по похожести.
+      rankSelect = `,
+        similarity(normalized_name, $${qIdx}) AS rank,
+        CASE
+          WHEN normalized_name = $${qIdx} THEN 0
+          WHEN normalized_name ILIKE $${qIdx} || ' %' THEN 1
+          WHEN normalized_name ILIKE '% ' || $${qIdx} || ' %' OR normalized_name ILIKE '% ' || $${qIdx} THEN 2
+          WHEN normalized_name ILIKE '%' || $${qIdx} || '%' THEN 3
+          ELSE 4
+        END AS match_tier`;
+      orderBy = 'ORDER BY match_tier ASC, rank DESC, length(normalized_name) ASC, name ASC';
     }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
