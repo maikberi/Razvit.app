@@ -8,7 +8,6 @@ import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/fade_slide_in.dart';
 import '../../../core/widgets/pressable_scale.dart';
-import '../../../core/widgets/razvit_logo.dart';
 import '../../../data/repositories/user_repository.dart';
 
 enum _MockAuthProvider { apple, telegram, vk }
@@ -72,22 +71,24 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: AppSpacing.lg),
-              FadeSlideIn(child: const RazvitMark(size: 72)),
-              const SizedBox(height: AppSpacing.lg),
               FadeSlideIn(
-                delay: const Duration(milliseconds: 80),
-                child: Text('Как хочешь зарегистрироваться?', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 140),
                 child: Text(
-                  'Выбери удобный способ входа',
-                  textAlign: TextAlign.center,
+                  'Добро пожаловать!',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500),
                 ),
+              ),
+              const SizedBox(height: 10),
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 40),
+                child: Container(width: 28, height: 4, decoration: BoxDecoration(color: AppColors.green500, borderRadius: BorderRadius.circular(AppRadius.pill))),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 80),
+                child: Text('Выберите удобный\nспособ входа', style: Theme.of(context).textTheme.headlineLarge),
               ),
               const SizedBox(height: AppSpacing.xxl),
               FadeSlideIn(
@@ -96,6 +97,9 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
                   label: 'Продолжить с Google',
                   loading: _loading == 'google',
                   onTap: _continueWithGoogle,
+                  background: Colors.white,
+                  foreground: Colors.black87,
+                  bordered: true,
                   logo: SvgPicture.asset('assets/logo/Group.svg', width: 22, height: 22),
                 ),
               ),
@@ -115,20 +119,20 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
               FadeSlideIn(
                 delay: const Duration(milliseconds: 300),
                 child: _ProviderButton(
-                  label: 'Продолжить с Telegram',
-                  loading: _loading == _MockAuthProvider.telegram,
-                  onTap: () => _continueWithMock(_MockAuthProvider.telegram),
-                  logo: SvgPicture.asset('assets/logo/TG.svg', width: 22, height: 18),
+                  label: 'Войти через VK',
+                  loading: _loading == _MockAuthProvider.vk,
+                  onTap: () => _continueWithMock(_MockAuthProvider.vk),
+                  logo: SvgPicture.asset('assets/logo/VK.svg', width: 24, height: 15),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
               FadeSlideIn(
                 delay: const Duration(milliseconds: 350),
                 child: _ProviderButton(
-                  label: 'Продолжить с VK',
-                  loading: _loading == _MockAuthProvider.vk,
-                  onTap: () => _continueWithMock(_MockAuthProvider.vk),
-                  logo: SvgPicture.asset('assets/logo/VK.svg', width: 24, height: 15),
+                  label: 'Войти через Telegram',
+                  loading: _loading == _MockAuthProvider.telegram,
+                  onTap: () => _continueWithMock(_MockAuthProvider.telegram),
+                  logo: SvgPicture.asset('assets/logo/TG.svg', width: 22, height: 18),
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -148,10 +152,13 @@ class _SignUpMethodScreenState extends ConsumerState<SignUpMethodScreen> {
               const SizedBox(height: AppSpacing.xl),
               FadeSlideIn(
                 delay: const Duration(milliseconds: 450),
-                child: OutlinedButton.icon(
-                  onPressed: () => context.push('/register'),
-                  icon: const Icon(Icons.mail_outline_rounded),
-                  label: const Text('Продолжить по почте'),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.push('/register'),
+                    icon: const Icon(Icons.mail_outline_rounded),
+                    label: const Text('Войти по email'),
+                  ),
                 ),
               ),
               const Spacer(),
@@ -185,6 +192,7 @@ class _ProviderButton extends StatelessWidget {
     required this.loading,
     this.background,
     this.foreground,
+    this.bordered = false,
   });
 
   final String label;
@@ -193,6 +201,11 @@ class _ProviderButton extends StatelessWidget {
   final bool loading;
   final Color? background;
   final Color? foreground;
+
+  /// Тонкая рамка нужна только фирменным светлым кнопкам (Google) — чтобы
+  /// не сливаться с тёмным фоном. VK/Telegram — плоская вторичная
+  /// поверхность (цвет карточки темы) без рамки, как в макете.
+  final bool bordered;
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +220,7 @@ class _ProviderButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: background == null ? Border.all(color: Theme.of(context).dividerColor) : null,
+          border: bordered ? Border.all(color: Theme.of(context).dividerColor) : null,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
