@@ -10,9 +10,10 @@ import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/mascot.dart';
 import '../../../core/widgets/progress_ring.dart';
 import '../../../data/mock/mock_progress.dart';
+import '../../../data/models/nutrition.dart';
 import '../../../data/models/workout_session.dart';
 import '../../../data/repositories/health_repository.dart';
-import '../../../data/repositories/nutrition_repository.dart';
+import '../../../data/repositories/nutrition_day_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
 import '../../../data/repositories/trainer_repository.dart';
 import '../../../data/repositories/user_repository.dart';
@@ -42,17 +43,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final today = ref.watch(todayWorkoutProvider);
-    final meals = ref.watch(mealsProvider);
-    final plan = ref.watch(nutritionPlanProvider);
-    final water = ref.watch(waterIntakeProvider);
+    // Реальные данные питания (Meal Diary + вода + цели) — то же, что
+    // видит экран "Питание", единый источник (nutritionDayProvider), а не
+    // отдельный локальный счётчик. summary == null, пока день ещё не
+    // загрузился (первый холодный запуск) — тогда показываем нули вместо
+    // блокировки всего Home на лоадер.
+    final nutritionSummary = ref.watch(nutritionDayProvider).valueOrNull;
+    final plan = nutritionSummary?.targets ??
+        NutritionPlan(title: '', calorieGoal: 0, proteinGoal: 0, fatGoal: 0, carbsGoal: 0, waterGoalMl: 0, validUntil: DateTime.now(), progressPercent: 0);
+    final calories = nutritionSummary?.consumedCalories ?? 0;
+    final protein = nutritionSummary?.consumedProtein ?? 0.0;
+    final water = nutritionSummary?.waterConsumedMl ?? 0;
     final trainer = ref.watch(myTrainerProvider);
     final weightHistory = ref.watch(weightHistoryProvider);
     final sessions = ref.watch(workoutSessionsProvider);
     final healthConnected = ref.watch(healthConnectedProvider);
     final steps = ref.watch(dailyStepsProvider);
 
-    final calories = meals.fold(0, (s, m) => s + m.calories);
-    final protein = meals.fold(0.0, (s, m) => s + m.protein);
     final weightDelta = weightHistory.isEmpty
         ? 0.0
         : user.weightKg - weightHistory.first.weightKg;

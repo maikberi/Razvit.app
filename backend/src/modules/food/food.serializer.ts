@@ -24,6 +24,7 @@ export interface FoodDTO {
   sodiumPer100g: number | null;
   defaultGrams: number;
   servingUnit: string | null;
+  imageUrl: string | null;
   micronutrients: Record<string, { amount: number; unit: string }>;
   createdAt: string;
   updatedAt: string;
@@ -48,6 +49,7 @@ export function serializeFood(food: FoodRow, micronutrients: MicronutrientRow[] 
     sodiumPer100g: food.sodium != null ? Number(food.sodium) : null,
     defaultGrams: food.serving_size != null ? Number(food.serving_size) : 100,
     servingUnit: food.serving_unit,
+    imageUrl: food.image_url,
     micronutrients: micronutrients.reduce<Record<string, { amount: number; unit: string }>>((acc, m) => {
       acc[m.key] = { amount: Number(m.amount), unit: m.unit };
       return acc;

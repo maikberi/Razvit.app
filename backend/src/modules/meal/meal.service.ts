@@ -30,6 +30,7 @@ export interface ComputedMealItem {
   id: string;
   foodId: string | null;
   name: string;
+  imageUrl: string | null;
   grams: number;
   calories: number;
   protein: number;
@@ -87,7 +88,7 @@ export class MealService {
     return mealRows.map((meal) => {
       const rows = itemsByMeal.get(meal.id) ?? [];
       const resolved = rows.map((row) => this.resolveRow(row, maps));
-      const items = resolved.map(({ row, source, grams, name }) => this.toComputedItem(row, source, grams, name));
+      const items = resolved.map(({ row, source, grams, name, imageUrl }) => this.toComputedItem(row, source, grams, name, imageUrl));
       const totals = this.engine.forMeal(resolved.map(({ source, grams }): FoodAmount => ({ food: source, grams })));
       return {
         id: meal.id,
@@ -122,8 +123,11 @@ export class MealService {
     return { foodById, micronutrientsByFood };
   }
 
-  /** Строку meal_items -> {нутриенты на 100 г, граммы, имя} — единственное место, где это собирается. */
-  private resolveRow(row: MealItemRow, maps: FoodMaps): { row: MealItemRow; source: NutrientSource; grams: number; name: string } {
+  /** Строку meal_items -> {нутриенты на 100 г, граммы, имя, фото} — единственное место, где это собирается. */
+  private resolveRow(
+    row: MealItemRow,
+    maps: FoodMaps,
+  ): { row: MealItemRow; source: NutrientSource; grams: number; name: string; imageUrl: string | null } {
     const grams = Number(row.grams);
     if (row.food_id) {
       const food = maps.foodById.get(row.food_id);
@@ -138,7 +142,7 @@ export class MealService {
         sodium: food.sodium != null ? Number(food.sodium) : null,
         micronutrients: maps.micronutrientsByFood.get(food.id) ?? {},
       };
-      return { row, source, grams, name: food.name };
+      return { row, source, grams, name: food.name, imageUrl: food.image_url };
     }
     const n = row.custom_nutrients!;
     const source: NutrientSource = {
@@ -150,15 +154,16 @@ export class MealService {
       sugar: n.sugar ?? null,
       sodium: n.sodium ?? null,
     };
-    return { row, source, grams, name: row.custom_name ?? 'Продукт' };
+    return { row, source, grams, name: row.custom_name ?? 'Продукт', imageUrl: null };
   }
 
-  private toComputedItem(row: MealItemRow, source: NutrientSource, grams: number, name: string): ComputedMealItem {
+  private toComputedItem(row: MealItemRow, source: NutrientSource, grams: number, name: string, imageUrl: string | null): ComputedMealItem {
     const computed = this.engine.forFoodAmount(source, grams);
     return {
       id: row.id,
       foodId: row.food_id,
       name,
+      imageUrl,
       grams,
       calories: computed.calories,
       protein: computed.protein,
@@ -180,8 +185,8 @@ export class MealService {
       await this.foods.touchRecent(userId, input.foodId);
     }
     const maps = await this.loadFoodMaps([row]);
-    const { source, grams, name } = this.resolveRow(row, maps);
-    return this.toComputedItem(row, source, grams, name);
+    const { source, grams, name, imageUrl } = this.resolveRow(row, maps);
+    return this.toComputedItem(row, source, grams, name, imageUrl);
   }
 
   async updateItemGrams(userId: string, itemId: string, grams: number): Promise<void> {

@@ -19,7 +19,10 @@ export class OpenFoodFactsClient {
       url.searchParams.set('action', 'process');
       url.searchParams.set('json', '1');
       url.searchParams.set('page_size', String(limit));
-      url.searchParams.set('fields', 'code,product_name,product_name_ru,brands,nutriments,serving_size,serving_quantity');
+      url.searchParams.set(
+        'fields',
+        'code,product_name,product_name_ru,brands,nutriments,serving_size,serving_quantity,image_front_small_url',
+      );
 
       const res = await fetchWithTimeout(url.toString());
       if (!res.ok) return [];
@@ -71,6 +74,15 @@ function toFoodInput(raw: unknown): CreateFoodInput | null {
 
   const code = typeof r.code === 'string' ? r.code : undefined;
 
+  // Предпочитаем маленькую версию (быстрее грузится в списке/детали, чем
+  // полноразмерная) — OFF отдаёт её отдельным полем; для запроса по
+  // штрихкоду (без ограничения fields) может не быть image_front_small_url,
+  // тогда берём обычный image_url.
+  const imageUrl =
+    (typeof r.image_front_small_url === 'string' && r.image_front_small_url) ||
+    (typeof r.image_url === 'string' && r.image_url) ||
+    null;
+
   return {
     name,
     brand: typeof r.brands === 'string' && r.brands.trim() ? r.brands.split(',')[0].trim() : null,
@@ -79,6 +91,7 @@ function toFoodInput(raw: unknown): CreateFoodInput | null {
     source: 'OFF',
     sourceId: code ?? null,
     basisUnit: 'g',
+    imageUrl,
     calories,
     protein: asNumber(nutriments['proteins_100g']) ?? 0,
     fat: asNumber(nutriments['fat_100g']) ?? 0,

@@ -8,6 +8,7 @@ class MealEntryData {
     required this.id,
     required this.foodId,
     required this.name,
+    required this.imageUrl,
     required this.grams,
     required this.calories,
     required this.protein,
@@ -21,6 +22,7 @@ class MealEntryData {
   final String id;
   final String? foodId;
   final String name;
+  final String? imageUrl;
   final double grams;
   final int calories;
   final double protein;
@@ -34,6 +36,7 @@ class MealEntryData {
         id: json['id'] as String,
         foodId: json['foodId'] as String?,
         name: json['name'] as String,
+        imageUrl: json['imageUrl'] as String?,
         grams: (json['grams'] as num).toDouble(),
         calories: (json['calories'] as num).round(),
         protein: (json['protein'] as num).toDouble(),

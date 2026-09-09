@@ -34,6 +34,7 @@ class FoodItem {
     this.sugarPer100g,
     this.sodiumPer100g,
     this.servingUnit,
+    this.imageUrl,
     this.micronutrients = const {},
   });
 
@@ -54,6 +55,7 @@ class FoodItem {
   final double? sugarPer100g;
   final double? sodiumPer100g;
   final String? servingUnit;
+  final String? imageUrl;
   final Map<String, FoodMicronutrient> micronutrients;
 
   factory FoodItem.fromJson(Map<String, dynamic> json) => FoodItem(
@@ -73,6 +75,7 @@ class FoodItem {
         sugarPer100g: (json['sugarPer100g'] as num?)?.toDouble(),
         sodiumPer100g: (json['sodiumPer100g'] as num?)?.toDouble(),
         servingUnit: json['servingUnit'] as String?,
+        imageUrl: json['imageUrl'] as String?,
         micronutrients: (json['micronutrients'] as Map<String, dynamic>?)?.map(
               (key, value) => MapEntry(key, FoodMicronutrient.fromJson(value as Map<String, dynamic>)),
             ) ??

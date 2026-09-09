@@ -21,6 +21,7 @@ export interface FoodRow {
   sodium: string | null;
   serving_size: string | null;
   serving_unit: string | null;
+  image_url: string | null;
   verified: boolean;
   created_at: Date;
   updated_at: Date;
@@ -59,6 +60,7 @@ export interface CreateFoodInput {
   sodium?: number | null;
   servingSize?: number | null;
   servingUnit?: string | null;
+  imageUrl?: string | null;
   verified?: boolean;
   micronutrients?: { key: string; amount: number; unit: string }[];
   aliases?: string[];

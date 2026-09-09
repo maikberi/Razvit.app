@@ -501,7 +501,6 @@ class _RecentFoodChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = foodBadgeColor(food.id);
     return SizedBox(
       width: 132,
       height: 132,
@@ -513,12 +512,7 @@ class _RecentFoodChip extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-                  child: Icon(Icons.restaurant_rounded, color: color, size: 15),
-                ),
+                FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 30, iconSize: 15),
                 const SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.only(right: 22),
@@ -653,7 +647,7 @@ class _FoodQuantitySheetState extends ConsumerState<_FoodQuantitySheet> {
   @override
   Widget build(BuildContext context) {
     final food = widget.food;
-    final color = foodBadgeColor(food.id);
+    final unit = food.basisUnit.label;
     final preview = _preview;
 
     return Padding(
@@ -664,19 +658,16 @@ class _FoodQuantitySheetState extends ConsumerState<_FoodQuantitySheet> {
         children: [
           Row(
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-                child: Icon(Icons.restaurant_rounded, color: color, size: 24),
-              ),
+              FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 52, iconSize: 24),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(food.name, style: Theme.of(context).textTheme.headlineMedium),
-                    Text('${food.caloriesPer100g} ккал / 100 г', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+                    if (food.brand != null && food.brand!.isNotEmpty)
+                      Text(food.brand!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500)),
+                    Text('${food.caloriesPer100g} ккал / 100 $unit', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
                   ],
                 ),
               ),
@@ -693,7 +684,7 @@ class _FoodQuantitySheetState extends ConsumerState<_FoodQuantitySheet> {
                 icon: const Icon(Icons.remove_rounded),
                 style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
               ),
-              SizedBox(width: 100, child: Text('$_grams г', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium)),
+              SizedBox(width: 100, child: Text('$_grams $unit', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium)),
               IconButton.filled(
                 onPressed: () => _setGrams(_grams + 10),
                 icon: const Icon(Icons.add_rounded),
@@ -849,7 +840,6 @@ class _EntryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = foodBadgeColor(entry.foodId ?? entry.name);
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       onTap: () => showModalBottomSheet(
@@ -859,12 +849,7 @@ class _EntryRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-            child: Icon(Icons.restaurant_rounded, color: color, size: 18),
-          ),
+          FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, size: 38, iconSize: 18),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -935,7 +920,6 @@ class _MealEntryDetailSheetState extends ConsumerState<MealEntryDetailSheet> {
         final entryIndex = meal.items.indexWhere((e) => e.id == widget.entryId);
         if (entryIndex == -1) return const SizedBox.shrink();
         final entry = meal.items[entryIndex];
-        final color = foodBadgeColor(entry.foodId ?? entry.name);
 
         return Padding(
           padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl),
@@ -945,12 +929,7 @@ class _MealEntryDetailSheetState extends ConsumerState<MealEntryDetailSheet> {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-                    child: Icon(Icons.restaurant_rounded, color: color, size: 30),
-                  ),
+                  FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, size: 64, iconSize: 30),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(

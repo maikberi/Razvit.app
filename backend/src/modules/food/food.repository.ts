@@ -23,8 +23,8 @@ export class FoodRepository {
       `INSERT INTO foods
         (name, normalized_name, brand, barcode, category, source, source_id, basis_unit,
          calories, protein, fat, carbohydrates, fiber, sugar, sodium,
-         serving_size, serving_unit, verified)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+         serving_size, serving_unit, image_url, verified)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
        RETURNING *`,
       [
         input.name,
@@ -44,6 +44,7 @@ export class FoodRepository {
         input.sodium ?? null,
         input.servingSize ?? null,
         input.servingUnit ?? null,
+        input.imageUrl ?? null,
         input.verified ?? false,
       ],
     );
@@ -92,6 +93,7 @@ export class FoodRepository {
       sodium: patch.sodium,
       serving_size: patch.servingSize,
       serving_unit: patch.servingUnit,
+      image_url: patch.imageUrl,
       verified: patch.verified,
     };
 

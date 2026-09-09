@@ -309,7 +309,6 @@ class _FoodRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = foodBadgeColor(food.id);
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       onTap: () => showModalBottomSheet(
@@ -319,20 +318,23 @@ class _FoodRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-            child: Icon(Icons.restaurant_rounded, color: color, size: 20),
-          ),
+          FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 44, iconSize: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(food.name, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(food.name, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
+                  ],
+                ),
+                if (food.brand != null && food.brand!.isNotEmpty)
+                  Text(food.brand!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500), maxLines: 1, overflow: TextOverflow.ellipsis),
                 Text(
-                  '${food.defaultGrams} г · ${food.caloriesPer100g} ккал',
+                  '${food.defaultGrams}${food.basisUnit.label} · ${food.caloriesPer100g} ккал',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -365,7 +367,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
   Widget build(BuildContext context) {
     final food = widget.food;
     final ratio = _grams / 100;
-    final color = foodBadgeColor(food.id);
+    final unit = food.basisUnit.label;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl),
@@ -375,19 +377,16 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
         children: [
           Row(
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-                child: Icon(Icons.restaurant_rounded, color: color, size: 30),
-              ),
+              FoodThumbnail(id: food.id, imageUrl: food.imageUrl, size: 64, iconSize: 30),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(food.name, style: Theme.of(context).textTheme.headlineMedium),
-                    Text('$_grams г', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+                    if (food.brand != null && food.brand!.isNotEmpty)
+                      Text(food.brand!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500)),
+                    Text('$_grams $unit', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
                   ],
                 ),
               ),
@@ -413,7 +412,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                 icon: const Icon(Icons.remove_rounded),
                 style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
               ),
-              SizedBox(width: 100, child: Text('$_grams г', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium)),
+              SizedBox(width: 100, child: Text('$_grams $unit', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium)),
               IconButton.filled(
                 onPressed: () => setState(() => _grams += 10),
                 icon: const Icon(Icons.add_rounded),
@@ -421,6 +420,15 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
               ),
             ],
           ),
+          if (food.servingUnit != null && food.servingUnit!.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Center(
+              child: TextButton(
+                onPressed: () => setState(() => _grams = food.defaultGrams),
+                child: Text('1 порция · ${food.defaultGrams} $unit (${food.servingUnit})'),
+              ),
+            ),
+          ],
           const SizedBox(height: AppSpacing.lg),
           SizedBox(
             width: double.infinity,
@@ -433,13 +441,22 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          Text('Пищевая ценность на 100 г', style: Theme.of(context).textTheme.titleSmall),
+          Text('Пищевая ценность на 100 $unit', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: AppSpacing.sm),
           _nutrientRow(context, 'Калории', '${food.caloriesPer100g} ккал'),
           _nutrientRow(context, 'Белки', '${food.proteinPer100g.toStringAsFixed(1)} г'),
           _nutrientRow(context, 'Жиры', '${food.fatPer100g.toStringAsFixed(1)} г'),
           _nutrientRow(context, 'Углеводы', '${food.carbsPer100g.toStringAsFixed(1)} г'),
           _nutrientRow(context, 'Клетчатка', '${food.fiberPer100g.toStringAsFixed(1)} г'),
+          if (food.sugarPer100g != null) _nutrientRow(context, 'Сахар', '${food.sugarPer100g!.toStringAsFixed(1)} г'),
+          if (food.sodiumPer100g != null) _nutrientRow(context, 'Натрий', '${food.sodiumPer100g!.toStringAsFixed(0)} мг'),
+          if (food.micronutrients.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.lg),
+            Text('Микроэлементы', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: AppSpacing.sm),
+            for (final entry in food.micronutrients.entries)
+              _nutrientRow(context, entry.key, '${entry.value.amount.toStringAsFixed(1)} ${entry.value.unit}'),
+          ],
         ],
       ),
     );
