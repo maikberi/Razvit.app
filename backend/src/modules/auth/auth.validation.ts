@@ -20,7 +20,10 @@ export type GoogleAuthBody = z.infer<typeof googleAuthSchema>;
 
 export const vkAuthSchema = z.object({
   code: z.string().min(1, 'code обязателен'),
+  deviceId: z.string().min(1, 'deviceId обязателен'),
+  codeVerifier: z.string().min(1, 'codeVerifier обязателен'),
   redirectUri: z.string().min(1, 'redirectUri обязателен'),
+  state: z.string().min(1, 'state обязателен'),
 });
 export type VkAuthBody = z.infer<typeof vkAuthSchema>;
 

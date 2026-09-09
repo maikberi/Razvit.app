@@ -4,7 +4,7 @@ import { env } from '../../config/env';
 import { AuthRepository } from './auth.repository';
 import { SocialProvider, UserRow } from './auth.model';
 import { GoogleTokenVerifier, RealGoogleTokenVerifier } from './google.verifier';
-import { VkAuthVerifier, RealVkAuthVerifier } from './vk.verifier';
+import { VkAuthVerifier, VkExchangeParams, RealVkAuthVerifier } from './vk.verifier';
 import { RealTelegramAuthVerifier, TelegramAuthVerifier, TelegramLoginPayload } from './telegram.verifier';
 
 const TOKEN_TTL = '90d';
@@ -56,7 +56,7 @@ export class AuthService {
   ) {
     this.googleVerifier = verifiers?.google ?? (env.googleClientId ? new RealGoogleTokenVerifier(env.googleClientId) : null);
     this.vkVerifier =
-      verifiers?.vk ?? (env.vkClientId && env.vkClientSecret ? new RealVkAuthVerifier(env.vkClientId, env.vkClientSecret) : null);
+      verifiers?.vk ?? (env.vkClientId && env.vkServiceToken ? new RealVkAuthVerifier(env.vkClientId, env.vkServiceToken) : null);
     this.telegramVerifier = verifiers?.telegram ?? (env.telegramBotToken ? new RealTelegramAuthVerifier(env.telegramBotToken) : null);
   }
 
@@ -86,9 +86,9 @@ export class AuthService {
     return this.findOrCreateSocialUser('google', payload.googleId, payload.email, payload.name);
   }
 
-  async loginWithVk(code: string, redirectUri: string): Promise<SocialAuthResult> {
+  async loginWithVk(params: VkExchangeParams): Promise<SocialAuthResult> {
     if (!this.vkVerifier) throw new SocialAuthNotConfiguredError('vk');
-    const payload = await this.vkVerifier.exchangeCode(code, redirectUri);
+    const payload = await this.vkVerifier.exchangeCode(params);
     if (!payload) throw new InvalidSocialTokenError('vk');
     const email = payload.email ?? `vk${payload.vkId}@users.razvit.local`;
     return this.findOrCreateSocialUser('vk', payload.vkId, email, payload.name || 'Пользователь VK');

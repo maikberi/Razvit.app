@@ -34,11 +34,13 @@ export const env = {
   // для проверки id-токена при входе через Google. Необязателен: без него
   // просто недоступен POST /auth/google, остальной вход работает как обычно.
   googleClientId: process.env.GOOGLE_CLIENT_ID,
-  // ID и Secret Standalone-приложения VK (vk.com/apps?act=manage) — нужны
+  // ID приложения VK ID (id.vk.com) и его Сервисный ключ доступа — нужны
   // для обмена authorization code на данные пользователя (POST /auth/vk).
+  // Именно "Сервисный ключ доступа" (service_token), а не "Защищённый
+  // ключ" — так требует VK ID API для конфиденциальных приложений.
   // Тоже необязательны — без них этот способ входа просто недоступен.
   vkClientId: process.env.VK_CLIENT_ID,
-  vkClientSecret: process.env.VK_CLIENT_SECRET,
+  vkServiceToken: process.env.VK_SERVICE_TOKEN,
   // Токен бота из @BotFather (secret!) — нужен для проверки подписи
   // Telegram Login (POST /auth/telegram). Необязателен по той же схеме.
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,

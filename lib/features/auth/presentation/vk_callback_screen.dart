@@ -7,14 +7,26 @@ import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/repositories/user_repository.dart';
 
-/// Экран-приёмник редиректа VK OAuth (см. core/auth/social_redirect_gateway.dart).
-/// VK возвращает пользователя сюда с параметром `code` в query — здесь мы
-/// сразу меняем его на сессию через backend и уходим дальше, ничего не
+/// Экран-приёмник редиректа VK ID (см. core/auth/social_redirect_gateway.dart).
+/// VK возвращает пользователя сюда с параметрами `code`/`device_id`/`state`
+/// в query (плюс `codeVerifier`, который туда уже подставил
+/// SocialRedirectGateway.vkCallbackInitialRoute из sessionStorage) — здесь
+/// мы сразу меняем их на сессию через backend и уходим дальше, ничего не
 /// показывая, кроме индикатора загрузки.
 class VkCallbackScreen extends ConsumerStatefulWidget {
-  const VkCallbackScreen({super.key, required this.code, required this.error});
+  const VkCallbackScreen({
+    super.key,
+    required this.code,
+    required this.deviceId,
+    required this.codeVerifier,
+    required this.state,
+    required this.error,
+  });
 
   final String? code;
+  final String? deviceId;
+  final String? codeVerifier;
+  final String? state;
   final String? error;
 
   @override
@@ -30,14 +42,20 @@ class _VkCallbackScreenState extends ConsumerState<VkCallbackScreen> {
 
   Future<void> _finish() async {
     final code = widget.code;
-    if (widget.error != null || code == null || code.isEmpty) {
+    final deviceId = widget.deviceId;
+    final codeVerifier = widget.codeVerifier;
+    final state = widget.state;
+    if (widget.error != null || code == null || code.isEmpty || deviceId == null || codeVerifier == null || state == null) {
       _fail('Вход через VK отменён');
       return;
     }
     try {
       final isNewUser = await ref.read(authProvider.notifier).loginWithVk(
             code: code,
+            deviceId: deviceId,
+            codeVerifier: codeVerifier,
             redirectUri: SocialRedirectGateway.vkRedirectUri(),
+            state: state,
           );
       if (!mounted) return;
       if (isNewUser) {

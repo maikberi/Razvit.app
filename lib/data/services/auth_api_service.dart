@@ -65,8 +65,20 @@ class AuthApiService {
     return SocialAuthResult.fromJson(json['data'] as Map<String, dynamic>);
   }
 
-  Future<SocialAuthResult> loginWithVk({required String code, required String redirectUri}) async {
-    final json = await _client.postJson('/api/v1/auth/vk', {'code': code, 'redirectUri': redirectUri});
+  Future<SocialAuthResult> loginWithVk({
+    required String code,
+    required String deviceId,
+    required String codeVerifier,
+    required String redirectUri,
+    required String state,
+  }) async {
+    final json = await _client.postJson('/api/v1/auth/vk', {
+      'code': code,
+      'deviceId': deviceId,
+      'codeVerifier': codeVerifier,
+      'redirectUri': redirectUri,
+      'state': state,
+    });
     return SocialAuthResult.fromJson(json['data'] as Map<String, dynamic>);
   }
 

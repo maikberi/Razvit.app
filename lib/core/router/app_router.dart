@@ -69,6 +69,9 @@ final GoRouter appRouter = GoRouter(
       path: '/auth/vk-callback',
       builder: (context, state) => VkCallbackScreen(
         code: state.uri.queryParameters['code'],
+        deviceId: state.uri.queryParameters['device_id'],
+        codeVerifier: state.uri.queryParameters['codeVerifier'],
+        state: state.uri.queryParameters['state'],
         error: state.uri.queryParameters['error'],
       ),
     ),

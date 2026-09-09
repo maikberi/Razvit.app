@@ -3,3 +3,7 @@ void navigateTo(String url) {
 }
 
 void clearBootQuery() {}
+
+void savePkce({required String codeVerifier, required String state}) {}
+
+({String? codeVerifier, String? state}) readAndClearPkce() => (codeVerifier: null, state: null);

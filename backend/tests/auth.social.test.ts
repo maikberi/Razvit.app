@@ -5,7 +5,7 @@ import { runMigrations } from '../src/db/migrate';
 import { AuthRepository } from '../src/modules/auth/auth.repository';
 import { AuthService, InvalidSocialTokenError } from '../src/modules/auth/auth.service';
 import { GooglePayload, GoogleTokenVerifier } from '../src/modules/auth/google.verifier';
-import { VkAuthVerifier, VkPayload } from '../src/modules/auth/vk.verifier';
+import { VkAuthVerifier, VkExchangeParams, VkPayload } from '../src/modules/auth/vk.verifier';
 import { TelegramAuthVerifier, TelegramLoginPayload, TelegramPayload } from '../src/modules/auth/telegram.verifier';
 
 const app = createApp();
@@ -42,6 +42,17 @@ class FakeVkVerifier implements VkAuthVerifier {
   async exchangeCode(): Promise<VkPayload | null> {
     return this.payload;
   }
+}
+
+function vkExchangeParams(overrides: Partial<VkExchangeParams> = {}): VkExchangeParams {
+  return {
+    code: 'code',
+    deviceId: 'device-1',
+    codeVerifier: 'verifier-1',
+    redirectUri: 'https://example.com/callback',
+    state: 'state-1',
+    ...overrides,
+  };
 }
 
 class FakeTelegramVerifier implements TelegramAuthVerifier {
@@ -109,7 +120,7 @@ describe('VK auth (unit, через AuthService напрямую)', () => {
     const email = uniqueEmail('vk');
     const service = new AuthService(new AuthRepository(pool), { vk: new FakeVkVerifier({ vkId: '1', email, name: 'ВК Тест' }) });
 
-    const result = await service.loginWithVk('code', 'https://example.com/callback');
+    const result = await service.loginWithVk(vkExchangeParams());
 
     expect(result.isNewUser).toBe(true);
     expect(result.user).toMatchObject({ email, name: 'ВК Тест' });
@@ -118,7 +129,7 @@ describe('VK auth (unit, через AuthService напрямую)', () => {
   it('VK без email — использует синтетический email, не роняет вход', async () => {
     const service = new AuthService(new AuthRepository(pool), { vk: new FakeVkVerifier({ vkId: '2', email: null, name: 'Без Почты' }) });
 
-    const result = await service.loginWithVk('code', 'https://example.com/callback');
+    const result = await service.loginWithVk(vkExchangeParams());
 
     expect(result.isNewUser).toBe(true);
     expect(result.user.email).toBe('vk2@users.razvit.local');
@@ -128,8 +139,8 @@ describe('VK auth (unit, через AuthService напрямую)', () => {
     const email = uniqueEmail('vk');
     const service = new AuthService(new AuthRepository(pool), { vk: new FakeVkVerifier({ vkId: '3', email, name: 'ВК Тест' }) });
 
-    const first = await service.loginWithVk('code', 'https://example.com/callback');
-    const second = await service.loginWithVk('code', 'https://example.com/callback');
+    const first = await service.loginWithVk(vkExchangeParams());
+    const second = await service.loginWithVk(vkExchangeParams());
 
     expect(second.isNewUser).toBe(false);
     expect(second.user.id).toBe(first.user.id);
@@ -137,7 +148,7 @@ describe('VK auth (unit, через AuthService напрямую)', () => {
 
   it('невалидный код — InvalidSocialTokenError(vk)', async () => {
     const service = new AuthService(new AuthRepository(pool), { vk: new FakeVkVerifier(null) });
-    await expect(service.loginWithVk('bad-code', 'https://example.com/callback')).rejects.toThrow(InvalidSocialTokenError);
+    await expect(service.loginWithVk(vkExchangeParams({ code: 'bad-code' }))).rejects.toThrow(InvalidSocialTokenError);
   });
 });
 
@@ -224,14 +235,14 @@ describe('POST /auth/google, /auth/vk, /auth/telegram (HTTP-контракт)', 
     expect(res.body.error.code).toBe('GOOGLE_AUTH_NOT_CONFIGURED');
   });
 
-  it('POST /auth/vk без code/redirectUri — 422', async () => {
+  it('POST /auth/vk без обязательных полей — 422', async () => {
     const res = await request(app).post('/api/v1/auth/vk').send({});
     expect(res.status).toBe(422);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 
   it('POST /auth/vk без настроенного VK_CLIENT_ID — 503', async () => {
-    const res = await request(app).post('/api/v1/auth/vk').send({ code: 'x', redirectUri: 'https://example.com' });
+    const res = await request(app).post('/api/v1/auth/vk').send(vkExchangeParams());
     expect(res.status).toBe(503);
     expect(res.body.error.code).toBe('VK_AUTH_NOT_CONFIGURED');
   });

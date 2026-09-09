@@ -25,7 +25,7 @@ export class AuthController {
 
   vk = asyncHandler(async (req, res) => {
     const body = req.validatedBody as VkAuthBody;
-    const result = await this.service.loginWithVk(body.code, body.redirectUri);
+    const result = await this.service.loginWithVk(body);
     res.status(200).json({ data: result });
   });
 

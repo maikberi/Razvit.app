@@ -78,11 +78,24 @@ class AuthNotifier extends StateNotifier<AuthStatus> {
   /// backend сам проверяет его подлинность и создаёт/находит пользователя.
   Future<bool> loginWithGoogle(String idToken) => _completeSocialLogin(_service.loginWithGoogle(idToken));
 
-  /// Вход через VK — [code]/[redirectUri] получены из редиректа VK OAuth
-  /// (см. core/auth/social_redirect_gateway.dart), backend сам обменивает
-  /// code на данные пользователя.
-  Future<bool> loginWithVk({required String code, required String redirectUri}) =>
-      _completeSocialLogin(_service.loginWithVk(code: code, redirectUri: redirectUri));
+  /// Вход через VK ID — параметры получены из редиректа обратно от VK
+  /// (см. core/auth/social_redirect_gateway.dart и VkCallbackScreen),
+  /// backend сам обменивает их на данные пользователя (PKCE-обмен кода
+  /// на токен на стороне сервера).
+  Future<bool> loginWithVk({
+    required String code,
+    required String deviceId,
+    required String codeVerifier,
+    required String redirectUri,
+    required String state,
+  }) =>
+      _completeSocialLogin(_service.loginWithVk(
+        code: code,
+        deviceId: deviceId,
+        codeVerifier: codeVerifier,
+        redirectUri: redirectUri,
+        state: state,
+      ));
 
   /// Вход через Telegram Login — [payload] это поля из редиректа Telegram
   /// (id, first_name, ..., hash), backend сам проверяет подпись.
