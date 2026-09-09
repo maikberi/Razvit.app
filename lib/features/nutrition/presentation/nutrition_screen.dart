@@ -767,7 +767,6 @@ class _MealSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = _mealStyle(meal.type);
-    final summary = meal.items.map((e) => e.name).join(', ');
 
     return AppCard(
       onTap: onToggle,
@@ -789,12 +788,13 @@ class _MealSection extends StatelessWidget {
                   children: [
                     Text(meal.type.label, style: Theme.of(context).textTheme.titleSmall),
                     if (!expanded)
-                      Text(
-                        summary.isEmpty ? 'Ничего не добавлено' : summary,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+                      if (meal.items.isEmpty)
+                        Text('Ничего не добавлено', style: Theme.of(context).textTheme.bodySmall)
+                      else
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: _MealItemsPreview(items: meal.items),
+                        ),
                   ],
                 ),
               ),
@@ -827,6 +827,56 @@ class _MealSection extends StatelessWidget {
             ),
             secondChild: const SizedBox(width: double.infinity),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Стопка мини-фото продуктов в свёрнутой карточке приёма пищи — чтобы
+/// сразу по превью было видно, что именно добавлено, не разворачивая
+/// карточку и не читая список названий текстом.
+class _MealItemsPreview extends StatelessWidget {
+  const _MealItemsPreview({required this.items});
+  final List<MealEntryData> items;
+
+  static const _maxShown = 5;
+  static const _size = 22.0;
+  static const _overlap = 8.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final shown = items.take(_maxShown).toList();
+    final extra = items.length - shown.length;
+    final circles = shown.length + (extra > 0 ? 1 : 0);
+    final width = circles == 0 ? 0.0 : (circles - 1) * (_size - _overlap) + _size;
+    final borderColor = Theme.of(context).cardTheme.color ?? Colors.white;
+
+    return SizedBox(
+      width: width,
+      height: _size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          for (var i = 0; i < shown.length; i++)
+            Positioned(
+              left: i * (_size - _overlap),
+              child: Container(
+                decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: borderColor, width: 1.5)),
+                child: FoodThumbnail(id: shown[i].foodId ?? shown[i].name, imageUrl: shown[i].imageUrl, size: _size, iconSize: 11),
+              ),
+            ),
+          if (extra > 0)
+            Positioned(
+              left: shown.length * (_size - _overlap),
+              child: Container(
+                width: _size,
+                height: _size,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.ink100, border: Border.all(color: borderColor, width: 1.5)),
+                child: Text('+$extra', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.ink500)),
+              ),
+            ),
         ],
       ),
     );
