@@ -512,7 +512,7 @@ class _RecentFoodChip extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FoodThumbnail(id: food.id, imageUrl: food.imageUrl, emoji: food.emoji, size: 30, iconSize: 15, onTap: foodPhotoTap(context, food.imageUrl)),
+                FoodThumbnail(id: food.id, imageUrl: food.imageUrl, emoji: food.emoji, size: 30, iconSize: 15),
                 const SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.only(right: 22),
@@ -899,7 +899,7 @@ class _EntryRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, emoji: entry.emoji, size: 38, iconSize: 18, onTap: foodPhotoTap(context, entry.imageUrl)),
+          FoodThumbnail(id: entry.foodId ?? entry.name, imageUrl: entry.imageUrl, emoji: entry.emoji, size: 38, iconSize: 18),
           const SizedBox(width: 10),
           Expanded(
             child: Column(

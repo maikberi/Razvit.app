@@ -363,7 +363,7 @@ class _FoodRowState extends State<_FoodRow> {
       ),
       child: Row(
         children: [
-          FoodThumbnail(id: food.id, imageUrl: food.imageUrl, emoji: food.emoji, size: 44, iconSize: 20, onTap: foodPhotoTap(context, food.imageUrl)),
+          FoodThumbnail(id: food.id, imageUrl: food.imageUrl, emoji: food.emoji, size: 44, iconSize: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
