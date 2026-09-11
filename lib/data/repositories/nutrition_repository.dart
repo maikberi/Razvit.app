@@ -5,7 +5,6 @@ import '../mock/mock_nutrition_history.dart';
 import '../models/nutrition.dart';
 
 final foodCatalogProvider = Provider<List<FoodItem>>((ref) => mockFoods);
-final recipesProvider = Provider<List<Recipe>>((ref) => mockRecipes);
 
 class NutritionPlanNotifier extends StateNotifier<NutritionPlan> {
   NutritionPlanNotifier() : super(mockNutritionPlan);

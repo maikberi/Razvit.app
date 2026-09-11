@@ -9,6 +9,7 @@ import { SocialProvider } from '../modules/auth/auth.model';
 import { DuplicateFoodError, FoodNotFoundError } from '../modules/food/food.service';
 import { serializeFood } from '../modules/food/food.serializer';
 import { ForbiddenError, MealItemNotFoundError, MealNotFoundError } from '../modules/meal/meal.service';
+import { RecipeIngredientFoodNotFoundError, RecipeIngredientUnitError, RecipeNotFoundError } from '../modules/recipe/recipe.service';
 
 const SOCIAL_PROVIDER_LABELS: Record<SocialProvider, string> = { google: 'Google', vk: 'VK', telegram: 'Telegram' };
 
@@ -39,6 +40,30 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   }
   if (err instanceof ForbiddenError) {
     res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Нет доступа к этому ресурсу' } });
+    return;
+  }
+  if (err instanceof RecipeNotFoundError) {
+    res.status(404).json({ error: { code: 'RECIPE_NOT_FOUND', message: 'Рецепт не найден' } });
+    return;
+  }
+  if (err instanceof RecipeIngredientFoodNotFoundError) {
+    res.status(422).json({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Некорректные данные',
+        details: { ingredients: `Продукт ${err.foodId} не найден` },
+      },
+    });
+    return;
+  }
+  if (err instanceof RecipeIngredientUnitError) {
+    res.status(422).json({
+      error: {
+        code: 'RECIPE_INGREDIENT_UNIT_UNSUPPORTED',
+        message: `У продукта «${err.foodName}» не задан размер порции — количество в штуках посчитать нельзя`,
+        details: { foodId: err.foodId },
+      },
+    });
     return;
   }
   if (err instanceof EmailAlreadyRegisteredError) {

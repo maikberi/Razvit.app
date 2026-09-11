@@ -148,51 +148,6 @@ class Meal {
   double get carbs => entries.fold(0, (sum, e) => sum + e.carbs);
 }
 
-enum RecipeTag { breakfast, lunch, dinner, snack, highProtein, lowCalorie }
-
-extension RecipeTagX on RecipeTag {
-  String get label => switch (this) {
-        RecipeTag.breakfast => 'Завтрак',
-        RecipeTag.lunch => 'Обед',
-        RecipeTag.dinner => 'Ужин',
-        RecipeTag.snack => 'Перекус',
-        RecipeTag.highProtein => 'Высокобелковые',
-        RecipeTag.lowCalorie => 'Низкокалорийные',
-      };
-}
-
-class Recipe {
-  const Recipe({
-    required this.id,
-    required this.title,
-    required this.calories,
-    required this.protein,
-    required this.fat,
-    required this.carbs,
-    required this.minutes,
-    required this.difficulty,
-    required this.tags,
-    this.isNew = false,
-    this.isPopular = false,
-    this.isFavorite = false,
-    this.colorSeed = 0,
-  });
-
-  final String id;
-  final String title;
-  final int calories;
-  final double protein;
-  final double fat;
-  final double carbs;
-  final int minutes;
-  final String difficulty;
-  final List<RecipeTag> tags;
-  final bool isNew;
-  final bool isPopular;
-  final bool isFavorite;
-  final int colorSeed;
-}
-
 class NutritionPlan {
   const NutritionPlan({
     required this.title,

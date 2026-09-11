@@ -5,6 +5,7 @@ import { authRouter } from './modules/auth/auth.routes';
 import { foodRouter } from './modules/food/food.routes';
 import { mealRouter } from './modules/meal/meal.routes';
 import { nutritionRouter } from './modules/nutrition/nutrition.routes';
+import { recipeRouter } from './modules/recipe/recipe.routes';
 
 export function createApp(): Express {
   const app = express();
@@ -17,6 +18,7 @@ export function createApp(): Express {
   app.use('/api/v1', foodRouter);
   app.use('/api/v1', mealRouter);
   app.use('/api/v1', nutritionRouter);
+  app.use('/api/v1', recipeRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
