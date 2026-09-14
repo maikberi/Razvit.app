@@ -12,6 +12,12 @@ import { InvalidImageError } from '../modules/foodRecognition/foodRecognition.se
 import { ForbiddenError, MealItemNotFoundError, MealNotFoundError } from '../modules/meal/meal.service';
 import { RecipeIngredientFoodNotFoundError, RecipeIngredientUnitError, RecipeNotFoundError } from '../modules/recipe/recipe.service';
 import { VisionNotConfiguredError, VisionRateLimitError, VisionTimeoutError, VisionUnavailableError } from '../integrations/visionClient';
+import {
+  RecipeAiNotConfiguredError,
+  RecipeAiRateLimitError,
+  RecipeAiTimeoutError,
+  RecipeAiUnavailableError,
+} from '../integrations/recipeGeneratorClient';
 
 const SOCIAL_PROVIDER_LABELS: Record<SocialProvider, string> = { google: 'Google', vk: 'VK', telegram: 'Telegram' };
 
@@ -86,6 +92,22 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   }
   if (err instanceof VisionUnavailableError) {
     res.status(503).json({ error: { code: 'AI_UNAVAILABLE', message: 'Сервис распознавания фото временно недоступен, попробуй позже' } });
+    return;
+  }
+  if (err instanceof RecipeAiNotConfiguredError) {
+    res.status(503).json({ error: { code: 'AI_NOT_CONFIGURED', message: 'Генерация рецептов временно недоступна' } });
+    return;
+  }
+  if (err instanceof RecipeAiTimeoutError) {
+    res.status(504).json({ error: { code: 'AI_TIMEOUT', message: 'Генерация рецепта заняла слишком много времени, попробуй ещё раз' } });
+    return;
+  }
+  if (err instanceof RecipeAiRateLimitError) {
+    res.status(429).json({ error: { code: 'AI_RATE_LIMITED', message: 'Слишком много запросов на генерацию рецептов, попробуй через минуту' } });
+    return;
+  }
+  if (err instanceof RecipeAiUnavailableError) {
+    res.status(503).json({ error: { code: 'AI_UNAVAILABLE', message: 'Сервис генерации рецептов временно недоступен, попробуй позже' } });
     return;
   }
   if (err instanceof EmailAlreadyRegisteredError) {

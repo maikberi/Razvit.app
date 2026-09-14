@@ -49,10 +49,25 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Рецепты'), leading: const BackButton()),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/recipes/new'),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Рецепт'),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: 'recipes-ai',
+            onPressed: () => context.push('/recipes/generate'),
+            backgroundColor: AppColors.ink900,
+            icon: const Icon(Icons.auto_awesome_rounded),
+            label: const Text('AI рецепт'),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton.extended(
+            heroTag: 'recipes-new',
+            onPressed: () => context.push('/recipes/new'),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Рецепт'),
+          ),
+        ],
       ),
       body: SafeArea(
         child: RefreshIndicator(
