@@ -4,15 +4,17 @@ import { authUser } from '../../middleware/authUser';
 import { validate } from '../../middleware/validate';
 import { VisionClient } from '../../integrations/visionClient';
 import { FoodRepository } from '../food/food.repository';
+import { FoodMatchingService } from '../food/food.matching';
 import { NutritionCalculationService } from '../nutrition/nutrition.calculation.service';
 import { FoodRecognitionController } from './foodRecognition.controller';
 import { FoodRecognitionService } from './foodRecognition.service';
 import { scanFoodSchema } from './foodRecognition.validation';
 
 const foodRepository = new FoodRepository(pool);
+const matching = new FoodMatchingService(foodRepository);
 const engine = new NutritionCalculationService();
 const visionClient = new VisionClient();
-const service = new FoodRecognitionService(visionClient, foodRepository, engine);
+const service = new FoodRecognitionService(visionClient, matching, engine);
 const controller = new FoodRecognitionController(service);
 
 export const foodRecognitionRouter = Router();

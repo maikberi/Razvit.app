@@ -14,6 +14,9 @@ class RecognizedFoodItem {
     required this.matchedFoodImageUrl,
     required this.matchedFoodEmoji,
     required this.matchedBasisUnit,
+    required this.matchTier,
+    required this.matchScore,
+    required this.needsConfirmation,
     required this.nutrition,
   });
 
@@ -27,10 +30,17 @@ class RecognizedFoodItem {
   final String? matchedFoodImageUrl;
   final String? matchedFoodEmoji;
   final String? matchedBasisUnit;
+  /// 'exact' | 'alias' | 'fuzzy' | 'category' | null — на какой ступени
+  /// backend-пайплайна нашлось совпадение (см. FoodMatchingService).
+  final String? matchTier;
+  final double? matchScore;
+  /// true — backend решил, что это не однозначный результат (слабая ступень
+  /// совпадения или AI сам не очень уверен) — карточка должна явно
+  /// попросить пользователя проверить/подтвердить, а не тихо считать её готовой.
+  final bool needsConfirmation;
   final RecognizedNutrition? nutrition;
 
   bool get isMatched => matchedFoodId != null;
-  bool get isLowConfidence => confidence < 0.5;
 
   factory RecognizedFoodItem.fromJson(Map<String, dynamic> json) => RecognizedFoodItem(
         aiName: json['aiName'] as String,
@@ -43,6 +53,9 @@ class RecognizedFoodItem {
         matchedFoodImageUrl: json['matchedFoodImageUrl'] as String?,
         matchedFoodEmoji: json['matchedFoodEmoji'] as String?,
         matchedBasisUnit: json['matchedBasisUnit'] as String?,
+        matchTier: json['matchTier'] as String?,
+        matchScore: (json['matchScore'] as num?)?.toDouble(),
+        needsConfirmation: json['needsConfirmation'] as bool? ?? true,
         nutrition: json['nutrition'] == null ? null : RecognizedNutrition.fromJson(json['nutrition'] as Map<String, dynamic>),
       );
 
@@ -67,6 +80,10 @@ class RecognizedFoodItem {
         matchedFoodImageUrl: foodImageUrl,
         matchedFoodEmoji: foodEmoji,
         matchedBasisUnit: basisUnit,
+        // Пользователь сам выбрал продукт из базы — сомневаться больше не в чем.
+        matchTier: 'exact',
+        matchScore: 1,
+        needsConfirmation: false,
         nutrition: nutrition,
       );
 
@@ -81,6 +98,9 @@ class RecognizedFoodItem {
         matchedFoodImageUrl: matchedFoodImageUrl,
         matchedFoodEmoji: matchedFoodEmoji,
         matchedBasisUnit: matchedBasisUnit,
+        matchTier: matchTier,
+        matchScore: matchScore,
+        needsConfirmation: needsConfirmation,
         nutrition: nutrition,
       );
 
@@ -95,6 +115,9 @@ class RecognizedFoodItem {
         matchedFoodImageUrl: matchedFoodImageUrl,
         matchedFoodEmoji: matchedFoodEmoji,
         matchedBasisUnit: matchedBasisUnit,
+        matchTier: matchTier,
+        matchScore: matchScore,
+        needsConfirmation: needsConfirmation,
         nutrition: nutrition,
       );
 }

@@ -1,9 +1,16 @@
-import { FoodRepository } from '../food/food.repository';
 import { FoodRow } from '../food/food.model';
+import { FoodMatchingService, FoodMatchTier } from '../food/food.matching';
 import { NutritionCalculationService } from '../nutrition/nutrition.calculation.service';
 import { NutrientSource } from '../nutrition/nutrition.model';
 import { ImageMediaType, VisionClient, VisionRecognizedItem } from '../../integrations/visionClient';
 import { FoodRecognitionResult, RecognizedFoodItem } from './foodRecognition.model';
+
+// Ступени сопоставления, которые сами по себе достаточно надёжны, чтобы не
+// требовать подтверждения от пользователя (при достаточной уверенности AI).
+const STRONG_MATCH_TIERS: FoodMatchTier[] = ['exact', 'alias'];
+// Ниже этого порога уверенность самого AI в том, что на фото вообще этот
+// продукт, слишком низкая, чтобы показывать результат без подтверждения.
+const MIN_CONFIDENCE_FOR_AUTO_ACCEPT = 0.7;
 
 /** Декодированное изображение больше не подходит по размеру/содержимому. */
 export class InvalidImageError extends Error {
@@ -58,7 +65,7 @@ function toNutrientSource(food: FoodRow): NutrientSource {
 export class FoodRecognitionService {
   constructor(
     private readonly vision: VisionClient,
-    private readonly foods: FoodRepository,
+    private readonly matching: FoodMatchingService,
     private readonly engine: NutritionCalculationService,
   ) {}
 
@@ -90,8 +97,10 @@ export class FoodRecognitionService {
   }
 
   private async toRecognizedItem(item: VisionRecognizedItem): Promise<RecognizedFoodItem> {
-    const match = await this.foods.findBestMatch(item.name);
-    const nutrition = match ? this.engine.forFoodAmount(toNutrientSource(match), item.estimated_grams) : null;
+    const result = await this.matching.match(item.name);
+    const food = result?.food ?? null;
+    const nutrition = food ? this.engine.forFoodAmount(toNutrientSource(food), item.estimated_grams) : null;
+    const needsConfirmation = this.needsConfirmation(item.confidence, result?.tier ?? null);
 
     return {
       aiName: item.name,
@@ -99,12 +108,29 @@ export class FoodRecognitionService {
       confidence: item.confidence,
       possibleAlternatives: item.possible_alternatives ?? [],
       uncertainty: item.uncertainty ?? null,
-      matchedFoodId: match?.id ?? null,
-      matchedFoodName: match?.name ?? null,
-      matchedFoodImageUrl: match?.image_url ?? null,
-      matchedFoodEmoji: match?.emoji ?? null,
-      matchedBasisUnit: match?.basis_unit ?? null,
+      matchedFoodId: food?.id ?? null,
+      matchedFoodName: food?.name ?? null,
+      matchedFoodImageUrl: food?.image_url ?? null,
+      matchedFoodEmoji: food?.emoji ?? null,
+      matchedBasisUnit: food?.basis_unit ?? null,
+      matchTier: result?.tier ?? null,
+      matchScore: result?.score ?? null,
+      needsConfirmation,
       nutrition,
     };
+  }
+
+  /**
+   * Автоматически принимаем результат (не требуем подтверждения) только
+   * когда совпали ОБА условия: сопоставление найдено на надёжной ступени
+   * (exact/alias) И сам AI достаточно уверен, что на фото именно этот
+   * продукт. Слабая ступень (fuzzy/category) или низкая уверенность AI —
+   * всегда просим пользователя подтвердить или изменить; отсутствие
+   * совпадения — тем более.
+   */
+  private needsConfirmation(aiConfidence: number, tier: FoodMatchTier | null): boolean {
+    if (!tier) return true;
+    if (!STRONG_MATCH_TIERS.includes(tier)) return true;
+    return aiConfidence < MIN_CONFIDENCE_FOR_AUTO_ACCEPT;
   }
 }

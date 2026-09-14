@@ -1,4 +1,6 @@
-export type RecipeUnit = 'g' | 'ml' | 'pcs';
+import { FoodQuantityUnit } from '../food/food.units';
+
+export type RecipeUnit = FoodQuantityUnit;
 
 /** Строка таблицы recipes как она лежит в БД. */
 export interface RecipeRow {

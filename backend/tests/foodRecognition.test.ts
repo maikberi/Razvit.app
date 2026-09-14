@@ -3,6 +3,7 @@ import { createApp } from '../src/app';
 import { pool } from '../src/db/pool';
 import { runMigrations } from '../src/db/migrate';
 import { FoodRepository } from '../src/modules/food/food.repository';
+import { FoodMatchingService } from '../src/modules/food/food.matching';
 import { FoodRecognitionService } from '../src/modules/foodRecognition/foodRecognition.service';
 import { NutritionCalculationService } from '../src/modules/nutrition/nutrition.calculation.service';
 import { VisionRecognitionResult } from '../src/integrations/visionClient';
@@ -74,10 +75,11 @@ describe('FoodRecognitionService (с фейковым VisionClient — без р
 
   function buildService(recognition: VisionRecognitionResult) {
     const repo = new FoodRepository(pool);
+    const matching = new FoodMatchingService(repo);
     const engine = new NutritionCalculationService();
     const fakeVision = { recognizeFood: jest.fn().mockResolvedValue(recognition) };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new FoodRecognitionService(fakeVision as any, repo, engine);
+    return new FoodRecognitionService(fakeVision as any, matching, engine);
   }
 
   it('AI называет продукт — Database даёт КБЖУ на 100г, Nutrition Engine считает на вес порции (не AI считает калории)', async () => {
@@ -138,5 +140,87 @@ describe('FoodRecognitionService (с фейковым VisionClient — без р
     expect(result.items[1].possibleAlternatives).toEqual(['гречка']);
     // 165*1.5 + 116*2 = 247.5 + 232 = 479.5 -> округление до целого в Nutrition Engine
     expect(result.items[0].nutrition!.calories + result.items[1].nutrition!.calories).toBeCloseTo(480, 0);
+  });
+
+  it('точное совпадение по названию + высокая уверенность AI — needsConfirmation=false, tier=exact', async () => {
+    await createFood({ name: 'Куриная грудка', calories: 165, protein: 31, fat: 3.6, carbohydrates: 0 });
+    const service = buildService({
+      items: [{ name: 'куриная грудка', estimated_grams: 180, confidence: 0.91 }],
+    });
+
+    const result = await service.scan(TINY_PNG_BASE64, 'image/png');
+
+    expect(result.items[0].matchTier).toBe('exact');
+    expect(result.items[0].matchScore).toBe(1);
+    expect(result.items[0].needsConfirmation).toBe(false);
+  });
+
+  it('точное совпадение, но низкая уверенность AI — всё равно needsConfirmation=true', async () => {
+    await createFood({ name: 'Куриная грудка', calories: 165, protein: 31, fat: 3.6, carbohydrates: 0 });
+    const service = buildService({
+      items: [{ name: 'куриная грудка', estimated_grams: 180, confidence: 0.4 }],
+    });
+
+    const result = await service.scan(TINY_PNG_BASE64, 'image/png');
+
+    expect(result.items[0].matchTier).toBe('exact');
+    expect(result.items[0].needsConfirmation).toBe(true);
+  });
+
+  it('совпадение по алиасу — tier=alias, при высокой уверенности не требует подтверждения', async () => {
+    await createFood({
+      name: 'Куриная грудка',
+      calories: 165,
+      protein: 31,
+      fat: 3.6,
+      carbohydrates: 0,
+      aliases: ['chicken breast'],
+    });
+    const service = buildService({
+      items: [{ name: 'chicken breast', estimated_grams: 180, confidence: 0.88 }],
+    });
+
+    const result = await service.scan(TINY_PNG_BASE64, 'image/png');
+
+    expect(result.items[0].matchTier).toBe('alias');
+    expect(result.items[0].matchedFoodName).toBe('Куриная грудка');
+    expect(result.items[0].needsConfirmation).toBe(false);
+    expect(result.items[0].nutrition!.calories).toBe(297);
+  });
+
+  it('нечёткое совпадение (опечатка) — tier=fuzzy, всегда требует подтверждения, даже при высокой уверенности AI', async () => {
+    await createFood({ name: 'Куриная грудка', calories: 165, protein: 31, fat: 3.6, carbohydrates: 0 });
+    const service = buildService({
+      items: [{ name: 'куриная грудк', estimated_grams: 180, confidence: 0.95 }],
+    });
+
+    const result = await service.scan(TINY_PNG_BASE64, 'image/png');
+
+    expect(result.items[0].matchTier).toBe('fuzzy');
+    expect(result.items[0].needsConfirmation).toBe(true);
+  });
+
+  it('совпадение по категории — tier=category, требует подтверждения', async () => {
+    await createFood({ name: 'Яблоко', category: 'Фрукты', calories: 52, protein: 0.3, fat: 0.2, carbohydrates: 14 });
+    const service = buildService({
+      items: [{ name: 'фрукты', estimated_grams: 100, confidence: 0.6 }],
+    });
+
+    const result = await service.scan(TINY_PNG_BASE64, 'image/png');
+
+    expect(result.items[0].matchTier).toBe('category');
+    expect(result.items[0].needsConfirmation).toBe(true);
+  });
+
+  it('совпадений не найдено — matchTier=null, matchScore=null, needsConfirmation=true', async () => {
+    const service = buildService({
+      items: [{ name: 'совершенно неизвестное блюдо xyz123', estimated_grams: 200, confidence: 0.9 }],
+    });
+
+    const result = await service.scan(TINY_PNG_BASE64, 'image/png');
+
+    expect(result.items[0].matchTier).toBeNull();
+    expect(result.items[0].matchScore).toBeNull();
+    expect(result.items[0].needsConfirmation).toBe(true);
   });
 });

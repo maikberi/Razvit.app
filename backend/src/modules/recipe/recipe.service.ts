@@ -1,5 +1,6 @@
 import { FoodRepository } from '../food/food.repository';
 import { FoodRow, PagedResult } from '../food/food.model';
+import { convertToGrams, FoodQuantityUnitError } from '../food/food.units';
 import { ForbiddenError } from '../meal/meal.service';
 import { NutritionCalculationService } from '../nutrition/nutrition.calculation.service';
 import { FoodAmount, NutrientProfile, NutrientSource } from '../nutrition/nutrition.model';
@@ -13,16 +14,10 @@ export class RecipeNotFoundError extends Error {
   }
 }
 
-/** Ингредиент в 'pcs' (штуках) у продукта без заданного serving_size — перевести в граммы нечем. */
-export class RecipeIngredientUnitError extends Error {
-  constructor(
-    public readonly foodId: string,
-    public readonly foodName: string,
-  ) {
-    super(`Food "${foodName}" has no serving size defined — cannot use unit "pcs"`);
-    this.name = 'RecipeIngredientUnitError';
-  }
-}
+// Тот же класс, что и food.units.ts (общий с AI Recipe Generator) — просто
+// под привычным для Recipe-модуля именем, чтобы не трогать errorHandler.ts
+// и существующие тесты (код ошибки RECIPE_INGREDIENT_UNIT_UNSUPPORTED).
+export { FoodQuantityUnitError as RecipeIngredientUnitError };
 
 export interface RecipeIngredientDetail {
   foodId: string;
@@ -52,21 +47,6 @@ function toNutrientSource(food: FoodRow): NutrientSource {
     sugar: food.sugar != null ? Number(food.sugar) : null,
     sodium: food.sodium != null ? Number(food.sodium) : null,
   };
-}
-
-/**
- * Переводит количество ингредиента в граммы/мл — базис, который
- * понимает NutritionCalculationService. 'g'/'ml' — это уже тот же
- * базис, что и у продукта (basis_unit), берём как есть. 'pcs' — через
- * serving_size продукта ("1 штука = N г/мл", то же поле, что уже
- * показывает Flutter как "1 порция"); без него посчитать нельзя.
- */
-function toGrams(food: FoodRow, quantity: number, unit: RecipeUnit): number {
-  if (unit !== 'pcs') return quantity;
-  if (food.serving_size == null) {
-    throw new RecipeIngredientUnitError(food.id, food.name);
-  }
-  return quantity * Number(food.serving_size);
 }
 
 /**
@@ -168,7 +148,7 @@ export class RecipeService {
     for (const item of items) {
       const food = foodsById.get(item.foodId);
       if (!food) throw new RecipeIngredientFoodNotFoundError(item.foodId);
-      toGrams(food, item.quantity, item.unit); // бросит RecipeIngredientUnitError, если 'pcs' не посчитать
+      convertToGrams(food, item.quantity, item.unit); // бросит RecipeIngredientUnitError, если 'pcs' не посчитать
     }
   }
 
@@ -184,7 +164,7 @@ export class RecipeService {
       const food = foodsById.get(ing.food_id);
       if (!food) throw new RecipeIngredientFoodNotFoundError(ing.food_id);
       const quantity = Number(ing.quantity);
-      const grams = toGrams(food, quantity, ing.unit);
+      const grams = convertToGrams(food, quantity, ing.unit);
       amounts.push({ food: toNutrientSource(food), grams });
       return {
         foodId: food.id,

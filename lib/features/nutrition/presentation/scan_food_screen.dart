@@ -176,6 +176,9 @@ class _ScanFoodScreenState extends ConsumerState<ScanFoodScreen> {
           matchedFoodImageUrl: food.imageUrl,
           matchedFoodEmoji: food.emoji,
           matchedBasisUnit: food.basisUnit == FoodBasisUnit.milliliters ? 'ml' : 'g',
+          matchTier: 'exact',
+          matchScore: 1,
+          needsConfirmation: false,
           nutrition: null,
         ),
       );
@@ -499,8 +502,8 @@ class _RecognizedItemCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (item.isLowConfidence)
-                      Text('Не уверен — проверь продукт', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.warning)),
+                    if (item.isMatched && item.needsConfirmation)
+                      Text('Похоже, но не точно — проверь продукт', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.warning)),
                   ],
                 ),
               ),

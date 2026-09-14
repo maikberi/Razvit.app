@@ -149,26 +149,71 @@ export class FoodRepository {
     return row;
   }
 
-  /**
-   * Лучшее совпадение продукта по названию — для сопоставления с тем,
-   * что распознал Vision AI (см. foodRecognition.service.ts). Мягче, чем
-   * findSimilar (там порог 0.92 нужен для дедупликации почти одинаковых
-   * названий) — здесь ищем разумно похожий продукт по обычному названию,
-   * а не точный дубликат.
-   */
-  async findBestMatch(name: string, threshold = 0.3): Promise<FoodRow | null> {
-    const normalized = normalizeName(name);
-    const { rows } = await this.pool.query<FoodRow & { sim: number }>(
+  // Ступени сопоставления "название от AI -> продукт из базы" (см.
+  // food.matching.service.ts, используется AI Food Recognition и AI Recipe
+  // Generator). Каждая ступень — отдельный метод, от самого строгого
+  // совпадения к самому мягкому; при нескольких кандидатах предпочитаем
+  // verified-продукты из собственного каталога RAZVIT — им можно доверять
+  // больше, чем случайному импорту из OFF.
+
+  /** Ступень 1: точное совпадение по нормализованному названию. */
+  async findByExactName(normalized: string): Promise<FoodRow | null> {
+    const { rows } = await this.pool.query<FoodRow>(
+      `SELECT * FROM foods
+       WHERE normalized_name = $1
+       ORDER BY verified DESC, (source = 'RAZVIT') DESC
+       LIMIT 1`,
+      [normalized],
+    );
+    return rows[0] ?? null;
+  }
+
+  /** Ступень 2: точное совпадение по алиасу продукта (food_aliases). */
+  async findByAlias(normalized: string): Promise<FoodRow | null> {
+    const { rows } = await this.pool.query<FoodRow>(
+      `SELECT foods.* FROM foods
+       JOIN food_aliases fa ON fa.food_id = foods.id
+       WHERE fa.normalized_alias = $1
+       ORDER BY foods.verified DESC, (foods.source = 'RAZVIT') DESC
+       LIMIT 1`,
+      [normalized],
+    );
+    return rows[0] ?? null;
+  }
+
+  /** Ступень 3: похожее по написанию название (триграммы) — возвращает и саму похожесть, чтобы вызывающий код мог судить об уверенности. */
+  async findFuzzyMatch(normalized: string, threshold = 0.3): Promise<{ food: FoodRow; similarity: number } | null> {
+    const { rows } = await this.pool.query<FoodRow & { sim: string }>(
       `SELECT *, similarity(normalized_name, $1) AS sim
        FROM foods
        WHERE normalized_name % $1 OR normalized_name ILIKE '%' || $1 || '%'
-       ORDER BY sim DESC
+       ORDER BY sim DESC, verified DESC
        LIMIT 1`,
       [normalized],
     );
     const row = rows[0];
-    if (!row || row.sim < threshold) return null;
-    return row;
+    const sim = row ? Number(row.sim) : 0;
+    if (!row || sim < threshold) return null;
+    const { sim: _sim, ...food } = row;
+    return { food: food as FoodRow, similarity: sim };
+  }
+
+  /**
+   * Ступень 4 (последняя, самая мягкая): запрос сам похож на название
+   * категории продукта ("мясо", "фрукты") — берём лучший продукт внутри
+   * этой категории. Годится, когда AI распознал только общую группу еды,
+   * а не конкретный продукт.
+   */
+  async findByCategoryMatch(normalized: string): Promise<FoodRow | null> {
+    const { rows } = await this.pool.query<FoodRow>(
+      `SELECT * FROM foods
+       WHERE category IS NOT NULL
+         AND (LOWER(category) ILIKE '%' || $1 || '%' OR $1 ILIKE '%' || LOWER(category) || '%')
+       ORDER BY verified DESC, similarity(normalized_name, $1) DESC
+       LIMIT 1`,
+      [normalized],
+    );
+    return rows[0] ?? null;
   }
 
   async getMicronutrients(foodId: string): Promise<MicronutrientRow[]> {
