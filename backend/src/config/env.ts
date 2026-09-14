@@ -48,4 +48,12 @@ export const env = {
   // (GET /admin/import/off-russia?key=...). Без этой переменной эндпоинт
   // всегда отвечает 403 — так что по умолчанию он выключен.
   adminImportKey: process.env.ADMIN_IMPORT_KEY,
+  // Ключ Anthropic API — нужен для AI Food Recognition (POST
+  // /food-recognition/scan). Секрет живёт только здесь, на backend;
+  // Flutter его никогда не видит. Без ключа эндпоинт отвечает 503
+  // (AI_NOT_CONFIGURED), остальное приложение работает как обычно.
+  anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+  // Модель для распознавания еды по фото — настраиваемая на случай смены
+  // модели/тарифа без деплоя нового кода; по умолчанию последняя Opus.
+  visionModel: process.env.VISION_MODEL ?? 'claude-opus-5',
 };

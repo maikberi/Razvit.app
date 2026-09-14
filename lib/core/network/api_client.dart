@@ -46,9 +46,9 @@ class ApiClient {
     return _send(() => _client.get(uri, headers: _headers).timeout(const Duration(seconds: 8)));
   }
 
-  Future<Map<String, dynamic>> postJson(String path, Map<String, dynamic> body) {
+  Future<Map<String, dynamic>> postJson(String path, Map<String, dynamic> body, {Duration timeout = const Duration(seconds: 8)}) {
     final uri = Uri.parse('$_baseUrl$path');
-    return _send(() => _client.post(uri, headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 8)));
+    return _send(() => _client.post(uri, headers: _headers, body: jsonEncode(body)).timeout(timeout));
   }
 
   Future<Map<String, dynamic>> putJson(String path, Map<String, dynamic> body) {

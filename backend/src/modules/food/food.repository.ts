@@ -149,6 +149,28 @@ export class FoodRepository {
     return row;
   }
 
+  /**
+   * Лучшее совпадение продукта по названию — для сопоставления с тем,
+   * что распознал Vision AI (см. foodRecognition.service.ts). Мягче, чем
+   * findSimilar (там порог 0.92 нужен для дедупликации почти одинаковых
+   * названий) — здесь ищем разумно похожий продукт по обычному названию,
+   * а не точный дубликат.
+   */
+  async findBestMatch(name: string, threshold = 0.3): Promise<FoodRow | null> {
+    const normalized = normalizeName(name);
+    const { rows } = await this.pool.query<FoodRow & { sim: number }>(
+      `SELECT *, similarity(normalized_name, $1) AS sim
+       FROM foods
+       WHERE normalized_name % $1 OR normalized_name ILIKE '%' || $1 || '%'
+       ORDER BY sim DESC
+       LIMIT 1`,
+      [normalized],
+    );
+    const row = rows[0];
+    if (!row || row.sim < threshold) return null;
+    return row;
+  }
+
   async getMicronutrients(foodId: string): Promise<MicronutrientRow[]> {
     const { rows } = await this.pool.query<MicronutrientRow>(
       'SELECT * FROM food_micronutrients WHERE food_id = $1 ORDER BY key',

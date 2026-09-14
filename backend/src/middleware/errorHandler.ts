@@ -8,8 +8,10 @@ import {
 import { SocialProvider } from '../modules/auth/auth.model';
 import { DuplicateFoodError, FoodNotFoundError } from '../modules/food/food.service';
 import { serializeFood } from '../modules/food/food.serializer';
+import { InvalidImageError } from '../modules/foodRecognition/foodRecognition.service';
 import { ForbiddenError, MealItemNotFoundError, MealNotFoundError } from '../modules/meal/meal.service';
 import { RecipeIngredientFoodNotFoundError, RecipeIngredientUnitError, RecipeNotFoundError } from '../modules/recipe/recipe.service';
+import { VisionNotConfiguredError, VisionRateLimitError, VisionTimeoutError, VisionUnavailableError } from '../integrations/visionClient';
 
 const SOCIAL_PROVIDER_LABELS: Record<SocialProvider, string> = { google: 'Google', vk: 'VK', telegram: 'Telegram' };
 
@@ -64,6 +66,26 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
         details: { foodId: err.foodId },
       },
     });
+    return;
+  }
+  if (err instanceof InvalidImageError) {
+    res.status(422).json({ error: { code: 'INVALID_IMAGE', message: err.message } });
+    return;
+  }
+  if (err instanceof VisionNotConfiguredError) {
+    res.status(503).json({ error: { code: 'AI_NOT_CONFIGURED', message: 'Распознавание фото временно недоступно' } });
+    return;
+  }
+  if (err instanceof VisionTimeoutError) {
+    res.status(504).json({ error: { code: 'AI_TIMEOUT', message: 'Распознавание фото заняло слишком много времени, попробуй ещё раз' } });
+    return;
+  }
+  if (err instanceof VisionRateLimitError) {
+    res.status(429).json({ error: { code: 'AI_RATE_LIMITED', message: 'Слишком много запросов на распознавание, попробуй через минуту' } });
+    return;
+  }
+  if (err instanceof VisionUnavailableError) {
+    res.status(503).json({ error: { code: 'AI_UNAVAILABLE', message: 'Сервис распознавания фото временно недоступен, попробуй позже' } });
     return;
   }
   if (err instanceof EmailAlreadyRegisteredError) {
