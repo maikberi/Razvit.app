@@ -151,7 +151,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
           widget.onAdd(food, grams);
         },
       ),
-    );
+    ).whenComplete(textController.dispose);
   }
 
   @override

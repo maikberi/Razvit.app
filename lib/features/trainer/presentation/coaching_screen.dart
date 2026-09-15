@@ -309,7 +309,13 @@ class _MyClientsTabState extends ConsumerState<_MyClientsTab> {
             loading: () => const Padding(padding: EdgeInsets.all(AppSpacing.lg), child: Center(child: CircularProgressIndicator())),
             error: (err, st) => Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Text(err is ApiException ? err.message : 'Не удалось загрузить клиентов', style: Theme.of(context).textTheme.bodyMedium),
+              child: Column(
+                children: [
+                  Text(err is ApiException ? err.message : 'Не удалось загрузить клиентов', style: Theme.of(context).textTheme.bodyMedium),
+                  const SizedBox(height: AppSpacing.sm),
+                  ElevatedButton(onPressed: () => ref.invalidate(myClientsProvider), child: const Text('Повторить')),
+                ],
+              ),
             ),
             data: (clients) => clients.isEmpty
                 ? const Padding(

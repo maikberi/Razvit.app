@@ -46,6 +46,10 @@ class _NutritionProfileScreenState extends ConsumerState<NutritionProfileScreen>
   }
 
   Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
     try {
       final profile = await ref.read(nutritionApiServiceProvider).getProfile();
       if (!mounted) return;
@@ -103,7 +107,16 @@ class _NutritionProfileScreenState extends ConsumerState<NutritionProfileScreen>
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : _loadError != null
-                ? Center(child: Text(_loadError!, style: Theme.of(context).textTheme.bodyMedium))
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_loadError!, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium),
+                        const SizedBox(height: AppSpacing.md),
+                        ElevatedButton(onPressed: _load, child: const Text('Повторить')),
+                      ],
+                    ),
+                  )
                 : ListView(
                     padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xxl),
                     children: [

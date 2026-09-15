@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db/pool';
 import { authUser } from '../../middleware/authUser';
+import { aiRateLimiter } from '../../middleware/rateLimiter';
 import { validate } from '../../middleware/validate';
 import { RecipeGeneratorClient } from '../../integrations/recipeGeneratorClient';
 import { FoodRepository } from '../food/food.repository';
@@ -19,7 +20,7 @@ const controller = new RecipeGeneratorController(service);
 
 export const recipeGeneratorRouter = Router();
 
-recipeGeneratorRouter.post('/recipe-generator/generate', authUser, validate(generateRecipeSchema, 'body'), controller.generate);
+recipeGeneratorRouter.post('/recipe-generator/generate', authUser, aiRateLimiter, validate(generateRecipeSchema, 'body'), controller.generate);
 
 // Экспортируем для тестов, которым нужны собранные вручную экземпляры с фейковым RecipeGeneratorClient.
 export { RecipeGeneratorController, RecipeGeneratorService };

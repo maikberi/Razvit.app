@@ -1,7 +1,9 @@
 import request from 'supertest';
+import { randomUUID } from 'crypto';
 import { createApp } from '../src/app';
 import { pool } from '../src/db/pool';
 import { runMigrations } from '../src/db/migrate';
+import { authHeaderForUser } from './testAuth';
 
 const app = createApp();
 
@@ -19,7 +21,7 @@ afterAll(async () => {
 
 async function createFood(overrides: Record<string, unknown> = {}) {
   const res = await request(app)
-    .post('/api/v1/foods')
+    .post('/api/v1/foods').set(authHeaderForUser(randomUUID()))
     .send({
       name: 'Куриная грудка',
       calories: 165,

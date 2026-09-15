@@ -97,10 +97,21 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/workout-stats', builder: (context, state) => const WorkoutStatsScreen()),
     GoRoute(
       path: '/add-food',
-      builder: (context, state) => AddFoodScreen(
-        mealId: state.uri.queryParameters['mealId']!,
-        mealType: MealType.values.byName(state.uri.queryParameters['mealType']!),
-      ),
+      // mealId/mealType всегда заданы для всех вызовов внутри приложения —
+      // но это URL (в т.ч. потенциально внешняя/сохранённая ссылка), поэтому
+      // не полагаемся на force-unwrap: при отсутствии/невалидном значении
+      // показываем понятный экран вместо краша.
+      builder: (context, state) {
+        final mealId = state.uri.queryParameters['mealId'];
+        final mealType = MealType.values.asNameMap()[state.uri.queryParameters['mealType']];
+        if (mealId == null || mealType == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Добавить продукт')),
+            body: const Center(child: Text('Некорректная ссылка — не указан приём пищи')),
+          );
+        }
+        return AddFoodScreen(mealId: mealId, mealType: mealType);
+      },
     ),
     GoRoute(path: '/recipes', builder: (context, state) => const RecipesScreen()),
     GoRoute(path: '/recipes/new', builder: (context, state) => const RecipeFormScreen()),

@@ -242,6 +242,17 @@ class _ManualEntrySheetState extends State<_ManualEntrySheet> {
 
   bool get _canSave => _name.text.trim().isNotEmpty && (int.tryParse(_grams.text) ?? 0) > 0 && (int.tryParse(_calories.text) ?? -1) >= 0;
 
+  @override
+  void dispose() {
+    _name.dispose();
+    _grams.dispose();
+    _calories.dispose();
+    _protein.dispose();
+    _fat.dispose();
+    _carbs.dispose();
+    super.dispose();
+  }
+
   void _save() {
     final grams = int.parse(_grams.text);
     final calories = int.parse(_calories.text);

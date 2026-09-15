@@ -1,5 +1,6 @@
 import { env } from '../config/env';
 import { CreateFoodInput } from '../modules/food/food.model';
+import { logEvent } from '../utils/logger';
 
 /**
  * Клиент USDA FoodData Central — источник для стандартных (небрендированных)
@@ -42,7 +43,8 @@ export class UsdaClient {
       if (!res.ok) return [];
       const data = (await res.json()) as { foods?: unknown[] };
       return (data.foods ?? []).map(toFoodInput).filter((f): f is CreateFoodInput => f !== null);
-    } catch {
+    } catch (err) {
+      logEvent('external_api_failure', { integration: 'usda', operation: 'search', reason: (err as Error).message });
       return [];
     }
   }

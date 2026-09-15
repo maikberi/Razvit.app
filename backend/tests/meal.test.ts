@@ -25,7 +25,7 @@ function userHeader(userId: string) {
 
 async function createFood(overrides: Record<string, unknown> = {}) {
   const res = await request(app)
-    .post('/api/v1/foods')
+    .post('/api/v1/foods').set(authHeaderForUser(randomUUID()))
     .send({ name: 'Куриная грудка', calories: 165, protein: 31, fat: 3.6, carbohydrates: 0, ...overrides });
   return res.body.data as { id: string };
 }

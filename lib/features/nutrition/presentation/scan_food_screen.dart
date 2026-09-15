@@ -18,6 +18,8 @@ import 'recipe_ingredient_picker_screen.dart';
 
 enum _ScanStage { idle, analyzing, error, results }
 
+const _maxImageBytes = 6 * 1024 * 1024;
+
 /// Экран "Scan Food" — AI Food Recognition. Архитектура (см. постановку
 /// задачи): камера/галерея -> сжатое фото -> backend -> Vision AI называет
 /// продукты и оценивает вес -> backend сопоставляет с Food Database и
@@ -63,6 +65,17 @@ class _ScanFoodScreenState extends ConsumerState<ScanFoodScreen> {
 
     final bytes = await file.readAsBytes();
     final mimeType = _detectMimeType(file);
+
+    // Тот же предел, что и на backend (см. MAX_IMAGE_BYTES в
+    // foodRecognition.service.ts) — проверяем здесь тоже, чтобы не ждать
+    // сетевой round-trip ради ответа, который backend всё равно отклонит.
+    if (bytes.length > _maxImageBytes) {
+      setState(() {
+        _stage = _ScanStage.error;
+        _errorMessage = 'Фото слишком большое. Попробуй сделать снимок заново или выбрать другое.';
+      });
+      return;
+    }
 
     setState(() {
       _stage = _ScanStage.analyzing;

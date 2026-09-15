@@ -1,9 +1,11 @@
 import request from 'supertest';
+import { randomUUID } from 'crypto';
 import { createApp } from '../src/app';
 import { pool } from '../src/db/pool';
 import { runMigrations } from '../src/db/migrate';
 import { FoodRepository } from '../src/modules/food/food.repository';
 import { FoodService } from '../src/modules/food/food.service';
+import { authHeaderForUser } from './testAuth';
 
 const app = createApp();
 
@@ -20,9 +22,16 @@ afterAll(async () => {
 });
 
 describe('Food Database API', () => {
-  it('создаёт продукт (POST /foods)', async () => {
+  it('POST /foods без авторизации — 401 (иначе кто угодно мог бы засорять общий каталог)', async () => {
     const res = await request(app)
       .post('/api/v1/foods')
+      .send({ name: 'Овсянка', calories: 68, protein: 2.4, fat: 1.4, carbohydrates: 12 });
+    expect(res.status).toBe(401);
+  });
+
+  it('создаёт продукт (POST /foods)', async () => {
+    const res = await request(app)
+      .post('/api/v1/foods').set(authHeaderForUser(randomUUID()))
       .send({ name: 'Овсянка', calories: 68, protein: 2.4, fat: 1.4, carbohydrates: 12 });
 
     expect(res.status).toBe(201);
@@ -34,7 +43,7 @@ describe('Food Database API', () => {
 
   it('отклоняет некорректные данные с 422 и деталями по полям', async () => {
     const res = await request(app)
-      .post('/api/v1/foods')
+      .post('/api/v1/foods').set(authHeaderForUser(randomUUID()))
       .send({ name: '', calories: -1, protein: 1, fat: 1, carbohydrates: 1 });
 
     expect(res.status).toBe(422);
@@ -45,7 +54,7 @@ describe('Food Database API', () => {
 
   it('получает продукт по id (GET /foods/:id)', async () => {
     const created = await request(app)
-      .post('/api/v1/foods')
+      .post('/api/v1/foods').set(authHeaderForUser(randomUUID()))
       .send({ name: 'Курица', calories: 165, protein: 31, fat: 3.6, carbohydrates: 0 });
 
     const res = await request(app).get(`/api/v1/foods/${created.body.data.id}`);
@@ -66,7 +75,7 @@ describe('Food Database API', () => {
 
   it('находит продукт по штрихкоду (GET /foods/barcode/:barcode)', async () => {
     await request(app)
-      .post('/api/v1/foods')
+      .post('/api/v1/foods').set(authHeaderForUser(randomUUID()))
       .send({ name: 'Молоко', calories: 60, protein: 3, fat: 3.2, carbohydrates: 4.7, barcode: '4600000000100' });
 
     const res = await request(app).get('/api/v1/foods/barcode/4600000000100');
@@ -91,11 +100,11 @@ describe('Food Database API', () => {
   describe('защита от дублей', () => {
     it('запрещает создать второй продукт с уже занятым штрихкодом (409)', async () => {
       const payload = { name: 'Йогурт', calories: 60, protein: 5, fat: 2, carbohydrates: 6, barcode: '4600000000099' };
-      const first = await request(app).post('/api/v1/foods').send(payload);
+      const first = await request(app).post('/api/v1/foods').set(authHeaderForUser(randomUUID())).send(payload);
       expect(first.status).toBe(201);
 
       const second = await request(app)
-        .post('/api/v1/foods')
+        .post('/api/v1/foods').set(authHeaderForUser(randomUUID()))
         .send({ ...payload, name: 'Йогурт (повтор)' });
 
       expect(second.status).toBe(409);
@@ -133,9 +142,9 @@ describe('Food Database API', () => {
 
   describe('поиск', () => {
     it('ищет по (частичному) названию и возвращает пагинацию в meta', async () => {
-      await request(app).post('/api/v1/foods').send({ name: 'Рис отварной', calories: 116, protein: 2.2, fat: 0.5, carbohydrates: 24 });
-      await request(app).post('/api/v1/foods').send({ name: 'Рис бурый', calories: 110, protein: 2.6, fat: 0.9, carbohydrates: 23 });
-      await request(app).post('/api/v1/foods').send({ name: 'Гречка', calories: 110, protein: 4.2, fat: 1.1, carbohydrates: 21.3 });
+      await request(app).post('/api/v1/foods').set(authHeaderForUser(randomUUID())).send({ name: 'Рис отварной', calories: 116, protein: 2.2, fat: 0.5, carbohydrates: 24 });
+      await request(app).post('/api/v1/foods').set(authHeaderForUser(randomUUID())).send({ name: 'Рис бурый', calories: 110, protein: 2.6, fat: 0.9, carbohydrates: 23 });
+      await request(app).post('/api/v1/foods').set(authHeaderForUser(randomUUID())).send({ name: 'Гречка', calories: 110, protein: 4.2, fat: 1.1, carbohydrates: 21.3 });
 
       const res = await request(app).get('/api/v1/foods').query({ q: 'рис' });
       expect(res.status).toBe(200);
@@ -144,14 +153,14 @@ describe('Food Database API', () => {
     });
 
     it('находит по бренду', async () => {
-      await request(app).post('/api/v1/foods').send({ name: 'Батончик', brand: 'RAZVIT Nutrition', calories: 300, protein: 20, fat: 8, carbohydrates: 30 });
+      await request(app).post('/api/v1/foods').set(authHeaderForUser(randomUUID())).send({ name: 'Батончик', brand: 'RAZVIT Nutrition', calories: 300, protein: 20, fat: 8, carbohydrates: 30 });
       const res = await request(app).get('/api/v1/foods').query({ q: 'razvit nutrition' });
       expect(res.status).toBe(200);
       expect(res.body.data.length).toBe(1);
     });
 
     it('находит опечатку/близкое совпадение (fuzzy search)', async () => {
-      await request(app).post('/api/v1/foods').send({ name: 'Творог', calories: 121, protein: 18, fat: 5, carbohydrates: 1.8 });
+      await request(app).post('/api/v1/foods').set(authHeaderForUser(randomUUID())).send({ name: 'Творог', calories: 121, protein: 18, fat: 5, carbohydrates: 1.8 });
       const res = await request(app).get('/api/v1/foods').query({ q: 'творок' }); // опечатка
       expect(res.status).toBe(200);
       expect(res.body.data.some((f: { name: string }) => f.name === 'Творог')).toBe(true);
@@ -160,7 +169,7 @@ describe('Food Database API', () => {
     it('пагинирует и сортирует результаты', async () => {
       for (let i = 0; i < 3; i++) {
         await request(app)
-          .post('/api/v1/foods')
+          .post('/api/v1/foods').set(authHeaderForUser(randomUUID()))
           .send({ name: `Тестовый продукт ${i}`, calories: 100 + i, protein: 1, fat: 1, carbohydrates: 1 });
       }
       const page1 = await request(app).get('/api/v1/foods').query({ q: 'тестовый продукт', perPage: 2, page: 1, sort: 'name' });
@@ -173,9 +182,9 @@ describe('Food Database API', () => {
     });
 
     it('фильтрует по category и source', async () => {
-      await request(app).post('/api/v1/foods').send({ name: 'Яблоко', category: 'Фрукты', calories: 52, protein: 0.3, fat: 0.2, carbohydrates: 14 });
-      await request(app).post('/api/v1/foods').send({ name: 'Банан', category: 'Фрукты', calories: 89, protein: 1.1, fat: 0.3, carbohydrates: 23 });
-      await request(app).post('/api/v1/foods').send({ name: 'Курица гриль', category: 'Мясо', calories: 165, protein: 31, fat: 3.6, carbohydrates: 0 });
+      await request(app).post('/api/v1/foods').set(authHeaderForUser(randomUUID())).send({ name: 'Яблоко', category: 'Фрукты', calories: 52, protein: 0.3, fat: 0.2, carbohydrates: 14 });
+      await request(app).post('/api/v1/foods').set(authHeaderForUser(randomUUID())).send({ name: 'Банан', category: 'Фрукты', calories: 89, protein: 1.1, fat: 0.3, carbohydrates: 23 });
+      await request(app).post('/api/v1/foods').set(authHeaderForUser(randomUUID())).send({ name: 'Курица гриль', category: 'Мясо', calories: 165, protein: 31, fat: 3.6, carbohydrates: 0 });
 
       const res = await request(app).get('/api/v1/foods').query({ category: 'Фрукты' });
       expect(res.status).toBe(200);
@@ -186,7 +195,7 @@ describe('Food Database API', () => {
 
   it('сохраняет расширяемые микронутриенты и алиасы', async () => {
     const created = await request(app)
-      .post('/api/v1/foods')
+      .post('/api/v1/foods').set(authHeaderForUser(randomUUID()))
       .send({
         name: 'Шпинат',
         calories: 23,

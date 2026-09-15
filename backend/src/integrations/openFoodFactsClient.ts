@@ -1,5 +1,6 @@
 import { env } from '../config/env';
 import { CreateFoodInput } from '../modules/food/food.model';
+import { logEvent } from '../utils/logger';
 
 /**
  * Клиент Open Food Facts — перенесён сюда с Flutter-клиента
@@ -28,7 +29,8 @@ export class OpenFoodFactsClient {
       if (!res.ok) return [];
       const data = (await res.json()) as { products?: unknown[] };
       return (data.products ?? []).map(toFoodInput).filter((f): f is CreateFoodInput => f !== null);
-    } catch {
+    } catch (err) {
+      logEvent('external_api_failure', { integration: 'open_food_facts', operation: 'search', reason: (err as Error).message });
       return [];
     }
   }
@@ -61,7 +63,8 @@ export class OpenFoodFactsClient {
       if (!res.ok) return [];
       const data = (await res.json()) as { products?: unknown[] };
       return (data.products ?? []).map(toFoodInput).filter((f): f is CreateFoodInput => f !== null);
-    } catch {
+    } catch (err) {
+      logEvent('external_api_failure', { integration: 'open_food_facts', operation: 'search_by_country', reason: (err as Error).message });
       return [];
     }
   }
@@ -75,7 +78,8 @@ export class OpenFoodFactsClient {
       const data = (await res.json()) as { status?: number; product?: unknown };
       if (data.status !== 1 || !data.product) return null;
       return toFoodInput(data.product);
-    } catch {
+    } catch (err) {
+      logEvent('external_api_failure', { integration: 'open_food_facts', operation: 'lookup_barcode', reason: (err as Error).message });
       return null;
     }
   }

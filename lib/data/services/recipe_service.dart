@@ -136,6 +136,6 @@ final recipeListProvider = StateNotifierProvider<RecipeListNotifier, AsyncValue<
   (ref) => RecipeListNotifier(ref.watch(recipeServiceProvider)),
 );
 
-final recipeDetailProvider = FutureProvider.family<Recipe, String>(
+final recipeDetailProvider = FutureProvider.autoDispose.family<Recipe, String>(
   (ref, id) => ref.watch(recipeServiceProvider).getById(id),
 );

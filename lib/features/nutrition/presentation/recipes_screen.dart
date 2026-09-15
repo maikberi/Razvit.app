@@ -34,6 +34,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _search.dispose();
     super.dispose();
   }
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db/pool';
 import { authUser } from '../../middleware/authUser';
+import { authRateLimiter } from '../../middleware/rateLimiter';
 import { validate } from '../../middleware/validate';
 import { AuthController } from './auth.controller';
 import { AuthRepository } from './auth.repository';
@@ -13,11 +14,11 @@ const controller = new AuthController(service);
 
 export const authRouter = Router();
 
-authRouter.post('/auth/register', validate(registerSchema, 'body'), controller.register);
-authRouter.post('/auth/login', validate(loginSchema, 'body'), controller.login);
-authRouter.post('/auth/google', validate(googleAuthSchema, 'body'), controller.google);
-authRouter.post('/auth/vk', validate(vkAuthSchema, 'body'), controller.vk);
-authRouter.post('/auth/telegram', validate(telegramAuthSchema, 'body'), controller.telegram);
+authRouter.post('/auth/register', authRateLimiter, validate(registerSchema, 'body'), controller.register);
+authRouter.post('/auth/login', authRateLimiter, validate(loginSchema, 'body'), controller.login);
+authRouter.post('/auth/google', authRateLimiter, validate(googleAuthSchema, 'body'), controller.google);
+authRouter.post('/auth/vk', authRateLimiter, validate(vkAuthSchema, 'body'), controller.vk);
+authRouter.post('/auth/telegram', authRateLimiter, validate(telegramAuthSchema, 'body'), controller.telegram);
 authRouter.get('/auth/me', authUser, controller.me);
 
 export { AuthRepository, AuthService };

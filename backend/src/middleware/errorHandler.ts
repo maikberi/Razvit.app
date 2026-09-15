@@ -20,6 +20,7 @@ import {
   RecipeAiTimeoutError,
   RecipeAiUnavailableError,
 } from '../integrations/recipeGeneratorClient';
+import { logEvent } from '../utils/logger';
 import { TrainerAccessDeniedError } from '../modules/trainer/trainer.access.service';
 import {
   AlreadyConnectedError,
@@ -104,34 +105,44 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
     return;
   }
   if (err instanceof VisionNotConfiguredError) {
+    // Не сбой, а конфигурация — но логируем всё равно: если это видно в
+    // проде, значит ANTHROPIC_API_KEY не выставлен, а должен быть.
+    logEvent('ai_failure', { integration: 'vision', reason: 'not_configured' });
     res.status(503).json({ error: { code: 'AI_NOT_CONFIGURED', message: 'Распознавание фото временно недоступно' } });
     return;
   }
   if (err instanceof VisionTimeoutError) {
+    logEvent('ai_failure', { integration: 'vision', reason: 'timeout' });
     res.status(504).json({ error: { code: 'AI_TIMEOUT', message: 'Распознавание фото заняло слишком много времени, попробуй ещё раз' } });
     return;
   }
   if (err instanceof VisionRateLimitError) {
+    logEvent('ai_failure', { integration: 'vision', reason: 'rate_limited' });
     res.status(429).json({ error: { code: 'AI_RATE_LIMITED', message: 'Слишком много запросов на распознавание, попробуй через минуту' } });
     return;
   }
   if (err instanceof VisionUnavailableError) {
+    logEvent('ai_failure', { integration: 'vision', reason: 'unavailable', detail: err.message });
     res.status(503).json({ error: { code: 'AI_UNAVAILABLE', message: 'Сервис распознавания фото временно недоступен, попробуй позже' } });
     return;
   }
   if (err instanceof RecipeAiNotConfiguredError) {
+    logEvent('ai_failure', { integration: 'recipe_generator', reason: 'not_configured' });
     res.status(503).json({ error: { code: 'AI_NOT_CONFIGURED', message: 'Генерация рецептов временно недоступна' } });
     return;
   }
   if (err instanceof RecipeAiTimeoutError) {
+    logEvent('ai_failure', { integration: 'recipe_generator', reason: 'timeout' });
     res.status(504).json({ error: { code: 'AI_TIMEOUT', message: 'Генерация рецепта заняла слишком много времени, попробуй ещё раз' } });
     return;
   }
   if (err instanceof RecipeAiRateLimitError) {
+    logEvent('ai_failure', { integration: 'recipe_generator', reason: 'rate_limited' });
     res.status(429).json({ error: { code: 'AI_RATE_LIMITED', message: 'Слишком много запросов на генерацию рецептов, попробуй через минуту' } });
     return;
   }
   if (err instanceof RecipeAiUnavailableError) {
+    logEvent('ai_failure', { integration: 'recipe_generator', reason: 'unavailable', detail: err.message });
     res.status(503).json({ error: { code: 'AI_UNAVAILABLE', message: 'Сервис генерации рецептов временно недоступен, попробуй позже' } });
     return;
   }

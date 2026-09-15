@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { randomUUID } from 'crypto';
 import { createApp } from '../src/app';
 import { pool } from '../src/db/pool';
 import { runMigrations } from '../src/db/migrate';
@@ -7,7 +8,7 @@ import { FoodMatchingService } from '../src/modules/food/food.matching';
 import { NutritionCalculationService } from '../src/modules/nutrition/nutrition.calculation.service';
 import { RecipeGeneratorService } from '../src/modules/recipeGenerator/recipeGenerator.service';
 import { RecipeDraft } from '../src/integrations/recipeGeneratorClient';
-import { newTestUser } from './testAuth';
+import { authHeaderForUser, newTestUser } from './testAuth';
 
 const app = createApp();
 
@@ -51,7 +52,7 @@ describe('POST /recipe-generator/generate (HTTP-уровень, без реал�
 describe('RecipeGeneratorService (с фейковым RecipeGeneratorClient — без реального обращения к Anthropic)', () => {
   async function createFood(overrides: Record<string, unknown> = {}) {
     const res = await request(app)
-      .post('/api/v1/foods')
+      .post('/api/v1/foods').set(authHeaderForUser(randomUUID()))
       .send({ name: 'Куриная грудка', calories: 165, protein: 31, fat: 3.6, carbohydrates: 0, ...overrides });
     return res.body.data as { id: string };
   }
