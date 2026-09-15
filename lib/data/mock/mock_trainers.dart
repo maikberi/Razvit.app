@@ -1,0 +1,78 @@
+import '../models/trainer.dart';
+
+final List<Trainer> mockTrainers = [
+  const Trainer(
+    id: 'trainer_1',
+    name: 'Алексей Петров',
+    isVerified: true,
+    rating: 4.9,
+    reviewsCount: 128,
+    clientsCount: 250,
+    experienceYears: 7,
+    specializations: [TrainerSpecialization.mass, TrainerSpecialization.strength],
+    pricePerMonth: 4900,
+    responseTime: 'до 30 минут',
+    isOnline: true,
+    avatarSeed: 1,
+    bio: 'Помогаю набирать качественную массу и увеличивать силовые показатели без травм.',
+  ),
+  const Trainer(
+    id: 'trainer_2',
+    name: 'Алексей Иванов',
+    isVerified: true,
+    rating: 4.9,
+    reviewsCount: 128,
+    clientsCount: 250,
+    experienceYears: 7,
+    specializations: [
+      TrainerSpecialization.mass,
+      TrainerSpecialization.loss,
+      TrainerSpecialization.strength,
+      TrainerSpecialization.definition,
+      TrainerSpecialization.functional,
+    ],
+    pricePerMonth: 5500,
+    responseTime: 'до 1 часа',
+    avatarSeed: 2,
+    bio: 'Персональный тренер с фокусом на комплексный подход: тренировки, питание, восстановление.',
+  ),
+  const Trainer(
+    id: 'trainer_3',
+    name: 'Мария Соколова',
+    isVerified: true,
+    rating: 4.8,
+    reviewsCount: 96,
+    clientsCount: 180,
+    experienceYears: 5,
+    specializations: [TrainerSpecialization.loss, TrainerSpecialization.definition],
+    pricePerMonth: 4200,
+    responseTime: 'до 15 минут',
+    isOnline: true,
+    avatarSeed: 3,
+    bio: 'Специализируюсь на похудении и рельефе для женщин. Индивидуальный подход к питанию.',
+  ),
+  const Trainer(
+    id: 'trainer_4',
+    name: 'Дмитрий Волков',
+    isVerified: false,
+    rating: 4.6,
+    reviewsCount: 34,
+    clientsCount: 60,
+    experienceYears: 3,
+    specializations: [TrainerSpecialization.functional],
+    pricePerMonth: 3500,
+    responseTime: 'до 2 часов',
+    avatarSeed: 4,
+    bio: 'Функциональный тренинг и общая физподготовка.',
+  ),
+];
+
+Trainer get myTrainer => mockTrainers[1];
+
+final List<ChatMessage> mockChatMessages = [
+  const ChatMessage(sender: MessageSender.trainer, text: 'Привет, Михаил! Как самочувствие после вчерашней тренировки?', time: '09:12'),
+  const ChatMessage(sender: MessageSender.user, text: 'Привет! Всё отлично, ноги немного гудят 💪', time: '09:15'),
+  const ChatMessage(sender: MessageSender.trainer, text: 'Это нормально после приседаний с новым весом. Сегодня даю Push Day, вес по жиму немного увеличил.', time: '09:16'),
+  const ChatMessage(sender: MessageSender.trainer, text: 'Программа уже в приложении, посмотри перед тренировкой.', time: '09:16'),
+  const ChatMessage(sender: MessageSender.user, text: 'Понял, спасибо! Вечером отпишусь как прошло', time: '09:20'),
+];
