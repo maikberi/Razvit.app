@@ -28,6 +28,19 @@ export class MealRepository {
     return rows.sort((a, b) => (order.get(a.type) ?? 0) - (order.get(b.type) ?? 0));
   }
 
+  /** Все позиции за диапазон дат (для аналитики) — одним запросом, а не по дням в цикле. */
+  async getItemsForDateRange(userId: string, from: string, to: string): Promise<Array<MealItemRow & { date: string }>> {
+    const { rows } = await this.pool.query<MealItemRow & { date: string }>(
+      `SELECT mi.*, m.date::text AS date
+       FROM meal_items mi
+       JOIN meals m ON m.id = mi.meal_id
+       WHERE m.user_id = $1 AND m.date BETWEEN $2 AND $3
+       ORDER BY m.date`,
+      [userId, from, to],
+    );
+    return rows;
+  }
+
   async getItemsForMeals(mealIds: string[]): Promise<MealItemRow[]> {
     if (mealIds.length === 0) return [];
     const { rows } = await this.pool.query<MealItemRow>(

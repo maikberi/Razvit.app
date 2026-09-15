@@ -37,6 +37,18 @@ export class NutritionWaterRepository {
     );
   }
 
+  /** Сумма выпитой воды по дням за диапазон дат (для аналитики) — агрегация на стороне БД. */
+  async getRangeTotals(userId: string, from: string, to: string): Promise<Array<{ date: string; amount_ml: number }>> {
+    const { rows } = await this.pool.query<{ date: string; amount_ml: number }>(
+      `SELECT date::text AS date, SUM(amount_ml)::int AS amount_ml
+       FROM water_entries
+       WHERE user_id = $1 AND date BETWEEN $2 AND $3
+       GROUP BY date`,
+      [userId, from, to],
+    );
+    return rows;
+  }
+
   async findById(id: string): Promise<WaterEntryRow | null> {
     const { rows } = await this.pool.query<WaterEntryRow>('SELECT * FROM water_entries WHERE id = $1', [id]);
     return rows[0] ?? null;

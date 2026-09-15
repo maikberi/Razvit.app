@@ -10,12 +10,15 @@ import { NutritionController } from './nutrition.controller';
 import { NutritionDailyController } from './nutrition.daily.controller';
 import { NutritionDailyService } from './nutrition.daily.service';
 import { NutritionInputResolver } from './nutrition.resolver';
+import { NutritionAnalyticsController } from './nutritionAnalytics.controller';
+import { NutritionAnalyticsService } from './nutritionAnalytics.service';
 import { NutritionProfileRepository } from './nutritionProfile.repository';
 import { NutritionTargetService } from './nutritionTarget.service';
 import { NutritionTargetsRepository } from './nutrition.targets.repository';
 import { NutritionWaterRepository } from './nutrition.water.repository';
 import {
   addWaterSchema,
+  analyticsQuerySchema,
   calculateDaySchema,
   calculateFoodSchema,
   calculateMealSchema,
@@ -33,13 +36,16 @@ const engine = new NutritionCalculationService();
 const resolver = new NutritionInputResolver(foodRepository);
 const controller = new NutritionController(engine, resolver);
 
-const mealService = new MealService(new MealRepository(pool), foodRepository, engine);
+const mealRepository = new MealRepository(pool);
+const mealService = new MealService(mealRepository, foodRepository, engine);
 const targetsRepository = new NutritionTargetsRepository(pool);
 const waterRepository = new NutritionWaterRepository(pool);
 const profileRepository = new NutritionProfileRepository(pool);
 const targetService = new NutritionTargetService();
 const dailyService = new NutritionDailyService(mealService, targetsRepository, waterRepository, engine);
 const dailyController = new NutritionDailyController(dailyService, targetsRepository, waterRepository, profileRepository, targetService);
+const analyticsService = new NutritionAnalyticsService(mealRepository, foodRepository, waterRepository, targetsRepository, engine);
+const analyticsController = new NutritionAnalyticsController(analyticsService);
 
 export const nutritionRouter = Router();
 
@@ -81,4 +87,19 @@ nutritionRouter.get('/nutrition/profile', authUser, dailyController.getProfile);
 nutritionRouter.put('/nutrition/profile', authUser, validate(updateNutritionProfileSchema, 'body'), dailyController.updateProfile);
 nutritionRouter.post('/nutrition/targets/generate', authUser, dailyController.generateTargets);
 
-export { NutritionCalculationService, NutritionController, NutritionInputResolver };
+// ЭТАП 16: Nutrition Analytics — агрегированная статистика за период, считает backend.
+nutritionRouter.get('/nutrition/analytics', authUser, validate(analyticsQuerySchema, 'query'), analyticsController.getAnalytics);
+
+export {
+  NutritionCalculationService,
+  NutritionController,
+  NutritionInputResolver,
+  analyticsService,
+  dailyService,
+  foodRepository,
+  mealRepository,
+  mealService,
+  profileRepository,
+  targetsRepository,
+  waterRepository,
+};

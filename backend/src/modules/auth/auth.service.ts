@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../../config/env';
 import { AuthRepository } from './auth.repository';
-import { SocialProvider, UserRow } from './auth.model';
+import { SocialProvider, UserRole, UserRow } from './auth.model';
 import { GoogleTokenVerifier, RealGoogleTokenVerifier } from './google.verifier';
 import { VkAuthVerifier, VkExchangeParams, RealVkAuthVerifier } from './vk.verifier';
 import { RealTelegramAuthVerifier, TelegramAuthVerifier, TelegramLoginPayload } from './telegram.verifier';
@@ -38,7 +38,7 @@ export class InvalidSocialTokenError extends Error {
 
 export interface AuthResult {
   token: string;
-  user: { id: string; email: string; name: string };
+  user: { id: string; email: string; name: string; role: UserRole };
 }
 
 export interface SocialAuthResult extends AuthResult {
@@ -137,5 +137,5 @@ export class AuthService {
 }
 
 function toPublicUser(user: UserRow): AuthResult['user'] {
-  return { id: user.id, email: user.email, name: user.name };
+  return { id: user.id, email: user.email, name: user.name, role: user.role };
 }

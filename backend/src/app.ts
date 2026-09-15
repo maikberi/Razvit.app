@@ -8,6 +8,7 @@ import { mealRouter } from './modules/meal/meal.routes';
 import { nutritionRouter } from './modules/nutrition/nutrition.routes';
 import { recipeRouter } from './modules/recipe/recipe.routes';
 import { recipeGeneratorRouter } from './modules/recipeGenerator/recipeGenerator.routes';
+import { trainerRouter } from './modules/trainer/trainer.routes';
 
 export function createApp(): Express {
   const app = express();
@@ -26,6 +27,7 @@ export function createApp(): Express {
   app.use('/api/v1', nutritionRouter);
   app.use('/api/v1', recipeRouter);
   app.use('/api/v1', recipeGeneratorRouter);
+  app.use('/api/v1', trainerRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -1,3 +1,5 @@
+export type UserRole = 'client' | 'trainer';
+
 export interface UserRow {
   id: string;
   email: string;
@@ -6,6 +8,7 @@ export interface UserRow {
   google_id: string | null;
   vk_id: string | null;
   telegram_id: string | null;
+  role: UserRole;
   created_at: Date;
   updated_at: Date;
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ACTIVITY_LEVEL_VALUES, NUTRITION_GOAL_VALUES, SEX_VALUES } from './nutritionProfile.model';
+import { ANALYTICS_PERIODS } from './nutritionAnalytics.model';
 
 const micronutrientValueSchema = z.object({
   amount: z.number(),
@@ -108,6 +109,11 @@ export const updateNutritionProfileSchema = z.object({
   goal: z.enum(NUTRITION_GOAL_VALUES).optional(),
 });
 
+export const analyticsQuerySchema = z.object({
+  period: z.enum(ANALYTICS_PERIODS).default('30d'),
+});
+
+export type AnalyticsQuery = z.infer<typeof analyticsQuerySchema>;
 export type DateQuery = z.infer<typeof dateQuerySchema>;
 export type UpdateTargetsBody = z.infer<typeof updateTargetsSchema>;
 export type AddWaterBody = z.infer<typeof addWaterSchema>;

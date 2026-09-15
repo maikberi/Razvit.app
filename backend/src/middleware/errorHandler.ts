@@ -20,6 +20,15 @@ import {
   RecipeAiTimeoutError,
   RecipeAiUnavailableError,
 } from '../integrations/recipeGeneratorClient';
+import { TrainerAccessDeniedError } from '../modules/trainer/trainer.access.service';
+import {
+  AlreadyConnectedError,
+  AssignmentNotFoundError,
+  CannotInviteSelfError,
+  ClientNotFoundError,
+  InvalidRelationStateError,
+  TrainerRelationNotFoundError,
+} from '../modules/trainer/trainer.service';
 
 const SOCIAL_PROVIDER_LABELS: Record<SocialProvider, string> = { google: 'Google', vk: 'VK', telegram: 'Telegram' };
 
@@ -124,6 +133,34 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   }
   if (err instanceof RecipeAiUnavailableError) {
     res.status(503).json({ error: { code: 'AI_UNAVAILABLE', message: 'Сервис генерации рецептов временно недоступен, попробуй позже' } });
+    return;
+  }
+  if (err instanceof TrainerAccessDeniedError) {
+    res.status(403).json({ error: { code: 'TRAINER_ACCESS_DENIED', message: 'Нет подтверждённой связи с этим клиентом' } });
+    return;
+  }
+  if (err instanceof ClientNotFoundError) {
+    res.status(404).json({ error: { code: 'CLIENT_NOT_FOUND', message: 'Пользователь с таким email не найден' } });
+    return;
+  }
+  if (err instanceof CannotInviteSelfError) {
+    res.status(422).json({ error: { code: 'CANNOT_INVITE_SELF', message: 'Нельзя пригласить самого себя' } });
+    return;
+  }
+  if (err instanceof AlreadyConnectedError) {
+    res.status(409).json({ error: { code: 'ALREADY_CONNECTED', message: 'С этим клиентом уже есть подтверждённая связь' } });
+    return;
+  }
+  if (err instanceof TrainerRelationNotFoundError) {
+    res.status(404).json({ error: { code: 'TRAINER_RELATION_NOT_FOUND', message: 'Связь тренер-клиент не найдена' } });
+    return;
+  }
+  if (err instanceof InvalidRelationStateError) {
+    res.status(409).json({ error: { code: 'TRAINER_RELATION_INVALID_STATE', message: err.message } });
+    return;
+  }
+  if (err instanceof AssignmentNotFoundError) {
+    res.status(404).json({ error: { code: 'ASSIGNMENT_NOT_FOUND', message: 'Назначение не найдено' } });
     return;
   }
   if (err instanceof EmailAlreadyRegisteredError) {

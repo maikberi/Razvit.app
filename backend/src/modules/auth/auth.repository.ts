@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { SOCIAL_ID_COLUMNS, SocialProvider, UserRow } from './auth.model';
+import { SOCIAL_ID_COLUMNS, SocialProvider, UserRole, UserRow } from './auth.model';
 
 export class AuthRepository {
   constructor(private readonly pool: Pool) {}
@@ -48,5 +48,16 @@ export class AuthRepository {
   async findById(id: string): Promise<UserRow | null> {
     const { rows } = await this.pool.query<UserRow>(`SELECT * FROM users WHERE id = $1`, [id]);
     return rows[0] ?? null;
+  }
+
+  async findByIds(ids: string[]): Promise<UserRow[]> {
+    if (ids.length === 0) return [];
+    const { rows } = await this.pool.query<UserRow>(`SELECT * FROM users WHERE id = ANY($1::uuid[])`, [ids]);
+    return rows;
+  }
+
+  async setRole(id: string, role: UserRole): Promise<UserRow> {
+    const { rows } = await this.pool.query<UserRow>(`UPDATE users SET role = $1 WHERE id = $2 RETURNING *`, [role, id]);
+    return rows[0];
   }
 }
