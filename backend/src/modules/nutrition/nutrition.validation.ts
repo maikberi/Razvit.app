@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ACTIVITY_LEVEL_VALUES, NUTRITION_GOAL_VALUES, SEX_VALUES } from './nutritionProfile.model';
 
 const micronutrientValueSchema = z.object({
   amount: z.number(),
@@ -90,6 +91,26 @@ export const addWaterSchema = z.object({
 
 export const removeLastWaterQuerySchema = dateQuerySchema;
 
+export const updateWaterEntrySchema = z.object({
+  amountMl: z.number().int().positive('amountMl must be > 0'),
+});
+
+export const waterEntryIdParamSchema = z.object({
+  id: z.string().uuid('id must be a valid UUID'),
+});
+
+export const updateNutritionProfileSchema = z.object({
+  sex: z.enum(SEX_VALUES).optional(),
+  age: z.number().int().min(1).max(119).optional(),
+  heightCm: z.number().positive().max(300).optional(),
+  weightKg: z.number().positive().max(500).optional(),
+  activityLevel: z.enum(ACTIVITY_LEVEL_VALUES).optional(),
+  goal: z.enum(NUTRITION_GOAL_VALUES).optional(),
+});
+
 export type DateQuery = z.infer<typeof dateQuerySchema>;
 export type UpdateTargetsBody = z.infer<typeof updateTargetsSchema>;
 export type AddWaterBody = z.infer<typeof addWaterSchema>;
+export type UpdateWaterEntryBody = z.infer<typeof updateWaterEntrySchema>;
+export type WaterEntryIdParam = z.infer<typeof waterEntryIdParamSchema>;
+export type UpdateNutritionProfileBody = z.infer<typeof updateNutritionProfileSchema>;

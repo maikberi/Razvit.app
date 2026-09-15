@@ -10,6 +10,8 @@ import { NutritionController } from './nutrition.controller';
 import { NutritionDailyController } from './nutrition.daily.controller';
 import { NutritionDailyService } from './nutrition.daily.service';
 import { NutritionInputResolver } from './nutrition.resolver';
+import { NutritionProfileRepository } from './nutritionProfile.repository';
+import { NutritionTargetService } from './nutritionTarget.service';
 import { NutritionTargetsRepository } from './nutrition.targets.repository';
 import { NutritionWaterRepository } from './nutrition.water.repository';
 import {
@@ -20,7 +22,10 @@ import {
   calculateRecipeSchema,
   calculateWeekSchema,
   dateQuerySchema,
+  updateNutritionProfileSchema,
   updateTargetsSchema,
+  updateWaterEntrySchema,
+  waterEntryIdParamSchema,
 } from './nutrition.validation';
 
 const foodRepository = new FoodRepository(pool);
@@ -31,8 +36,10 @@ const controller = new NutritionController(engine, resolver);
 const mealService = new MealService(new MealRepository(pool), foodRepository, engine);
 const targetsRepository = new NutritionTargetsRepository(pool);
 const waterRepository = new NutritionWaterRepository(pool);
+const profileRepository = new NutritionProfileRepository(pool);
+const targetService = new NutritionTargetService();
 const dailyService = new NutritionDailyService(mealService, targetsRepository, waterRepository, engine);
-const dailyController = new NutritionDailyController(dailyService, targetsRepository, waterRepository);
+const dailyController = new NutritionDailyController(dailyService, targetsRepository, waterRepository, profileRepository, targetService);
 
 export const nutritionRouter = Router();
 
@@ -55,5 +62,23 @@ nutritionRouter.delete(
   validate(dateQuerySchema, 'query'),
   dailyController.removeLastWater,
 );
+nutritionRouter.put(
+  '/nutrition/water/:id',
+  authUser,
+  validate(waterEntryIdParamSchema, 'params'),
+  validate(updateWaterEntrySchema, 'body'),
+  dailyController.updateWaterEntry,
+);
+nutritionRouter.delete(
+  '/nutrition/water/:id',
+  authUser,
+  validate(waterEntryIdParamSchema, 'params'),
+  dailyController.deleteWaterEntry,
+);
+
+// Профиль для расчёта персональных целей (ЭТАП 14: Nutrition Target Service).
+nutritionRouter.get('/nutrition/profile', authUser, dailyController.getProfile);
+nutritionRouter.put('/nutrition/profile', authUser, validate(updateNutritionProfileSchema, 'body'), dailyController.updateProfile);
+nutritionRouter.post('/nutrition/targets/generate', authUser, dailyController.generateTargets);
 
 export { NutritionCalculationService, NutritionController, NutritionInputResolver };

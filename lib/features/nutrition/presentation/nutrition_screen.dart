@@ -416,7 +416,20 @@ class _WaterCardState extends ConsumerState<_WaterCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Вода', style: Theme.of(context).textTheme.titleMedium),
+              GestureDetector(
+                onTap: () => showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => const _WaterHistorySheet(),
+                ),
+                child: Row(
+                  children: [
+                    Text('Вода', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.ink400),
+                  ],
+                ),
+              ),
               Row(
                 children: [
                   Text('${(consumedMl / 1000).toStringAsFixed(1)} / ${(goalMl / 1000).toStringAsFixed(1)} л', style: Theme.of(context).textTheme.bodyMedium),
@@ -438,25 +451,192 @@ class _WaterCardState extends ConsumerState<_WaterCard> {
                   padding: const EdgeInsets.only(right: 6),
                   child: Icon(Icons.water_drop_rounded, size: 22, color: (i + 1) * 250 <= consumedMl ? AppColors.water : AppColors.ink200),
                 ),
-              const Spacer(),
-              GestureDetector(
-                onTap: _busy ? null : () => _run(() => notifier.addWater(250)),
-                child: Container(
-                  width: 26,
-                  height: 26,
-                  decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle),
-                  child: _busy
-                      ? const Padding(
-                          padding: EdgeInsets.all(5),
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              for (final amount in const [250, 500, 750]) ...[
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _busy ? null : () => _run(() => notifier.addWater(amount)),
+                    child: Text('+$amount мл'),
+                  ),
                 ),
-              ),
+                if (amount != 750) const SizedBox(width: 8),
+              ],
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Открывается тапом на заголовок карточки воды — полная история записей
+/// за день с возможностью изменить или удалить КОНКРЕТНУЮ запись (не
+/// только последнюю, как кнопка undo на самой карточке).
+class _WaterHistorySheet extends ConsumerStatefulWidget {
+  const _WaterHistorySheet();
+
+  @override
+  ConsumerState<_WaterHistorySheet> createState() => _WaterHistorySheetState();
+}
+
+class _WaterHistorySheetState extends ConsumerState<_WaterHistorySheet> {
+  List<WaterEntry>? _entries;
+  String? _error;
+  String? _busyEntryId;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final entries = await ref.read(nutritionDayProvider.notifier).loadWaterEntries();
+      if (mounted) setState(() => _entries = entries);
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    }
+  }
+
+  Future<void> _editEntry(WaterEntry entry) async {
+    final amount = await showDialog<int>(
+      context: context,
+      builder: (context) => _EditWaterAmountDialog(initialMl: entry.amountMl),
+    );
+    if (amount == null) return;
+    setState(() => _busyEntryId = entry.id);
+    try {
+      final entries = await ref.read(nutritionDayProvider.notifier).updateWaterEntry(entry.id, amount);
+      if (mounted) setState(() => _entries = entries);
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
+    } finally {
+      if (mounted) setState(() => _busyEntryId = null);
+    }
+  }
+
+  Future<void> _deleteEntry(WaterEntry entry) async {
+    setState(() => _busyEntryId = entry.id);
+    try {
+      final entries = await ref.read(nutritionDayProvider.notifier).deleteWaterEntry(entry.id);
+      if (mounted) setState(() => _entries = entries);
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
+    } finally {
+      if (mounted) setState(() => _busyEntryId = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Записи о воде', style: Theme.of(context).textTheme.headlineMedium),
+            const SizedBox(height: AppSpacing.md),
+            if (_error != null)
+              Text(_error!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.error))
+            else if (_entries == null)
+              const Padding(padding: EdgeInsets.all(AppSpacing.lg), child: Center(child: CircularProgressIndicator()))
+            else if (_entries!.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                child: Text('За сегодня записей ещё нет', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+              )
+            else
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _entries!.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 6),
+                  itemBuilder: (context, i) {
+                    final entry = _entries![_entries!.length - 1 - i]; // новые сверху
+                    final busy = _busyEntryId == entry.id;
+                    return AppCard(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.water_drop_rounded, size: 18, color: AppColors.water),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text('${entry.amountMl} мл', style: Theme.of(context).textTheme.bodyMedium),
+                          ),
+                          Text(TimeOfDay.fromDateTime(entry.loggedAt.toLocal()).format(context), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500)),
+                          if (busy)
+                            const Padding(
+                              padding: EdgeInsets.only(left: 12),
+                              child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                            )
+                          else ...[
+                            IconButton(
+                              onPressed: () => _editEntry(entry),
+                              icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.ink400),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            IconButton(
+                              onPressed: () => _deleteEntry(entry),
+                              icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EditWaterAmountDialog extends StatefulWidget {
+  const _EditWaterAmountDialog({required this.initialMl});
+  final int initialMl;
+
+  @override
+  State<_EditWaterAmountDialog> createState() => _EditWaterAmountDialogState();
+}
+
+class _EditWaterAmountDialogState extends State<_EditWaterAmountDialog> {
+  late int _amount = widget.initialMl;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Изменить количество'),
+      content: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton.filled(
+            onPressed: _amount > 50 ? () => setState(() => _amount -= 50) : null,
+            icon: const Icon(Icons.remove_rounded),
+            style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+          ),
+          SizedBox(width: 90, child: Text('$_amount мл', textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium)),
+          IconButton.filled(
+            onPressed: () => setState(() => _amount += 50),
+            icon: const Icon(Icons.add_rounded),
+            style: IconButton.styleFrom(backgroundColor: AppColors.ink100, foregroundColor: AppColors.ink900),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Отмена')),
+        ElevatedButton(onPressed: () => Navigator.of(context).pop(_amount), child: const Text('Сохранить')),
+      ],
     );
   }
 }

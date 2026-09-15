@@ -10,6 +10,8 @@ import { DuplicateFoodError, FoodNotFoundError } from '../modules/food/food.serv
 import { serializeFood } from '../modules/food/food.serializer';
 import { InvalidImageError } from '../modules/foodRecognition/foodRecognition.service';
 import { ForbiddenError, MealItemNotFoundError, MealNotFoundError } from '../modules/meal/meal.service';
+import { WaterEntryNotFoundError } from '../modules/nutrition/nutrition.daily.service';
+import { IncompleteNutritionProfileError } from '../modules/nutrition/nutritionTarget.service';
 import { RecipeIngredientFoodNotFoundError, RecipeIngredientUnitError, RecipeNotFoundError } from '../modules/recipe/recipe.service';
 import { VisionNotConfiguredError, VisionRateLimitError, VisionTimeoutError, VisionUnavailableError } from '../integrations/visionClient';
 import {
@@ -70,6 +72,20 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
         code: 'RECIPE_INGREDIENT_UNIT_UNSUPPORTED',
         message: `У продукта «${err.foodName}» не задан размер порции — количество в штуках посчитать нельзя`,
         details: { foodId: err.foodId },
+      },
+    });
+    return;
+  }
+  if (err instanceof WaterEntryNotFoundError) {
+    res.status(404).json({ error: { code: 'WATER_ENTRY_NOT_FOUND', message: 'Запись о воде не найдена' } });
+    return;
+  }
+  if (err instanceof IncompleteNutritionProfileError) {
+    res.status(422).json({
+      error: {
+        code: 'NUTRITION_PROFILE_INCOMPLETE',
+        message: 'Заполни все данные профиля, чтобы рассчитать цели',
+        details: { missingFields: err.missingFields },
       },
     });
     return;

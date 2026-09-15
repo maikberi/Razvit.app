@@ -1,5 +1,37 @@
 import 'nutrition.dart';
 
+/// Одна запись о выпитой воде (см. backend water_entries) — позволяет
+/// показать историю за день и редактировать/удалять конкретную запись,
+/// а не только "последнюю добавленную".
+class WaterEntry {
+  const WaterEntry({required this.id, required this.amountMl, required this.loggedAt});
+
+  final String id;
+  final int amountMl;
+  final DateTime loggedAt;
+
+  factory WaterEntry.fromJson(Map<String, dynamic> json) => WaterEntry(
+        id: json['id'] as String,
+        amountMl: (json['amountMl'] as num).round(),
+        loggedAt: DateTime.parse(json['loggedAt'] as String),
+      );
+}
+
+/// Ответ backend на любую мутацию воды (POST/PUT/DELETE) и на GET —
+/// всегда и итог за день, и сами записи, так что после любого действия
+/// экран может сразу перерисовать и то, и другое без лишнего запроса.
+class WaterDay {
+  const WaterDay({required this.consumedMl, required this.entries});
+
+  final int consumedMl;
+  final List<WaterEntry> entries;
+
+  factory WaterDay.fromJson(Map<String, dynamic> json) => WaterDay(
+        consumedMl: (json['consumedMl'] as num).round(),
+        entries: (json['entries'] as List<dynamic>? ?? const []).map((e) => WaterEntry.fromJson(e as Map<String, dynamic>)).toList(),
+      );
+}
+
 /// Продукт внутри приёма пищи — уже посчитанные backend'ом (Nutrition
 /// Engine) значения на фактический вес порции, а не на 100 г. Flutter
 /// здесь ничего не умножает и не делит, только показывает.

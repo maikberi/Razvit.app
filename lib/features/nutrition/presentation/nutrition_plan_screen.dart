@@ -1,95 +1,157 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/progress_ring.dart';
 import '../../../data/models/nutrition.dart';
-import '../../../data/repositories/nutrition_repository.dart';
+import '../../../data/models/nutrition_day.dart';
+import '../../../data/repositories/nutrition_day_repository.dart';
+import '../../../data/services/nutrition_api_service.dart';
 
+/// План/цели питания — реальные данные с backend (GET /nutrition/daily,
+/// тот же источник, что и Nutrition Home Screen, поэтому progressPercent
+/// здесь совпадает с тем, что человек видит там). Раньше экран работал
+/// на чисто локальном моке (nutritionPlanProvider) — правки в нём никуда
+/// не сохранялись; теперь и просмотр, и редактирование идут через backend.
 class NutritionPlanScreen extends ConsumerWidget {
   const NutritionPlanScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final plan = ref.watch(nutritionPlanProvider);
+    final dayAsync = ref.watch(nutritionDayProvider);
+    final notifier = ref.read(nutritionDayProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(title: const Text('План питания'), leading: const BackButton()),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            AppCard(
-              color: AppColors.ink900,
-              shadow: false,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Text('👑', style: TextStyle(fontSize: 18)),
-                      const SizedBox(width: 6),
-                      Text('Твой план', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(plan.title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${plan.calorieGoal} ккал · Б ${plan.proteinGoal} г · Ж ${plan.fatGoal} г · У ${plan.carbsGoal} г',
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 4),
-                  Text('Действует до ${DateFormat('d MMMM yyyy', 'ru').format(plan.validUntil)}', style: const TextStyle(color: Colors.white38, fontSize: 12)),
-                  const SizedBox(height: AppSpacing.sm),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    child: LinearProgressIndicator(value: plan.progressPercent / 100, minHeight: 6, backgroundColor: Colors.white12, color: AppColors.green500),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text('Рекомендации', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: AppSpacing.sm),
-            _recommendation(context, Icons.water_drop_outlined, 'Пей больше воды', 'Ты выпил 1.6 л из 2.5 л'),
-            const SizedBox(height: 8),
-            _recommendation(context, Icons.egg_alt_outlined, 'Больше белка', 'Добавь 20 г белка к цели'),
-            const SizedBox(height: 8),
-            _recommendation(context, Icons.check_circle_outline_rounded, 'Отличный баланс', 'Ты хорошо распределяешь БЖУ!', good: true),
-            const SizedBox(height: AppSpacing.lg),
-            Text('Цель', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: AppSpacing.sm),
-            AppCard(
-              child: Row(
-                children: [
-                  ProgressRing(
-                    progress: plan.progressPercent / 100,
-                    size: 84,
-                    child: Text('${plan.progressPercent}%', style: Theme.of(context).textTheme.titleMedium),
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: Text('Ты на верном пути! Ещё немного и цель будет достигнута.', style: Theme.of(context).textTheme.bodyMedium),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(onPressed: () => _showEditSheet(context, ref), child: const Text('Редактировать план')),
-            ),
-          ],
+        child: dayAsync.when(
+          loading: () => const LoadingView(),
+          error: (err, st) => ErrorView(
+            message: err is ApiException ? err.message : 'Не удалось загрузить план',
+            onRetry: notifier.refresh,
+          ),
+          data: (summary) => _PlanContent(summary: summary),
         ),
       ),
     );
   }
+}
 
-  void _showEditSheet(BuildContext context, WidgetRef ref) {
-    final plan = ref.read(nutritionPlanProvider);
+class _PlanContent extends ConsumerWidget {
+  const _PlanContent({required this.summary});
+  final DailyNutritionSummary summary;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final plan = summary.targets;
+    final waterLeftL = ((plan.waterGoalMl - summary.waterConsumedMl) / 1000).clamp(0, double.infinity);
+    final proteinLeft = plan.proteinGoal - summary.consumedProtein;
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      children: [
+        AppCard(
+          color: AppColors.ink900,
+          shadow: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('👑', style: TextStyle(fontSize: 18)),
+                  const SizedBox(width: 6),
+                  Text('Твой план', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(plan.title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
+              const SizedBox(height: 8),
+              Text(
+                '${plan.calorieGoal} ккал · Б ${plan.proteinGoal} г · Ж ${plan.fatGoal} г · У ${plan.carbsGoal} г',
+                style: const TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 4),
+              Text('Сегодня, ${DateFormat('d MMMM yyyy', 'ru').format(summary.date)}', style: const TextStyle(color: Colors.white38, fontSize: 12)),
+              const SizedBox(height: AppSpacing.sm),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                child: LinearProgressIndicator(
+                  value: (plan.progressPercent / 100).clamp(0, 1),
+                  minHeight: 6,
+                  backgroundColor: Colors.white12,
+                  color: AppColors.green500,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Text('Рекомендации', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: AppSpacing.sm),
+        _recommendation(
+          context,
+          Icons.water_drop_outlined,
+          waterLeftL <= 0 ? 'Норма по воде выполнена' : 'Пей больше воды',
+          waterLeftL <= 0
+              ? 'Выпито ${(summary.waterConsumedMl / 1000).toStringAsFixed(1)} л из ${(plan.waterGoalMl / 1000).toStringAsFixed(1)} л'
+              : 'Ты выпил ${(summary.waterConsumedMl / 1000).toStringAsFixed(1)} л из ${(plan.waterGoalMl / 1000).toStringAsFixed(1)} л',
+          good: waterLeftL <= 0,
+        ),
+        const SizedBox(height: 8),
+        _recommendation(
+          context,
+          Icons.egg_alt_outlined,
+          proteinLeft <= 0 ? 'Норма по белку выполнена' : 'Больше белка',
+          proteinLeft <= 0 ? 'Ты набрал дневную норму белка' : 'Добавь ${proteinLeft.toStringAsFixed(0)} г белка к цели',
+          good: proteinLeft <= 0,
+        ),
+        const SizedBox(height: 8),
+        _recommendation(context, Icons.check_circle_outline_rounded, 'Отличный баланс', 'Ты хорошо распределяешь БЖУ!', good: true),
+        const SizedBox(height: AppSpacing.lg),
+        Text('Цель', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: AppSpacing.sm),
+        AppCard(
+          child: Row(
+            children: [
+              ProgressRing(
+                progress: (plan.progressPercent / 100).clamp(0, 1),
+                size: 84,
+                child: Text('${plan.progressPercent}%', style: Theme.of(context).textTheme.titleMedium),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Text('Ты на верном пути! Ещё немного и цель будет достигнута.', style: Theme.of(context).textTheme.bodyMedium),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final changed = await context.push<bool>('/nutrition-profile');
+              if (changed == true) ref.read(nutritionDayProvider.notifier).refresh();
+            },
+            icon: const Icon(Icons.auto_awesome_rounded),
+            label: const Text('Рассчитать по моим данным'),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(onPressed: () => _showEditSheet(context, ref, plan), child: const Text('Редактировать план вручную')),
+        ),
+      ],
+    );
+  }
+
+  void _showEditSheet(BuildContext context, WidgetRef ref, NutritionPlan plan) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -134,6 +196,28 @@ class _EditPlanSheetState extends ConsumerState<_EditPlanSheet> {
   late int _fat = widget.plan.fatGoal;
   late int _carbs = widget.plan.carbsGoal;
   late int _waterMl = widget.plan.waterGoalMl;
+  bool _saving = false;
+
+  Future<void> _save() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      await ref.read(nutritionApiServiceProvider).updateTargets(
+            title: widget.plan.title,
+            calorieGoal: _calories,
+            proteinGoal: _protein,
+            fatGoal: _fat,
+            carbsGoal: _carbs,
+            waterGoalMl: _waterMl,
+          );
+      await ref.read(nutritionDayProvider.notifier).refresh();
+      if (mounted) Navigator.of(context).pop();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: AppColors.error));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,17 +244,10 @@ class _EditPlanSheetState extends ConsumerState<_EditPlanSheet> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  ref.read(nutritionPlanProvider.notifier).update(
-                        calorieGoal: _calories,
-                        proteinGoal: _protein,
-                        fatGoal: _fat,
-                        carbsGoal: _carbs,
-                        waterGoalMl: _waterMl,
-                      );
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Сохранить'),
+                onPressed: _saving ? null : _save,
+                child: _saving
+                    ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                    : const Text('Сохранить'),
               ),
             ),
           ],

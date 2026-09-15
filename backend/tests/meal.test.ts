@@ -12,7 +12,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  await pool.query('TRUNCATE foods, meals, nutrition_targets, water_entries RESTART IDENTITY CASCADE');
+  await pool.query('TRUNCATE foods, meals, nutrition_targets, water_entries, nutrition_profiles RESTART IDENTITY CASCADE');
 });
 
 afterAll(async () => {
@@ -206,6 +206,61 @@ describe('Nutrition daily/targets/water API', () => {
     await request(app).post('/api/v1/nutrition/water').set(userHeader(user)).send({ amountMl: 250 });
     const res = await request(app).delete('/api/v1/nutrition/water/last').set(userHeader(user));
     expect(res.body.data.consumedMl).toBe(250);
+  });
+
+  it('GET /nutrition/water возвращает отдельные записи (id/amountMl/loggedAt), не только сумму', async () => {
+    const user = randomUUID();
+    await request(app).post('/api/v1/nutrition/water').set(userHeader(user)).send({ amountMl: 250 });
+    await request(app).post('/api/v1/nutrition/water').set(userHeader(user)).send({ amountMl: 500 });
+
+    const res = await request(app).get('/api/v1/nutrition/water').set(userHeader(user));
+    expect(res.body.data.consumedMl).toBe(750);
+    expect(res.body.data.entries).toHaveLength(2);
+    expect(res.body.data.entries[0]).toHaveProperty('id');
+    expect(res.body.data.entries.map((e: { amountMl: number }) => e.amountMl)).toEqual([250, 500]);
+  });
+
+  it('PUT /nutrition/water/:id изменяет количество в конкретной записи', async () => {
+    const user = randomUUID();
+    const added = await request(app).post('/api/v1/nutrition/water').set(userHeader(user)).send({ amountMl: 250 });
+    const entryId = added.body.data.entries[0].id as string;
+
+    const res = await request(app).put(`/api/v1/nutrition/water/${entryId}`).set(userHeader(user)).send({ amountMl: 750 });
+    expect(res.status).toBe(200);
+    expect(res.body.data.consumedMl).toBe(750);
+    expect(res.body.data.entries[0].amountMl).toBe(750);
+  });
+
+  it('DELETE /nutrition/water/:id удаляет конкретную запись', async () => {
+    const user = randomUUID();
+    const first = await request(app).post('/api/v1/nutrition/water').set(userHeader(user)).send({ amountMl: 250 });
+    await request(app).post('/api/v1/nutrition/water').set(userHeader(user)).send({ amountMl: 500 });
+    const firstId = first.body.data.entries[0].id as string;
+
+    const res = await request(app).delete(`/api/v1/nutrition/water/${firstId}`).set(userHeader(user));
+    expect(res.status).toBe(200);
+    expect(res.body.data.consumedMl).toBe(500);
+    expect(res.body.data.entries).toHaveLength(1);
+  });
+
+  it('PUT/DELETE /nutrition/water/:id чужой записи — 403', async () => {
+    const owner = randomUUID();
+    const stranger = randomUUID();
+    const added = await request(app).post('/api/v1/nutrition/water').set(userHeader(owner)).send({ amountMl: 250 });
+    const entryId = added.body.data.entries[0].id as string;
+
+    const putRes = await request(app).put(`/api/v1/nutrition/water/${entryId}`).set(userHeader(stranger)).send({ amountMl: 500 });
+    expect(putRes.status).toBe(403);
+
+    const deleteRes = await request(app).delete(`/api/v1/nutrition/water/${entryId}`).set(userHeader(stranger));
+    expect(deleteRes.status).toBe(403);
+  });
+
+  it('PUT /nutrition/water/:id для несуществующей записи — 404', async () => {
+    const user = randomUUID();
+    const res = await request(app).put(`/api/v1/nutrition/water/${randomUUID()}`).set(userHeader(user)).send({ amountMl: 500 });
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('WATER_ENTRY_NOT_FOUND');
   });
 
   it('GET /nutrition/daily собирает приёмы пищи, цели, воду и остаток одним ответом', async () => {

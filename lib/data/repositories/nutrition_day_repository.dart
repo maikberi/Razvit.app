@@ -115,13 +115,33 @@ class NutritionDayNotifier extends StateNotifier<AsyncValue<DailyNutritionSummar
   /// Точечное обновление: backend уже возвращает готовое consumedMl в
   /// ответе на добавление/удаление воды — полный перезапрос дня не нужен.
   Future<void> addWater(int amountMl) async {
-    final consumedMl = await _api.addWater(amountMl, _selectedDate);
-    _patchWater(consumedMl);
+    final day = await _api.addWater(amountMl, _selectedDate);
+    _patchWater(day.consumedMl);
   }
 
   Future<void> removeLastWater() async {
-    final consumedMl = await _api.removeLastWater(_selectedDate);
-    _patchWater(consumedMl);
+    final day = await _api.removeLastWater(_selectedDate);
+    _patchWater(day.consumedMl);
+  }
+
+  /// Список отдельных записей за текущий выбранный день — для истории/
+  /// редактирования конкретной записи (а не только "последней").
+  Future<List<WaterEntry>> loadWaterEntries() async {
+    final day = await _api.getWaterDay(_selectedDate);
+    _patchWater(day.consumedMl);
+    return day.entries;
+  }
+
+  Future<List<WaterEntry>> updateWaterEntry(String id, int amountMl) async {
+    final day = await _api.updateWaterEntry(id, amountMl);
+    _patchWater(day.consumedMl);
+    return day.entries;
+  }
+
+  Future<List<WaterEntry>> deleteWaterEntry(String id) async {
+    final day = await _api.deleteWaterEntry(id);
+    _patchWater(day.consumedMl);
+    return day.entries;
   }
 
   void _patchWater(int consumedMl) {

@@ -3,6 +3,14 @@ import { NutritionCalculationService } from './nutrition.calculation.service';
 import { NutritionTargetsRepository } from './nutrition.targets.repository';
 import { NutritionWaterRepository } from './nutrition.water.repository';
 
+/** Запись о выпитой воде с таким id не найдена (уже удалена или никогда не существовала). */
+export class WaterEntryNotFoundError extends Error {
+  constructor() {
+    super('Water entry not found');
+    this.name = 'WaterEntryNotFoundError';
+  }
+}
+
 export interface DailySummary {
   date: string;
   meals: Awaited<ReturnType<MealService['getDay']>>;

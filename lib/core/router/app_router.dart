@@ -12,6 +12,7 @@ import '../../data/models/nutrition.dart';
 import '../../features/home/presentation/notifications_screen.dart';
 import '../../features/nutrition/presentation/add_food_screen.dart';
 import '../../features/nutrition/presentation/nutrition_plan_screen.dart';
+import '../../features/nutrition/presentation/nutrition_profile_screen.dart';
 import '../../features/nutrition/presentation/nutrition_stats_screen.dart';
 import '../../features/nutrition/presentation/recipe_detail_screen.dart';
 import '../../features/nutrition/presentation/recipe_form_screen.dart';
@@ -105,6 +106,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/recipes/:id/edit', builder: (context, state) => RecipeFormScreen(recipeId: state.pathParameters['id'])),
     GoRoute(path: '/recipes/:id', builder: (context, state) => RecipeDetailScreen(recipeId: state.pathParameters['id']!)),
     GoRoute(path: '/nutrition-plan', builder: (context, state) => const NutritionPlanScreen()),
+    GoRoute(path: '/nutrition-profile', builder: (context, state) => const NutritionProfileScreen()),
     GoRoute(path: '/nutrition-stats', builder: (context, state) => const NutritionStatsScreen()),
     GoRoute(path: '/trainer/:id', builder: (context, state) => TrainerProfileScreen(trainerId: state.pathParameters['id']!)),
     GoRoute(path: '/chat/:id', builder: (context, state) => ChatScreen(trainerId: state.pathParameters['id']!)),

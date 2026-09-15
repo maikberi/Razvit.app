@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_client.dart';
 import '../models/nutrition.dart';
 import '../models/nutrition_day.dart';
+import '../models/nutrition_profile.dart';
 
 String _formatDate(DateTime date) =>
     '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -105,14 +106,34 @@ class NutritionApiService {
     await _client.delete('/api/v1/meal-items/$itemId');
   }
 
-  Future<int> addWater(int amountMl, DateTime date) async {
-    final json = await _client.postJson('/api/v1/nutrition/water', {'amountMl': amountMl, 'date': _formatDate(date)});
-    return ((json['data'] as Map<String, dynamic>)['consumedMl'] as num).round();
+  Future<WaterDay> getWaterDay(DateTime date) async {
+    final json = await _client.getJson('/api/v1/nutrition/water', query: {'date': _formatDate(date)});
+    return WaterDay.fromJson(json['data'] as Map<String, dynamic>);
   }
 
-  Future<int> removeLastWater(DateTime date) async {
+  Future<WaterDay> addWater(int amountMl, DateTime date) async {
+    final json = await _client.postJson('/api/v1/nutrition/water', {'amountMl': amountMl, 'date': _formatDate(date)});
+    return WaterDay.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<WaterDay> removeLastWater(DateTime date) async {
     final json = await _client.delete('/api/v1/nutrition/water/last', query: {'date': _formatDate(date)});
-    return ((json['data'] as Map<String, dynamic>)['consumedMl'] as num).round();
+    return WaterDay.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<WaterDay> updateWaterEntry(String id, int amountMl) async {
+    final json = await _client.putJson('/api/v1/nutrition/water/${Uri.encodeComponent(id)}', {'amountMl': amountMl});
+    return WaterDay.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<WaterDay> deleteWaterEntry(String id) async {
+    final json = await _client.delete('/api/v1/nutrition/water/${Uri.encodeComponent(id)}');
+    return WaterDay.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<NutritionPlan> getTargets() async {
+    final json = await _client.getJson('/api/v1/nutrition/targets');
+    return NutritionPlan.fromTargetsJson(json['data'] as Map<String, dynamic>);
   }
 
   Future<NutritionPlan> updateTargets({
@@ -131,6 +152,38 @@ class NutritionApiService {
       'carbsGoal': carbsGoal,
       'waterGoalMl': waterGoalMl,
     });
+    return NutritionPlan.fromTargetsJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<NutritionProfile> getProfile() async {
+    final json = await _client.getJson('/api/v1/nutrition/profile');
+    return NutritionProfile.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<NutritionProfile> updateProfile({
+    NutritionSex? sex,
+    int? age,
+    double? heightCm,
+    double? weightKg,
+    ActivityLevel? activityLevel,
+    NutritionGoal? goal,
+  }) async {
+    final json = await _client.putJson('/api/v1/nutrition/profile', {
+      if (sex != null) 'sex': sex.apiValue,
+      if (age != null) 'age': age,
+      if (heightCm != null) 'heightCm': heightCm,
+      if (weightKg != null) 'weightKg': weightKg,
+      if (activityLevel != null) 'activityLevel': activityLevel.apiValue,
+      if (goal != null) 'goal': goal.apiValue,
+    });
+    return NutritionProfile.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  /// Nutrition Target Service на backend: BMR/TDEE -> Goal adjustment ->
+  /// Calories -> Macros из текущего профиля — и сразу сохраняет результат
+  /// как новые цели (их по-прежнему можно поправить вручную через updateTargets).
+  Future<NutritionPlan> generateTargets() async {
+    final json = await _client.postJson('/api/v1/nutrition/targets/generate', const {});
     return NutritionPlan.fromTargetsJson(json['data'] as Map<String, dynamic>);
   }
 }

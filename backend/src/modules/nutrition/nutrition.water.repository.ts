@@ -36,4 +36,22 @@ export class NutritionWaterRepository {
       [userId, date],
     );
   }
+
+  async findById(id: string): Promise<WaterEntryRow | null> {
+    const { rows } = await this.pool.query<WaterEntryRow>('SELECT * FROM water_entries WHERE id = $1', [id]);
+    return rows[0] ?? null;
+  }
+
+  /** Изменить количество в конкретной записи (например, пользователь ошибся при быстром добавлении). */
+  async update(id: string, amountMl: number): Promise<WaterEntryRow> {
+    const { rows } = await this.pool.query<WaterEntryRow>(
+      'UPDATE water_entries SET amount_ml = $1 WHERE id = $2 RETURNING *',
+      [amountMl, id],
+    );
+    return rows[0];
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.pool.query('DELETE FROM water_entries WHERE id = $1', [id]);
+  }
 }
