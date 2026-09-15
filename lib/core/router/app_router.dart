@@ -29,6 +29,8 @@ import '../../features/nutrition/presentation/nutrition_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/trainer/presentation/ai_assistant_screen.dart';
 import '../../features/trainer/presentation/chat_screen.dart';
+import '../../features/trainer/presentation/client_nutrition_view_screen.dart';
+import '../../features/trainer/presentation/coaching_screen.dart';
 import '../../features/trainer/presentation/trainer_profile_screen.dart';
 import '../../features/trainer/presentation/trainer_screen.dart';
 import '../../features/workouts/presentation/create_program_screen.dart';
@@ -109,6 +111,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/nutrition-profile', builder: (context, state) => const NutritionProfileScreen()),
     GoRoute(path: '/nutrition-stats', builder: (context, state) => const NutritionStatsScreen()),
     GoRoute(path: '/trainer/:id', builder: (context, state) => TrainerProfileScreen(trainerId: state.pathParameters['id']!)),
+    GoRoute(path: '/coaching', builder: (context, state) => const CoachingScreen()),
+    GoRoute(
+      path: '/coaching/clients/:clientId',
+      builder: (context, state) => ClientNutritionViewScreen(
+        clientId: state.pathParameters['clientId']!,
+        clientName: state.extra as String?,
+      ),
+    ),
     GoRoute(path: '/chat/:id', builder: (context, state) => ChatScreen(trainerId: state.pathParameters['id']!)),
     GoRoute(path: '/ai-assistant', builder: (context, state) => const AiAssistantScreen()),
     GoRoute(path: '/achievements', builder: (context, state) => const AchievementsScreen()),

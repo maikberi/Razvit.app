@@ -75,6 +75,7 @@ class ProfileScreen extends ConsumerWidget {
             _SectionTile(icon: Icons.fitness_center_outlined, title: 'Мои программы', subtitle: 'Активные и завершённые', onTap: () => context.go('/workouts')),
             _SectionTile(icon: Icons.emoji_events_outlined, title: 'Достижения', subtitle: '$unlockedAchievements из ${mockAchievements.length} открыто', onTap: () => context.push('/achievements')),
             _SectionTile(icon: Icons.insights_outlined, title: 'Статистика', subtitle: 'Тренировки, объём, серии', onTap: () => context.push('/workout-stats')),
+            _SectionTile(icon: Icons.groups_outlined, title: 'Тренерская программа', subtitle: 'Мой тренер и мои клиенты', onTap: () => context.push('/coaching')),
             _SectionTile(icon: Icons.settings_outlined, title: 'Настройки', subtitle: 'Уведомления, аккаунт', onTap: () => context.push('/settings')),
           ],
         ),

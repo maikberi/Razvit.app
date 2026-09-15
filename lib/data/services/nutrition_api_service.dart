@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_client.dart';
 import '../models/nutrition.dart';
 import '../models/nutrition_day.dart';
+import '../models/nutrition_analytics.dart';
 import '../models/nutrition_profile.dart';
 
 String _formatDate(DateTime date) =>
@@ -186,6 +187,17 @@ class NutritionApiService {
     final json = await _client.postJson('/api/v1/nutrition/targets/generate', const {});
     return NutritionPlan.fromTargetsJson(json['data'] as Map<String, dynamic>);
   }
+
+  /// ЭТАП 16: агрегированная статистика за период — backend считает всё,
+  /// здесь только один запрос вместо тысяч сырых записей за месяцы.
+  Future<NutritionAnalyticsResult> getAnalytics(AnalyticsPeriod period) async {
+    final json = await _client.getJson('/api/v1/nutrition/analytics', query: {'period': period.apiValue});
+    return NutritionAnalyticsResult.fromJson(json['data'] as Map<String, dynamic>);
+  }
 }
 
 final nutritionApiServiceProvider = Provider<NutritionApiService>((ref) => NutritionApiService());
+
+final nutritionAnalyticsProvider = FutureProvider.autoDispose.family<NutritionAnalyticsResult, AnalyticsPeriod>(
+  (ref, period) => ref.watch(nutritionApiServiceProvider).getAnalytics(period),
+);
