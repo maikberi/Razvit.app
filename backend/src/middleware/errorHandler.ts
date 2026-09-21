@@ -6,6 +6,7 @@ import {
   SocialAuthNotConfiguredError,
 } from '../modules/auth/auth.service';
 import { SocialProvider } from '../modules/auth/auth.model';
+import { ExerciseNotFoundError } from '../modules/exercise/exercise.service';
 import { DuplicateFoodError, FoodNotFoundError } from '../modules/food/food.service';
 import { serializeFood } from '../modules/food/food.serializer';
 import { InvalidImageError } from '../modules/foodRecognition/foodRecognition.service';
@@ -36,6 +37,10 @@ const SOCIAL_PROVIDER_LABELS: Record<SocialProvider, string> = { google: 'Google
 /** Единая точка превращения ошибок в HTTP-ответ по контракту {error:{code,message,details}}. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function errorHandler(err: unknown, req: Request, res: Response, next: NextFunction): void {
+  if (err instanceof ExerciseNotFoundError) {
+    res.status(404).json({ error: { code: 'EXERCISE_NOT_FOUND', message: 'Упражнение не найдено' } });
+    return;
+  }
   if (err instanceof FoodNotFoundError) {
     res.status(404).json({ error: { code: 'FOOD_NOT_FOUND', message: 'Продукт не найден' } });
     return;

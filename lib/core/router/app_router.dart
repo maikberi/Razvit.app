@@ -8,6 +8,7 @@ import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/sign_up_method_screen.dart';
 import '../../features/auth/presentation/vk_callback_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
+import '../../data/models/exercise.dart';
 import '../../data/models/nutrition.dart';
 import '../../features/home/presentation/notifications_screen.dart';
 import '../../features/nutrition/presentation/add_food_screen.dart';
@@ -89,7 +90,19 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/plan-ready', builder: (context, state) => const PlanReadyScreen()),
 
     // Полноэкранные маршруты без нижней навигации.
-    GoRoute(path: '/exercise/:id', builder: (context, state) => ExerciseDetailScreen(exerciseId: state.pathParameters['id']!)),
+    GoRoute(
+      path: '/exercise/:id',
+      // extra — реальное упражнение из библиотеки backend (см. CatalogTab):
+      // передаём объект напрямую, а не только id, потому что id теперь
+      // настоящий UUID backend, а не строковый ключ мок-каталога — искать
+      // его в mockExercises бессмысленно. Переходы из "моей программы"
+      // (workout_session_screen.dart и т.п.) extra не передают и по-прежнему
+      // резолвятся через mockExercises/exerciseById.
+      builder: (context, state) => ExerciseDetailScreen(
+        exerciseId: state.pathParameters['id']!,
+        exercise: state.extra as Exercise?,
+      ),
+    ),
     GoRoute(path: '/workout-session', builder: (context, state) => const WorkoutSessionScreen()),
     GoRoute(path: '/workout-session/complete', builder: (context, state) => const WorkoutSessionCompleteScreen()),
     GoRoute(path: '/create-program', builder: (context, state) => const CreateProgramScreen()),

@@ -10,9 +10,11 @@ import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/loop_video.dart';
 import '../../../core/widgets/selectable_option.dart';
+import '../../../core/network/api_client.dart';
 import '../../../data/mock/mock_exercises.dart';
 import '../../../data/models/exercise.dart';
 import '../../../data/repositories/workout_repository.dart';
+import '../../../data/services/exercise_api_service.dart';
 
 enum _Period { week, month, m3, m6, year, all }
 
@@ -37,9 +39,14 @@ extension on _Period {
 }
 
 class ExerciseDetailScreen extends ConsumerStatefulWidget {
-  const ExerciseDetailScreen({super.key, required this.exerciseId});
+  const ExerciseDetailScreen({super.key, required this.exerciseId, this.exercise});
 
   final String exerciseId;
+
+  /// Упражнение из настоящей библиотеки backend (см. CatalogTab), передано
+  /// напрямую через extra — если задано, используется вместо поиска
+  /// в mockExercises (у которого другое, не-UUID, пространство id).
+  final Exercise? exercise;
 
   @override
   ConsumerState<ExerciseDetailScreen> createState() => _ExerciseDetailScreenState();
@@ -48,16 +55,42 @@ class ExerciseDetailScreen extends ConsumerStatefulWidget {
 class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
   _Period _period = _Period.all;
   bool _favorite = false;
+  bool _favoriteBusy = false;
+
+  bool get _isRealExercise => widget.exercise != null;
 
   @override
   void initState() {
     super.initState();
-    _favorite = exerciseById(widget.exerciseId).isFavorite;
+    _favorite = (widget.exercise ?? exerciseById(widget.exerciseId)).isFavorite;
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (!_isRealExercise) {
+      // Мок-упражнения программ/тренировок: избранное чисто визуальное,
+      // как и раньше — сохранять на backend нечего.
+      setState(() => _favorite = !_favorite);
+      return;
+    }
+    final next = !_favorite;
+    setState(() {
+      _favorite = next;
+      _favoriteBusy = true;
+    });
+    try {
+      await ref.read(exerciseApiServiceProvider).setFavorite(widget.exercise!.id, next);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _favorite = !next); // откатываем при ошибке
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => _favoriteBusy = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final exercise = exerciseById(widget.exerciseId);
+    final exercise = widget.exercise ?? exerciseById(widget.exerciseId);
     final history = ref.watch(exerciseHistoryProvider(widget.exerciseId));
 
     return DefaultTabController(
@@ -75,7 +108,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                       child: Text(exercise.name, style: Theme.of(context).textTheme.titleLarge, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                     IconButton(
-                      onPressed: () => setState(() => _favorite = !_favorite),
+                      onPressed: _favoriteBusy ? null : _toggleFavorite,
                       icon: Icon(_favorite ? Icons.star_rounded : Icons.star_border_rounded, color: _favorite ? AppColors.warning : AppColors.ink400),
                     ),
                   ],
@@ -83,14 +116,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: exercise.videoAsset != null
-                    ? LoopVideo(assetPath: exercise.videoAsset!, posterAssetPath: exercise.videoPosterAsset)
-                    : Container(
-                        height: 180,
-                        width: double.infinity,
-                        decoration: BoxDecoration(color: AppColors.ink800, borderRadius: BorderRadius.circular(AppRadius.lg)),
-                        child: const Center(child: Icon(Icons.fitness_center_rounded, color: Colors.white38, size: 56)),
-                      ),
+                child: _ExerciseMedia(exercise: exercise),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
@@ -137,6 +163,47 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Демо техники выполнения: приоритет — анимация из библиотеки backend
+/// (Image.network сам анимирует GIF), затем локальное видео старых
+/// моковых упражнений программ, затем нейтральная заглушка.
+class _ExerciseMedia extends StatelessWidget {
+  const _ExerciseMedia({required this.exercise});
+  final Exercise exercise;
+
+  @override
+  Widget build(BuildContext context) {
+    if (exercise.gifUrl != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        child: Container(
+          height: 220,
+          width: double.infinity,
+          color: AppColors.ink800,
+          child: Image.network(
+            exercise.gifUrl!,
+            fit: BoxFit.contain,
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+              return const Center(child: CircularProgressIndicator());
+            },
+            errorBuilder: (context, error, stack) =>
+                const Center(child: Icon(Icons.fitness_center_rounded, color: Colors.white38, size: 56)),
+          ),
+        ),
+      );
+    }
+    if (exercise.videoAsset != null) {
+      return LoopVideo(assetPath: exercise.videoAsset!, posterAssetPath: exercise.videoPosterAsset);
+    }
+    return Container(
+      height: 180,
+      width: double.infinity,
+      decoration: BoxDecoration(color: AppColors.ink800, borderRadius: BorderRadius.circular(AppRadius.lg)),
+      child: const Center(child: Icon(Icons.fitness_center_rounded, color: Colors.white38, size: 56)),
     );
   }
 }

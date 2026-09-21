@@ -55,6 +55,13 @@ class _CreateProgramScreenState extends ConsumerState<CreateProgramScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _titleController.dispose();
+    super.dispose();
+  }
+
   void _next() {
     if (_step == _totalSteps - 1) {
       _save();

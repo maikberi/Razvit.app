@@ -255,4 +255,16 @@ final List<Exercise> mockExercises = [
   ),
 ];
 
-Exercise exerciseById(String id) => mockExercises.firstWhere((e) => e.id == id);
+// firstWhere без orElse раньше падал с необработанным StateError на любой
+// битый/устаревший id (например, из старого deep-link или из истории,
+// ссылающейся на удалённое упражнение) — см. аудит ЭТАП 18.
+Exercise exerciseById(String id) => mockExercises.firstWhere(
+      (e) => e.id == id,
+      orElse: () => const Exercise(
+        id: '',
+        name: 'Упражнение не найдено',
+        primaryMuscle: MuscleGroup.cardio,
+        equipment: '—',
+        difficulty: ExerciseDifficulty.beginner,
+      ),
+    );
