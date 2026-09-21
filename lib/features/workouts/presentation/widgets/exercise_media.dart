@@ -39,6 +39,21 @@ class ExerciseHero extends StatelessWidget {
   }
 }
 
+/// Полноэкранная демонстрация для активной тренировки (workout_session_screen) —
+/// заполняет всё доступное пространство под собой (без квадратного
+/// AspectRatio, без карточки/тени — фон страницы сам служит "подложкой",
+/// поэтому по бокам не серые поля, а тот же светлый фон, что и везде).
+class ExerciseFullscreenMedia extends StatelessWidget {
+  const ExerciseFullscreenMedia({super.key, required this.exercise});
+
+  final Exercise exercise;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Media(exercise: exercise, iconSize: 96);
+  }
+}
+
 /// Маленькое превью для строк списков (каталог, "Рекомендуемые
 /// упражнения" и т.п.) — тот же светлый квадрат, просто компактнее
 /// и без внутреннего отступа/тени.

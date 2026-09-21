@@ -86,111 +86,89 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
 
     final day = state.day;
     final exercise = state.currentExercise;
-    final completedSets = state.logsFor(state.exerciseIndex);
     final progress = day.exercises.isEmpty ? 0.0 : (state.exerciseIndex) / day.exercises.length;
 
+    // GIF занимает весь верх экрана (как просили) — панель с управлением
+    // "плавает" поверх снизу закруглённой карточкой, как в Apple Fitness+,
+    // а не отдельным прокручиваемым списком под маленькой картинкой.
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => _confirmExit(context),
-                    icon: const Icon(Icons.close_rounded, color: AppColors.ink900),
-                  ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Text(day.title, style: Theme.of(context).textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        Text('${state.exerciseIndex + 1} из ${day.exercises.length} упражнений', style: Theme.of(context).textTheme.bodySmall),
-                      ],
-                    ),
-                  ),
-                  Text(_fmt(_elapsed), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
-                  const SizedBox(width: 4),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-                child: LinearProgressIndicator(value: progress.clamp(0, 1), minHeight: 6, backgroundColor: AppColors.ink100),
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 280),
-                        child: ExerciseHero(exercise: exercise.exercise),
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text(exercise.exercise.name, style: Theme.of(context).textTheme.headlineMedium),
-                    Text(exercise.exercise.primaryMuscle.label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
-                    const SizedBox(height: AppSpacing.lg),
-                    if (state.isResting)
-                      _RestPanel(seconds: state.restRemaining, total: exercise.restSeconds, onSkip: () => ref.read(activeWorkoutProvider.notifier).skipRest())
-                    else
-                      _SetPanel(
-                        setNumber: state.setIndex + 1,
-                        totalSets: exercise.sets,
-                        weight: _weight,
-                        reps: _reps,
-                        restLabel: exercise.restLabel,
-                        onWeightChanged: (v) => setState(() => _weight = v),
-                        onRepsChanged: (v) => setState(() => _reps = v),
-                      ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text('История подходов', style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: AppSpacing.sm),
-                    for (var i = 0; i < exercise.sets; i++)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: _SetHistoryRow(
-                          index: i + 1,
-                          done: i < completedSets.length,
-                          isCurrent: i == completedSets.length && !state.isResting,
-                          weight: i < completedSets.length ? completedSets[i].weightKg : exercise.weightKg,
-                          reps: i < completedSets.length ? completedSets[i].reps : null,
-                          repsLabel: exercise.repsLabel,
+      backgroundColor: AppColors.white,
+      body: Stack(
+        children: [
+          Positioned.fill(child: ExerciseFullscreenMedia(exercise: exercise.exercise)),
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+                  child: Row(
+                    children: [
+                      _GlassButton(onTap: () => _confirmExit(context), icon: Icons.close_rounded),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(day.title, style: Theme.of(context).textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            Text('${state.exerciseIndex + 1} из ${day.exercises.length} упражнений', style: Theme.of(context).textTheme.bodySmall),
+                          ],
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ),
-            if (!state.isResting)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          ref.read(activeWorkoutProvider.notifier).completeSet(weightKg: _weight, reps: _reps);
-                        },
-                        child: const Text('Завершить подход'),
+                      SizedBox(
+                        width: 40,
+                        child: Text(
+                          _fmt(_elapsed),
+                          textAlign: TextAlign.end,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                        ),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: () => ref.read(activeWorkoutProvider.notifier).skipExercise(),
-                      child: const Text('Пропустить упражнение'),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-          ],
-        ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                    child: LinearProgressIndicator(value: progress.clamp(0, 1), minHeight: 6, backgroundColor: AppColors.ink100),
+                  ),
+                ),
+                const Spacer(),
+                _BottomPanel(
+                  name: exercise.exercise.name,
+                  muscle: exercise.exercise.primaryMuscle.label,
+                  actions: state.isResting
+                      ? null
+                      : Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  ref.read(activeWorkoutProvider.notifier).completeSet(weightKg: _weight, reps: _reps);
+                                },
+                                child: const Text('Завершить подход'),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => ref.read(activeWorkoutProvider.notifier).skipExercise(),
+                              child: const Text('Пропустить упражнение'),
+                            ),
+                          ],
+                        ),
+                  child: state.isResting
+                      ? _RestPanel(seconds: state.restRemaining, total: exercise.restSeconds, onSkip: () => ref.read(activeWorkoutProvider.notifier).skipRest())
+                      : _SetPanel(
+                          setNumber: state.setIndex + 1,
+                          totalSets: exercise.sets,
+                          weight: _weight,
+                          reps: _reps,
+                          restLabel: exercise.restLabel,
+                          onWeightChanged: (v) => setState(() => _weight = v),
+                          onRepsChanged: (v) => setState(() => _reps = v),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -238,43 +216,35 @@ class _SetPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppShadows.card,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Подход $setNumber из $totalSets', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(child: _NumberStepper(label: 'Вес (кг)', value: weight.toStringAsFixed(weight % 1 == 0 ? 0 : 1), onInc: () => onWeightChanged(weight + 2.5), onDec: () => onWeightChanged((weight - 2.5).clamp(0, 500))),),
-              const SizedBox(width: 10),
-              Expanded(child: _NumberStepper(label: 'Повторения', value: '$reps', onInc: () => onRepsChanged(reps + 1), onDec: () => onRepsChanged((reps - 1).clamp(0, 100)))),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Отдых', style: Theme.of(context).textTheme.bodySmall),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: AppColors.ink50, borderRadius: BorderRadius.circular(AppRadius.sm)),
-                      child: Text(restLabel, style: Theme.of(context).textTheme.titleSmall),
-                    ),
-                  ],
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Подход $setNumber из $totalSets', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(child: _NumberStepper(label: 'Вес (кг)', value: weight.toStringAsFixed(weight % 1 == 0 ? 0 : 1), onInc: () => onWeightChanged(weight + 2.5), onDec: () => onWeightChanged((weight - 2.5).clamp(0, 500))),),
+            const SizedBox(width: 10),
+            Expanded(child: _NumberStepper(label: 'Повторения', value: '$reps', onInc: () => onRepsChanged(reps + 1), onDec: () => onRepsChanged((reps - 1).clamp(0, 100)))),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Отдых', style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: AppColors.ink50, borderRadius: BorderRadius.circular(AppRadius.sm)),
+                    child: Text(restLabel, style: Theme.of(context).textTheme.titleSmall),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -327,82 +297,89 @@ class _RestPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = total == 0 ? 0.0 : 1 - (seconds / total).clamp(0.0, 1.0);
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppShadows.card,
-      ),
-      child: Column(
-        children: [
-          Text('Отдых', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.ink500)),
-          const SizedBox(height: AppSpacing.sm),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 96,
-                height: 96,
-                child: CircularProgressIndicator(value: progress, strokeWidth: 8, backgroundColor: AppColors.ink100, color: AppColors.green500),
-              ),
-              Text('$seconds', style: Theme.of(context).textTheme.headlineLarge),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          OutlinedButton(
-            onPressed: onSkip,
-            child: const Text('Пропустить отдых'),
-          ),
-        ],
+    return Column(
+      children: [
+        Text('Отдых', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.ink500)),
+        const SizedBox(height: AppSpacing.sm),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              width: 96,
+              height: 96,
+              child: CircularProgressIndicator(value: progress, strokeWidth: 8, backgroundColor: AppColors.ink100, color: AppColors.green500),
+            ),
+            Text('$seconds', style: Theme.of(context).textTheme.headlineLarge),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        OutlinedButton(
+          onPressed: onSkip,
+          child: const Text('Пропустить отдых'),
+        ),
+      ],
+    );
+  }
+}
+
+/// Полупрозрачная круглая кнопка поверх GIF (крестик закрытия) — читается
+/// на любом фоне картинки, не сливается ни со светлыми, ни с тёмными
+/// кадрами анимации.
+class _GlassButton extends StatelessWidget {
+  const _GlassButton({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.white.withValues(alpha: 0.85),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, color: AppColors.ink900, size: 20),
+        ),
       ),
     );
   }
 }
 
-class _SetHistoryRow extends StatelessWidget {
-  const _SetHistoryRow({
-    required this.index,
-    required this.done,
-    required this.isCurrent,
-    required this.weight,
-    required this.reps,
-    required this.repsLabel,
-  });
+/// Панель управления, "плавающая" поверх полноэкранного GIF снизу —
+/// закруглённые верхние углы, тень, вся логика подхода/отдыха и кнопки
+/// живут здесь одним блоком, а не отдельными прокручиваемыми карточками.
+class _BottomPanel extends StatelessWidget {
+  const _BottomPanel({required this.name, required this.muscle, required this.child, this.actions});
 
-  final int index;
-  final bool done;
-  final bool isCurrent;
-  final double weight;
-  final int? reps;
-  final String repsLabel;
+  final String name;
+  final String muscle;
+  final Widget child;
+  final Widget? actions;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: isCurrent ? AppColors.green50 : AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: isCurrent ? AppColors.green500 : AppColors.border),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.md),
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+        boxShadow: AppShadows.raised,
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text('$index', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              done ? '${weight.toStringAsFixed(0)} кг × $reps' : '${weight.toStringAsFixed(0)} кг × $repsLabel',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: done ? AppColors.ink900 : AppColors.ink600,
-                  ),
-            ),
-          ),
-          if (done)
-            const Icon(Icons.check_circle_rounded, color: AppColors.green500, size: 18)
-          else if (isCurrent)
-            const Icon(Icons.arrow_forward_rounded, color: AppColors.ink400, size: 18),
+          Text(name, style: Theme.of(context).textTheme.headlineMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(muscle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
+          const SizedBox(height: AppSpacing.lg),
+          child,
+          if (actions != null) ...[
+            const SizedBox(height: AppSpacing.lg),
+            actions!,
+          ],
         ],
       ),
     );
