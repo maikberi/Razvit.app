@@ -8,13 +8,13 @@ import '../../../core/widgets/animated_emoji.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/empty_state.dart';
-import '../../../core/widgets/loop_video.dart';
 import '../../../core/widgets/selectable_option.dart';
 import '../../../core/network/api_client.dart';
 import '../../../data/mock/mock_exercises.dart';
 import '../../../data/models/exercise.dart';
 import '../../../data/repositories/workout_repository.dart';
 import '../../../data/services/exercise_api_service.dart';
+import 'widgets/exercise_media.dart';
 
 enum _Period { week, month, m3, m6, year, all }
 
@@ -115,8 +115,13 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: _ExerciseMedia(exercise: exercise),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 320),
+                    child: ExerciseHero(exercise: exercise),
+                  ),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
@@ -126,7 +131,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                   children: [
                     TagBadge(label: exercise.primaryMuscle.label),
                     TagBadge(label: exercise.equipment, color: AppColors.ink700),
-                    TagBadge(label: exercise.difficulty.label, color: AppColors.info),
+                    TagBadge(label: exercise.difficulty.label, color: _difficultyColor(exercise.difficulty)),
                   ],
                 ),
               ),
@@ -167,46 +172,11 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
   }
 }
 
-/// Демо техники выполнения: приоритет — анимация из библиотеки backend
-/// (Image.network сам анимирует GIF), затем локальное видео старых
-/// моковых упражнений программ, затем нейтральная заглушка.
-class _ExerciseMedia extends StatelessWidget {
-  const _ExerciseMedia({required this.exercise});
-  final Exercise exercise;
-
-  @override
-  Widget build(BuildContext context) {
-    if (exercise.gifUrl != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: Container(
-          height: 220,
-          width: double.infinity,
-          color: AppColors.ink800,
-          child: Image.network(
-            exercise.gifUrl!,
-            fit: BoxFit.contain,
-            loadingBuilder: (context, child, progress) {
-              if (progress == null) return child;
-              return const Center(child: CircularProgressIndicator());
-            },
-            errorBuilder: (context, error, stack) =>
-                const Center(child: Icon(Icons.fitness_center_rounded, color: Colors.white38, size: 56)),
-          ),
-        ),
-      );
-    }
-    if (exercise.videoAsset != null) {
-      return LoopVideo(assetPath: exercise.videoAsset!, posterAssetPath: exercise.videoPosterAsset);
-    }
-    return Container(
-      height: 180,
-      width: double.infinity,
-      decoration: BoxDecoration(color: AppColors.ink800, borderRadius: BorderRadius.circular(AppRadius.lg)),
-      child: const Center(child: Icon(Icons.fitness_center_rounded, color: Colors.white38, size: 56)),
-    );
-  }
-}
+Color _difficultyColor(ExerciseDifficulty difficulty) => switch (difficulty) {
+      ExerciseDifficulty.beginner => AppColors.green500,
+      ExerciseDifficulty.intermediate => AppColors.warning,
+      ExerciseDifficulty.advanced => AppColors.error,
+    };
 
 class _TextListTab extends StatelessWidget {
   const _TextListTab({required this.items, required this.emptyText});

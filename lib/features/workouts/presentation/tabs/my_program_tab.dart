@@ -10,6 +10,7 @@ import '../../../../data/models/workout.dart';
 import '../../../../data/models/workout_session.dart';
 import '../../../../data/repositories/workout_repository.dart';
 import '../../widgets/program_card.dart';
+import '../widgets/exercise_media.dart' as media;
 
 class MyProgramTab extends ConsumerWidget {
   const MyProgramTab({super.key, this.onCategoryTap});
@@ -229,21 +230,13 @@ class _ExerciseThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/exercise/${exercise.id}'),
+      onTap: () => context.push('/exercise/${exercise.id}', extra: exercise),
       child: SizedBox(
         width: 108,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 84,
-              width: 108,
-              decoration: BoxDecoration(
-                color: AppColors.ink800,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: const Icon(Icons.fitness_center_rounded, color: Colors.white54, size: 30),
-            ),
+            media.ExerciseThumb(exercise: exercise, size: 84),
             const SizedBox(height: 6),
             Text(exercise.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium),
             Text(exercise.primaryMuscle.label, style: Theme.of(context).textTheme.bodySmall),

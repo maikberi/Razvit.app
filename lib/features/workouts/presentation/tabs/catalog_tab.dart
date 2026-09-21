@@ -11,6 +11,7 @@ import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/selectable_option.dart';
 import '../../../../data/models/exercise.dart';
 import '../../../../data/services/exercise_api_service.dart';
+import '../widgets/exercise_media.dart';
 
 /// Каталог упражнений из настоящей библиотеки backend (GET /exercises,
 /// см. exercise_api_service.dart) — с анимациями техники выполнения,
@@ -218,20 +219,7 @@ class _ExerciseRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            child: SizedBox(
-              width: 48,
-              height: 48,
-              child: exercise.thumbUrl != null
-                  ? Image.network(
-                      exercise.thumbUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stack) => _fallbackIcon(),
-                    )
-                  : _fallbackIcon(),
-            ),
-          ),
+          ExerciseThumb(exercise: exercise, size: 52),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
@@ -248,13 +236,6 @@ class _ExerciseRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _fallbackIcon() {
-    return Container(
-      color: AppColors.ink800,
-      child: const Icon(Icons.fitness_center_rounded, color: Colors.white70, size: 22),
     );
   }
 }

@@ -25,6 +25,16 @@ String _exerciseJson(String id, String name, {String primaryMuscle = 'chest'}) =
     '"equipment":"Штанга","difficulty":"intermediate","instructions":[],'
     '"gifUrl":"https://example.com/$id.gif","thumbUrl":"https://example.com/$id.thumb.webp","isFavorite":false}';
 
+// pumpAndSettle зависает: строки списка тянут превью через
+// CachedNetworkImage (ExerciseThumb), а его менеджер кэша в тестовом
+// окружении (HttpClient всегда отвечает 400) планирует кадры бесконечно.
+// Ограниченная серия pump() вместо pumpAndSettle — тот же эффект
+// "дождаться ответа мок-сервиса и перерисовки", без зависания на картинках.
+Future<void> _settle(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+}
+
 void main() {
   testWidgets('загружает и показывает упражнения из backend при открытии', (tester) async {
     final service = _serviceWith(
@@ -37,7 +47,7 @@ void main() {
     );
 
     await tester.pumpWidget(_wrap(service));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(find.text('Жим штанги лёжа'), findsOneWidget);
   });
@@ -54,11 +64,11 @@ void main() {
     });
 
     await tester.pumpWidget(_wrap(service));
-    await tester.pumpAndSettle();
+    await _settle(tester);
     expect(lastMuscleGroup, isNull);
 
     await tester.tap(find.text('Ноги'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(lastMuscleGroup, 'legs');
   });
@@ -83,13 +93,13 @@ void main() {
     });
 
     await tester.pumpWidget(_wrap(service));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(find.text('Не удалось загрузить упражнения'), findsOneWidget);
     expect(find.text('Повторить'), findsOneWidget);
 
     await tester.tap(find.text('Повторить'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(find.text('Жим штанги лёжа'), findsOneWidget);
     expect(attempt, 2);
@@ -105,7 +115,7 @@ void main() {
     );
 
     await tester.pumpWidget(_wrap(service));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(find.text('Ничего не найдено'), findsOneWidget);
   });

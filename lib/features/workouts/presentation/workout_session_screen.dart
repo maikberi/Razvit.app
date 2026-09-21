@@ -5,10 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/loop_video.dart';
 import '../../../data/models/exercise.dart';
 import '../../../data/repositories/workout_repository.dart';
+import 'widgets/exercise_media.dart';
 
+/// Экран активной тренировки — раньше был сплошь тёмным (ink900) с GIF/видео
+/// без кэша, летящим в широкий контейнер и обрезанным по бокам. Теперь: тот
+/// же светлый, "Apple-style" визуальный язык, что и в остальном приложении
+/// (белые карточки, мягкие тени, зелёный акцент), квадратная GIF-карточка
+/// без искажений — см. exercise_media.dart.
 class WorkoutSessionScreen extends ConsumerStatefulWidget {
   const WorkoutSessionScreen({super.key});
 
@@ -74,7 +79,7 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
     });
 
     if (state == null) {
-      return const Scaffold(backgroundColor: AppColors.ink900, body: Center(child: CircularProgressIndicator(color: AppColors.green500)));
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     _syncDefaults(state);
@@ -82,9 +87,9 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
     final day = state.day;
     final exercise = state.currentExercise;
     final completedSets = state.logsFor(state.exerciseIndex);
+    final progress = day.exercises.isEmpty ? 0.0 : (state.exerciseIndex) / day.exercises.length;
 
     return Scaffold(
-      backgroundColor: AppColors.ink900,
       body: SafeArea(
         child: Column(
           children: [
@@ -94,38 +99,43 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
                 children: [
                   IconButton(
                     onPressed: () => _confirmExit(context),
-                    icon: const Icon(Icons.close_rounded, color: Colors.white),
+                    icon: const Icon(Icons.close_rounded, color: AppColors.ink900),
                   ),
                   Expanded(
                     child: Column(
                       children: [
-                        Text(day.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
-                        Text('${state.exerciseIndex + 1} / ${day.exercises.length} упражнений', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                        Text(day.title, style: Theme.of(context).textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text('${state.exerciseIndex + 1} из ${day.exercises.length} упражнений', style: Theme.of(context).textTheme.bodySmall),
                       ],
                     ),
                   ),
-                  Text(_fmt(_elapsed), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                  Text(_fmt(_elapsed), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+                  const SizedBox(width: 4),
                 ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                child: LinearProgressIndicator(value: progress.clamp(0, 1), minHeight: 6, backgroundColor: AppColors.ink100),
               ),
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(exercise.exercise.name, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
-                    Text(exercise.exercise.primaryMuscle.label, style: const TextStyle(color: Colors.white54)),
-                    const SizedBox(height: AppSpacing.md),
-                    exercise.exercise.videoAsset != null
-                        ? LoopVideo(assetPath: exercise.exercise.videoAsset!, posterAssetPath: exercise.exercise.videoPosterAsset)
-                        : Container(
-                            height: 200,
-                            decoration: BoxDecoration(color: AppColors.darkSurfaceElevated, borderRadius: BorderRadius.circular(AppRadius.lg)),
-                            child: const Center(
-                              child: Icon(Icons.fitness_center_rounded, color: Colors.white38, size: 56),
-                            ),
-                          ),
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 280),
+                        child: ExerciseHero(exercise: exercise.exercise),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text(exercise.exercise.name, style: Theme.of(context).textTheme.headlineMedium),
+                    Text(exercise.exercise.primaryMuscle.label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
                     const SizedBox(height: AppSpacing.lg),
                     if (state.isResting)
                       _RestPanel(seconds: state.restRemaining, total: exercise.restSeconds, onSkip: () => ref.read(activeWorkoutProvider.notifier).skipRest())
@@ -140,7 +150,7 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
                         onRepsChanged: (v) => setState(() => _reps = v),
                       ),
                     const SizedBox(height: AppSpacing.lg),
-                    const Text('История подходов', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                    Text('История подходов', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: AppSpacing.sm),
                     for (var i = 0; i < exercise.sets; i++)
                       Padding(
@@ -174,7 +184,7 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
                     ),
                     TextButton(
                       onPressed: () => ref.read(activeWorkoutProvider.notifier).skipExercise(),
-                      child: const Text('Пропустить упражнение', style: TextStyle(color: Colors.white60)),
+                      child: const Text('Пропустить упражнение'),
                     ),
                   ],
                 ),
@@ -230,11 +240,15 @@ class _SetPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(color: AppColors.darkSurfaceElevated, borderRadius: BorderRadius.circular(AppRadius.lg)),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadows.card,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Подход $setNumber из $totalSets', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
+          Text('Подход $setNumber из $totalSets', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
@@ -246,13 +260,13 @@ class _SetPanel extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Отдых', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    Text('Отдых', style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(color: AppColors.ink900, borderRadius: BorderRadius.circular(AppRadius.sm)),
-                      child: Text(restLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                      decoration: BoxDecoration(color: AppColors.ink50, borderRadius: BorderRadius.circular(AppRadius.sm)),
+                      child: Text(restLabel, style: Theme.of(context).textTheme.titleSmall),
                     ),
                   ],
                 ),
@@ -277,13 +291,13 @@ class _NumberStepper extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _miniButton(Icons.remove_rounded, onDec),
-            Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+            Text(value, style: Theme.of(context).textTheme.titleMedium),
             _miniButton(Icons.add_rounded, onInc),
           ],
         ),
@@ -297,8 +311,8 @@ class _NumberStepper extends StatelessWidget {
       child: Container(
         width: 28,
         height: 28,
-        decoration: const BoxDecoration(color: AppColors.ink900, shape: BoxShape.circle),
-        child: Icon(icon, color: Colors.white, size: 16),
+        decoration: const BoxDecoration(color: AppColors.ink100, shape: BoxShape.circle),
+        child: Icon(icon, color: AppColors.ink900, size: 16),
       ),
     );
   }
@@ -315,10 +329,14 @@ class _RestPanel extends StatelessWidget {
     final progress = total == 0 ? 0.0 : 1 - (seconds / total).clamp(0.0, 1.0);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xl),
-      decoration: BoxDecoration(color: AppColors.darkSurfaceElevated, borderRadius: BorderRadius.circular(AppRadius.lg)),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadows.card,
+      ),
       child: Column(
         children: [
-          const Text('Отдых', style: TextStyle(color: Colors.white60, fontWeight: FontWeight.w700)),
+          Text('Отдых', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.ink500)),
           const SizedBox(height: AppSpacing.sm),
           Stack(
             alignment: Alignment.center,
@@ -326,15 +344,14 @@ class _RestPanel extends StatelessWidget {
               SizedBox(
                 width: 96,
                 height: 96,
-                child: CircularProgressIndicator(value: progress, strokeWidth: 8, backgroundColor: AppColors.ink900, color: AppColors.green500),
+                child: CircularProgressIndicator(value: progress, strokeWidth: 8, backgroundColor: AppColors.ink100, color: AppColors.green500),
               ),
-              Text('$seconds', style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800)),
+              Text('$seconds', style: Theme.of(context).textTheme.headlineLarge),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
           OutlinedButton(
             onPressed: onSkip,
-            style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white30)),
             child: const Text('Пропустить отдых'),
           ),
         ],
@@ -365,24 +382,27 @@ class _SetHistoryRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isCurrent ? AppColors.green500.withValues(alpha: 0.12) : AppColors.darkSurfaceElevated,
+        color: isCurrent ? AppColors.green50 : AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: isCurrent ? Border.all(color: AppColors.green500) : null,
+        border: Border.all(color: isCurrent ? AppColors.green500 : AppColors.border),
       ),
       child: Row(
         children: [
-          Text('$index', style: const TextStyle(color: Colors.white60)),
+          Text('$index', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               done ? '${weight.toStringAsFixed(0)} кг × $reps' : '${weight.toStringAsFixed(0)} кг × $repsLabel',
-              style: TextStyle(color: done ? Colors.white : Colors.white70, fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: done ? AppColors.ink900 : AppColors.ink600,
+                  ),
             ),
           ),
           if (done)
             const Icon(Icons.check_circle_rounded, color: AppColors.green500, size: 18)
           else if (isCurrent)
-            const Icon(Icons.arrow_forward_rounded, color: Colors.white38, size: 18),
+            const Icon(Icons.arrow_forward_rounded, color: AppColors.ink400, size: 18),
         ],
       ),
     );
