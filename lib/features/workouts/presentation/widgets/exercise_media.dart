@@ -1,5 +1,8 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/loop_video.dart';
@@ -12,8 +15,7 @@ import '../../../../data/models/exercise.dart';
 /// и заново перекачивался с нуля при каждом открытии. Теперь: квадратная
 /// карточка точно под форму GIF, светлый фон (не зависит от тёмной темы
 /// экрана — читается одинаково хорошо и на белом, и на тёмном экране
-/// сессии), кэш на диске через cached_network_image + мгновенный
-/// blur-up с thumbUrl, пока грузится полный GIF.
+/// сессии), с in-memory кэшем и явным таймаутом на загрузку (см. _Media).
 class ExerciseHero extends StatelessWidget {
   const ExerciseHero({super.key, required this.exercise});
 
@@ -79,7 +81,40 @@ class ExerciseThumb extends StatelessWidget {
   }
 }
 
-class _Media extends StatelessWidget {
+/// Простой in-memory кэш байтов картинки на время жизни вкладки —
+/// раньше здесь был пакет cached_network_image, но у него в вебе (именно
+/// там и тестировал пользователь — GitHub Pages в Safari на iPhone)
+/// известны зависания без таймаута на нестабильной сети (LTE): загрузка
+/// подвисала бесконечно, что выглядело как "приложение не открывается".
+/// Здесь — обычный http.get с явным timeout(), после которого гарантированно
+/// либо картинка, либо понятная ошибка → иконка-заглушка, никогда не вечная
+/// загрusка. Кэш сбрасывается при перезагрузке страницы — этого достаточно,
+/// чтобы не перекачивать одну и ту же GIF повторно в рамках одной сессии.
+class _ImageBytesCache {
+  static final Map<String, Uint8List> _cache = {};
+  static final Map<String, Future<Uint8List>> _inFlight = {};
+
+  static Future<Uint8List> load(String url) {
+    final cached = _cache[url];
+    if (cached != null) return Future.value(cached);
+
+    final inFlight = _inFlight[url];
+    if (inFlight != null) return inFlight;
+
+    final future = http.get(Uri.parse(url)).timeout(const Duration(seconds: 10)).then((res) {
+      if (res.statusCode != 200) {
+        throw Exception('HTTP ${res.statusCode} for $url');
+      }
+      _cache[url] = res.bodyBytes;
+      return res.bodyBytes;
+    }).whenComplete(() => _inFlight.remove(url));
+
+    _inFlight[url] = future;
+    return future;
+  }
+}
+
+class _Media extends StatefulWidget {
   const _Media({required this.exercise, required this.iconSize, this.thumbOnly = false});
 
   final Exercise exercise;
@@ -87,24 +122,44 @@ class _Media extends StatelessWidget {
   final bool thumbOnly;
 
   @override
-  Widget build(BuildContext context) {
-    // В маленьком превью полноразмерный GIF не нужен — thumbUrl (лёгкий
-    // статичный webp) достаточно и грузится/кэшируется в разы быстрее.
-    final url = thumbOnly ? (exercise.thumbUrl ?? exercise.gifUrl) : (exercise.gifUrl ?? exercise.thumbUrl);
+  State<_Media> createState() => _MediaState();
+}
 
-    if (url != null) {
-      return CachedNetworkImage(
-        imageUrl: url,
-        fit: BoxFit.contain,
-        fadeInDuration: const Duration(milliseconds: 150),
-        placeholder: (context, _) => _placeholder(),
-        errorWidget: (context, _, __) => _fallbackIcon(),
-      );
+class _MediaState extends State<_Media> {
+  late Future<Uint8List>? _future = _urlFor(widget.exercise) != null ? _ImageBytesCache.load(_urlFor(widget.exercise)!) : null;
+
+  String? _urlFor(Exercise exercise) {
+    // В маленьком превью полноразмерный GIF не нужен — thumbUrl (лёгкий
+    // статичный webp) достаточно и грузится в разы быстрее.
+    return widget.thumbOnly ? (exercise.thumbUrl ?? exercise.gifUrl) : (exercise.gifUrl ?? exercise.thumbUrl);
+  }
+
+  @override
+  void didUpdateWidget(covariant _Media oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldUrl = _urlFor(oldWidget.exercise);
+    final newUrl = _urlFor(widget.exercise);
+    if (oldUrl != newUrl) {
+      setState(() => _future = newUrl != null ? _ImageBytesCache.load(newUrl) : null);
     }
-    if (exercise.videoAsset != null) {
-      return LoopVideo(assetPath: exercise.videoAsset!, posterAssetPath: exercise.videoPosterAsset);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_future == null) {
+      if (widget.exercise.videoAsset != null) {
+        return LoopVideo(assetPath: widget.exercise.videoAsset!, posterAssetPath: widget.exercise.videoPosterAsset);
+      }
+      return _fallbackIcon();
     }
-    return _fallbackIcon();
+    return FutureBuilder<Uint8List>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) return _placeholder();
+        if (snapshot.hasError || !snapshot.hasData) return _fallbackIcon();
+        return Image.memory(snapshot.data!, fit: BoxFit.contain, gaplessPlayback: true);
+      },
+    );
   }
 
   Widget _placeholder() {
@@ -112,8 +167,8 @@ class _Media extends StatelessWidget {
       color: AppColors.ink50,
       child: Center(
         child: SizedBox(
-          width: iconSize * 0.4,
-          height: iconSize * 0.4,
+          width: widget.iconSize * 0.4,
+          height: widget.iconSize * 0.4,
           child: const CircularProgressIndicator(strokeWidth: 2, color: AppColors.ink300),
         ),
       ),
@@ -123,7 +178,7 @@ class _Media extends StatelessWidget {
   Widget _fallbackIcon() {
     return ColoredBox(
       color: AppColors.ink50,
-      child: Center(child: Icon(Icons.fitness_center_rounded, color: AppColors.ink300, size: iconSize)),
+      child: Center(child: Icon(Icons.fitness_center_rounded, color: AppColors.ink300, size: widget.iconSize)),
     );
   }
 }
