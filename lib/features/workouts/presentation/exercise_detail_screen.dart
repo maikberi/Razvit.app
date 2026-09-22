@@ -105,7 +105,13 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                   children: [
                     IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.arrow_back_rounded)),
                     Expanded(
-                      child: Text(exercise.name, style: Theme.of(context).textTheme.titleLarge, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        exercise.name,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleLarge,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     IconButton(
                       onPressed: _favoriteBusy ? null : _toggleFavorite,

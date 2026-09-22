@@ -103,21 +103,31 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
                   padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
                   child: Row(
                     children: [
-                      _GlassButton(onTap: () => _confirmExit(context), icon: Icons.close_rounded),
+                      // Обе боковые "гири" ровно 44×44 (минимальный tap-target Material) —
+                      // раньше слева была скруглённая кнопка ~36px, а справа просто SizedBox
+                      // шириной 40px, из-за чего заголовок в центре визуально съезжал в сторону.
+                      SizedBox(width: 44, height: 44, child: _GlassButton(onTap: () => _confirmExit(context), icon: Icons.close_rounded)),
                       Expanded(
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(day.title, style: Theme.of(context).textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
-                            Text('${state.exerciseIndex + 1} из ${day.exercises.length} упражнений', style: Theme.of(context).textTheme.bodySmall),
+                            Text(day.title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            Text(
+                              '${state.exerciseIndex + 1} из ${day.exercises.length} упражнений',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           ],
                         ),
                       ),
                       SizedBox(
-                        width: 40,
-                        child: Text(
-                          _fmt(_elapsed),
-                          textAlign: TextAlign.end,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                        width: 44,
+                        height: 44,
+                        child: Center(
+                          child: Text(
+                            _fmt(_elapsed),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                          ),
                         ),
                       ),
                     ],
