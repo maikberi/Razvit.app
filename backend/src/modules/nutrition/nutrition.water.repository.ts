@@ -1,0 +1,69 @@
+import { Pool } from 'pg';
+
+export interface WaterEntryRow {
+  id: string;
+  user_id: string;
+  date: string;
+  amount_ml: number;
+  logged_at: Date;
+}
+
+export class NutritionWaterRepository {
+  constructor(private readonly pool: Pool) {}
+
+  async getForDate(userId: string, date: string): Promise<WaterEntryRow[]> {
+    const { rows } = await this.pool.query<WaterEntryRow>(
+      'SELECT * FROM water_entries WHERE user_id = $1 AND date = $2 ORDER BY logged_at',
+      [userId, date],
+    );
+    return rows;
+  }
+
+  async add(userId: string, date: string, amountMl: number): Promise<WaterEntryRow> {
+    const { rows } = await this.pool.query<WaterEntryRow>(
+      'INSERT INTO water_entries (user_id, date, amount_ml) VALUES ($1, $2, $3) RETURNING *',
+      [userId, date, amountMl],
+    );
+    return rows[0];
+  }
+
+  /** Убрать последнюю добавленную запись за дату — для кнопки "отменить" в UI. */
+  async deleteLast(userId: string, date: string): Promise<void> {
+    await this.pool.query(
+      `DELETE FROM water_entries WHERE id = (
+         SELECT id FROM water_entries WHERE user_id = $1 AND date = $2 ORDER BY logged_at DESC LIMIT 1
+       )`,
+      [userId, date],
+    );
+  }
+
+  /** Сумма выпитой воды по дням за диапазон дат (для аналитики) — агрегация на стороне БД. */
+  async getRangeTotals(userId: string, from: string, to: string): Promise<Array<{ date: string; amount_ml: number }>> {
+    const { rows } = await this.pool.query<{ date: string; amount_ml: number }>(
+      `SELECT date::text AS date, SUM(amount_ml)::int AS amount_ml
+       FROM water_entries
+       WHERE user_id = $1 AND date BETWEEN $2 AND $3
+       GROUP BY date`,
+      [userId, from, to],
+    );
+    return rows;
+  }
+
+  async findById(id: string): Promise<WaterEntryRow | null> {
+    const { rows } = await this.pool.query<WaterEntryRow>('SELECT * FROM water_entries WHERE id = $1', [id]);
+    return rows[0] ?? null;
+  }
+
+  /** Изменить количество в конкретной записи (например, пользователь ошибся при быстром добавлении). */
+  async update(id: string, amountMl: number): Promise<WaterEntryRow> {
+    const { rows } = await this.pool.query<WaterEntryRow>(
+      'UPDATE water_entries SET amount_ml = $1 WHERE id = $2 RETURNING *',
+      [amountMl, id],
+    );
+    return rows[0];
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.pool.query('DELETE FROM water_entries WHERE id = $1', [id]);
+  }
+}
