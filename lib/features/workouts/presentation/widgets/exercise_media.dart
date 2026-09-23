@@ -126,7 +126,15 @@ class _Media extends StatefulWidget {
 }
 
 class _MediaState extends State<_Media> {
-  late Future<Uint8List>? _future = _urlFor(widget.exercise) != null ? _ImageBytesCache.load(_urlFor(widget.exercise)!) : null;
+  Future<Uint8List>? _future;
+  Timer? _watchdog;
+  bool _timedOut = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load(widget.exercise);
+  }
 
   String? _urlFor(Exercise exercise) {
     // В маленьком превью полноразмерный GIF не нужен — thumbUrl (лёгкий
@@ -134,14 +142,42 @@ class _MediaState extends State<_Media> {
     return widget.thumbOnly ? (exercise.thumbUrl ?? exercise.gifUrl) : (exercise.gifUrl ?? exercise.thumbUrl);
   }
 
+  // http.get(...).timeout(10s) внутри _ImageBytesCache.load — основная защита
+  // от вечной загрузки. Но на нестабильной мобильной сети (именно там и
+  // тестировал пользователь — Safari/iPhone, LTE) изредка ловился случай,
+  // когда несмотря на это спиннер всё равно не сменялся иконкой — судя по
+  // всему, редкий гоночный случай в связке FutureBuilder/StatefulWidget при
+  // самом первом построении экрана. Этот таймер — независимая гарантия
+  // поверх: что бы ни случилось с самим Future, через 12 секунд UI точно
+  // покажет заглушку, а не бесконечный кружок.
+  void _load(Exercise exercise) {
+    _watchdog?.cancel();
+    _timedOut = false;
+    final url = _urlFor(exercise);
+    if (url == null) {
+      _future = null;
+      return;
+    }
+    final future = _ImageBytesCache.load(url);
+    _future = future;
+    _watchdog = Timer(const Duration(seconds: 12), () {
+      if (mounted && _future == future) setState(() => _timedOut = true);
+    });
+    future.whenComplete(() => _watchdog?.cancel());
+  }
+
   @override
   void didUpdateWidget(covariant _Media oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final oldUrl = _urlFor(oldWidget.exercise);
-    final newUrl = _urlFor(widget.exercise);
-    if (oldUrl != newUrl) {
-      setState(() => _future = newUrl != null ? _ImageBytesCache.load(newUrl) : null);
+    if (_urlFor(oldWidget.exercise) != _urlFor(widget.exercise)) {
+      setState(() => _load(widget.exercise));
     }
+  }
+
+  @override
+  void dispose() {
+    _watchdog?.cancel();
+    super.dispose();
   }
 
   @override
@@ -152,6 +188,7 @@ class _MediaState extends State<_Media> {
       }
       return _fallbackIcon();
     }
+    if (_timedOut) return _fallbackIcon();
     return FutureBuilder<Uint8List>(
       future: _future,
       builder: (context, snapshot) {
