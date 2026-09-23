@@ -225,11 +225,23 @@ class _ExerciseRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(exercise.name, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
-                Text('${exercise.primaryMuscle.label} · ${exercise.equipment}', style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  exercise.name,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${exercise.primaryMuscle.label} · ${exercise.equipment}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
+          const SizedBox(width: 4),
           Icon(
             exercise.isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
             color: exercise.isFavorite ? AppColors.warning : AppColors.ink300,

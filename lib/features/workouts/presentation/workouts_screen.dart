@@ -5,11 +5,14 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/selectable_option.dart';
 import '../../../data/models/exercise.dart';
 import 'tabs/catalog_tab.dart';
-import 'tabs/create_tab.dart';
 import 'tabs/my_program_tab.dart';
 
-enum _WorkoutsSegment { myProgram, catalog, create }
+enum _WorkoutsSegment { myProgram, catalog }
 
+/// Раздел "Тренировки" — раньше было 3 вкладки (Моя программа / Каталог /
+/// Создать), причём "Создать" почти дублировала блок "Мои программы" из
+/// первой вкладки (тот же список + та же кнопка "Создать программу").
+/// Убрали лишнюю вкладку — два чётких раздела вместо трёх похожих.
 class WorkoutsScreen extends StatefulWidget {
   const WorkoutsScreen({super.key});
 
@@ -30,10 +33,12 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           IconButton(
             onPressed: () => context.push('/workout-stats'),
             icon: const Icon(Icons.bar_chart_rounded),
+            tooltip: 'Статистика',
           ),
           IconButton(
             onPressed: () => context.push('/workout-calendar'),
             icon: const Icon(Icons.calendar_today_outlined),
+            tooltip: 'Календарь',
           ),
           const SizedBox(width: 4),
         ],
@@ -41,13 +46,12 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
             child: Row(
               children: [
                 Expanded(
                   child: SelectableChip(
                     label: 'Моя программа',
-                    dense: true,
                     selected: _segment == _WorkoutsSegment.myProgram,
                     onTap: () => setState(() => _segment = _WorkoutsSegment.myProgram),
                   ),
@@ -56,24 +60,13 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                 Expanded(
                   child: SelectableChip(
                     label: 'Каталог',
-                    dense: true,
                     selected: _segment == _WorkoutsSegment.catalog,
                     onTap: () => setState(() => _segment = _WorkoutsSegment.catalog),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: SelectableChip(
-                    label: 'Создать',
-                    dense: true,
-                    selected: _segment == _WorkoutsSegment.create,
-                    onTap: () => setState(() => _segment = _WorkoutsSegment.create),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
           Expanded(
             child: switch (_segment) {
               _WorkoutsSegment.myProgram => MyProgramTab(
@@ -83,7 +76,6 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                   }),
                 ),
               _WorkoutsSegment.catalog => CatalogTab(initialFilter: _catalogFilter),
-              _WorkoutsSegment.create => const CreateTab(),
             },
           ),
         ],

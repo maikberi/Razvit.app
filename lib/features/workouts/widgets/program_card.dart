@@ -10,48 +10,69 @@ class ProgramCard extends StatelessWidget {
   final WorkoutProgram program;
   final VoidCallback? onTap;
 
-  static const _gradients = [
-    [Color(0xFF16A34A), Color(0xFF111827)],
-    [Color(0xFF0EA5E9), Color(0xFF111827)],
-    [Color(0xFFF59E0B), Color(0xFF111827)],
-    [Color(0xFF8B5CF6), Color(0xFF111827)],
+  static const _tints = [
+    Color(0xFF16A34A),
+    Color(0xFF0EA5E9),
+    Color(0xFFF59E0B),
+    Color(0xFF8B5CF6),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final gradient = _gradients[program.imageSeed % _gradients.length];
+    final tint = _tints[program.imageSeed % _tints.length];
     return AppCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
+              color: tint.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: const Icon(Icons.fitness_center_rounded, color: Colors.white, size: 26),
+            child: Icon(Icons.fitness_center_rounded, color: tint, size: 24),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(program.title, style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 2),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        program.title,
+                        style: Theme.of(context).textTheme.titleSmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      '${program.currentWeek}/${program.totalWeeks} нед',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.ink500),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
                 Text('${program.level.label} · ${program.totalWeeks} недель', style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(AppRadius.pill),
-                  child: LinearProgressIndicator(value: program.progress, minHeight: 5, backgroundColor: AppColors.ink100),
+                  child: LinearProgressIndicator(
+                    value: program.progress,
+                    minHeight: 5,
+                    backgroundColor: AppColors.ink100,
+                    valueColor: AlwaysStoppedAnimation(tint),
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Text('${program.currentWeek}/${program.totalWeeks} нед', style: Theme.of(context).textTheme.labelSmall),
         ],
       ),
     );
