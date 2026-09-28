@@ -193,7 +193,11 @@ class _DateHeader extends StatelessWidget {
     final label = isToday ? 'Сегодня' : DateFormat('d MMMM', 'ru').format(date);
     return Row(
       children: [
-        IconButton(onPressed: onPrev, icon: const Icon(Icons.chevron_left_rounded), visualDensity: VisualDensity.compact),
+        // Пустой слот той же ширины, что и календарь справа — иначе справа
+        // два элемента (стрелка + календарь), а слева один, и дата в
+        // Expanded визуально съезжает от центра экрана вбок.
+        const SizedBox(width: 40, height: 40),
+        SizedBox(width: 40, height: 40, child: IconButton(onPressed: onPrev, icon: const Icon(Icons.chevron_left_rounded), visualDensity: VisualDensity.compact)),
         Expanded(
           child: GestureDetector(
             onTap: onPickDate,
@@ -217,12 +221,18 @@ class _DateHeader extends StatelessWidget {
             ),
           ),
         ),
-        IconButton(
-          onPressed: onNext,
-          icon: const Icon(Icons.chevron_right_rounded),
-          visualDensity: VisualDensity.compact,
+        SizedBox(
+          width: 40,
+          height: 40,
+          child: IconButton(
+            onPressed: onNext,
+            icon: const Icon(Icons.chevron_right_rounded),
+            visualDensity: VisualDensity.compact,
+          ),
         ),
         Container(
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             color: Theme.of(context).cardTheme.color,
             borderRadius: BorderRadius.circular(AppRadius.md),

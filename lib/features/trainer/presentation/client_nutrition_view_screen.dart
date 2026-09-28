@@ -160,7 +160,7 @@ class _ClientNutritionViewScreenState extends ConsumerState<ClientNutritionViewS
   Widget _stat(BuildContext context, String label, String value) => Expanded(
         child: Column(
           children: [
-            Text(value, style: Theme.of(context).textTheme.titleSmall),
+            Text(value, style: Theme.of(context).textTheme.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
             Text(label, style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ),

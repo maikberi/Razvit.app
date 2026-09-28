@@ -229,9 +229,9 @@ class _PromptView extends StatelessWidget {
           runSpacing: 8,
           children: [
             for (final s in _suggestions)
-              ActionChip(
-                label: Text(s, style: Theme.of(context).textTheme.labelSmall),
-                onPressed: () {
+              _SuggestionChip(
+                label: s,
+                onTap: () {
                   controller.text = s;
                   controller.selection = TextSelection.collapsed(offset: s.length);
                 },
@@ -543,6 +543,28 @@ class _IngredientRow extends StatelessWidget {
             TextButton(onPressed: onResolve, child: const Text('Изменить')),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _SuggestionChip extends StatelessWidget {
+  const _SuggestionChip({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          border: Border.all(color: Theme.of(context).dividerColor),
+        ),
+        child: Text(label, style: Theme.of(context).textTheme.labelSmall),
       ),
     );
   }

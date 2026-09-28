@@ -115,25 +115,34 @@ class _MyCoachTab extends ConsumerWidget {
           if (plan != null) ...[
             Text('Coach Plan · Daily Target', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: AppSpacing.sm),
-            AppCard(
-              color: AppColors.ink900,
-              shadow: false,
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.green50, AppColors.white],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+                boxShadow: AppShadows.card,
+                border: Border.all(color: AppColors.green100),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (plan.title != null && plan.title!.isNotEmpty)
-                    Text(plan.title!, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
-                  const SizedBox(height: 8),
+                    Text(plan.title!, style: Theme.of(context).textTheme.headlineMedium),
+                  const SizedBox(height: 6),
                   Text(
                     [
                       if (plan.calorieTarget != null) '${plan.calorieTarget} ккал',
                       if (plan.proteinTarget != null) 'Белок ${plan.proteinTarget} г',
                     ].join(' · '),
-                    style: const TextStyle(color: Colors.white70),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink700),
                   ),
                   if (plan.notes != null && plan.notes!.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text(plan.notes!, style: const TextStyle(color: Colors.white70)),
+                    Text(plan.notes!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500)),
                   ],
                 ],
               ),

@@ -22,15 +22,6 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
   final _search = TextEditingController();
   Timer? _debounce;
 
-  static const _gradients = [
-    [Color(0xFFF59E0B), Color(0xFFEF4444)],
-    [Color(0xFF22C55E), Color(0xFF16A34A)],
-    [Color(0xFF3B82F6), Color(0xFF6366F1)],
-    [Color(0xFF8B5CF6), Color(0xFFEC4899)],
-    [Color(0xFF06B6D4), Color(0xFF22C55E)],
-    [Color(0xFFF97316), Color(0xFFF59E0B)],
-  ];
-
   @override
   void dispose() {
     _debounce?.cancel();
@@ -49,26 +40,22 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
     final notifier = ref.read(recipeListProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Рецепты'), leading: const BackButton()),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          FloatingActionButton.extended(
-            heroTag: 'recipes-ai',
+      appBar: AppBar(
+        title: const Text('Рецепты'),
+        leading: const BackButton(),
+        actions: [
+          IconButton(
             onPressed: () => context.push('/recipes/generate'),
-            backgroundColor: AppColors.ink900,
             icon: const Icon(Icons.auto_awesome_rounded),
-            label: const Text('AI рецепт'),
+            tooltip: 'Сгенерировать рецепт с AI',
           ),
-          const SizedBox(height: 10),
-          FloatingActionButton.extended(
-            heroTag: 'recipes-new',
-            onPressed: () => context.push('/recipes/new'),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Рецепт'),
-          ),
+          const SizedBox(width: 4),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/recipes/new'),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Рецепт'),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -127,7 +114,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                             childAspectRatio: 0.78,
                           ),
                           itemCount: recipes.length,
-                          itemBuilder: (context, i) => _RecipeCard(recipe: recipes[i], gradient: _gradients[i % _gradients.length]),
+                          itemBuilder: (context, i) => _RecipeCard(recipe: recipes[i]),
                         ),
                 ),
               ),
@@ -168,9 +155,8 @@ class _SegmentButton extends StatelessWidget {
 }
 
 class _RecipeCard extends StatelessWidget {
-  const _RecipeCard({required this.recipe, required this.gradient});
+  const _RecipeCard({required this.recipe});
   final Recipe recipe;
-  final List<Color> gradient;
 
   @override
   Widget build(BuildContext context) {
@@ -188,16 +174,16 @@ class _RecipeCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
                   child: (imageUrl == null || imageUrl.isEmpty)
-                      ? Container(
-                          decoration: BoxDecoration(gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight)),
-                          child: const Center(child: Icon(Icons.restaurant_rounded, color: Colors.white70, size: 32)),
+                      ? const ColoredBox(
+                          color: AppColors.green50,
+                          child: Center(child: Icon(Icons.restaurant_rounded, color: AppColors.green600, size: 32)),
                         )
                       : Image.network(
                           imageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            decoration: BoxDecoration(gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight)),
-                            child: const Center(child: Icon(Icons.restaurant_rounded, color: Colors.white70, size: 32)),
+                          errorBuilder: (context, error, stackTrace) => const ColoredBox(
+                            color: AppColors.green50,
+                            child: Center(child: Icon(Icons.restaurant_rounded, color: AppColors.green600, size: 32)),
                           ),
                         ),
                 ),

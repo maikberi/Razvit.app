@@ -70,6 +70,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             AppCard(
               padding: EdgeInsets.zero,
               child: SwitchListTile(
+                secondary: _tonalIcon(Icons.monitor_heart_rounded),
                 title: const Text('Подключить Google Fit / Apple Health'),
                 subtitle: const Text('Учёт шагов в приложении'),
                 value: healthConnected,
@@ -84,17 +85,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  _switchTile('Напоминание о тренировке', _workoutReminders, (v) => setState(() => _workoutReminders = v)),
+                  _switchTile(Icons.fitness_center_rounded, 'Напоминание о тренировке', _workoutReminders, (v) => setState(() => _workoutReminders = v)),
                   const Divider(height: 1, indent: 16, endIndent: 16),
-                  _switchTile('Напоминание о воде', _waterReminders, (v) => setState(() => _waterReminders = v)),
+                  _switchTile(Icons.water_drop_rounded, 'Напоминание о воде', _waterReminders, (v) => setState(() => _waterReminders = v)),
                   const Divider(height: 1, indent: 16, endIndent: 16),
-                  _switchTile('Напоминание о питании', _mealReminders, (v) => setState(() => _mealReminders = v)),
+                  _switchTile(Icons.restaurant_rounded, 'Напоминание о питании', _mealReminders, (v) => setState(() => _mealReminders = v)),
                   const Divider(height: 1, indent: 16, endIndent: 16),
-                  _switchTile('Сообщения от тренера', _trainerMessages, (v) => setState(() => _trainerMessages = v)),
+                  _switchTile(Icons.chat_bubble_rounded, 'Сообщения от тренера', _trainerMessages, (v) => setState(() => _trainerMessages = v)),
                   const Divider(height: 1, indent: 16, endIndent: 16),
-                  _switchTile('Достижения', _achievements, (v) => setState(() => _achievements = v)),
+                  _switchTile(Icons.emoji_events_rounded, 'Достижения', _achievements, (v) => setState(() => _achievements = v)),
                   const Divider(height: 1, indent: 16, endIndent: 16),
-                  _switchTile('AI-рекомендации', _aiTips, (v) => setState(() => _aiTips = v)),
+                  _switchTile(Icons.auto_awesome_rounded, 'AI-рекомендации', _aiTips, (v) => setState(() => _aiTips = v)),
                 ],
               ),
             ),
@@ -105,11 +106,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  ListTile(title: const Text('Изменить пароль'), trailing: const Icon(Icons.chevron_right_rounded), onTap: () => _showChangePassword(context)),
+                  ListTile(
+                    leading: _tonalIcon(Icons.lock_outline_rounded),
+                    title: const Text('Изменить пароль'),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.ink300),
+                    onTap: () => _showChangePassword(context),
+                  ),
                   const Divider(height: 1, indent: 16, endIndent: 16),
                   ListTile(
+                    leading: _tonalIcon(Icons.logout_rounded, color: AppColors.error, background: AppColors.error.withValues(alpha: 0.1)),
                     title: const Text('Выйти', style: TextStyle(color: AppColors.error)),
-                    trailing: const Icon(Icons.logout_rounded, color: AppColors.error),
                     onTap: () {
                       ref.read(authProvider.notifier).signOut();
                       context.go('/welcome');
@@ -162,12 +168,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _switchTile(String title, bool value, ValueChanged<bool> onChanged) {
+  Widget _switchTile(IconData icon, String title, bool value, ValueChanged<bool> onChanged) {
     return SwitchListTile(
+      secondary: _tonalIcon(icon),
       title: Text(title, style: Theme.of(context).textTheme.bodyLarge),
       value: value,
       onChanged: onChanged,
       activeColor: AppColors.green500,
+    );
+  }
+
+  Widget _tonalIcon(IconData icon, {Color? color, Color? background}) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(color: background ?? AppColors.green50, borderRadius: BorderRadius.circular(AppRadius.md)),
+      child: Icon(icon, color: color ?? AppColors.green600, size: 20),
     );
   }
 }

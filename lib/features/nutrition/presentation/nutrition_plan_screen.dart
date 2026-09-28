@@ -55,35 +55,51 @@ class _PlanContent extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        AppCard(
-          color: AppColors.ink900,
-          shadow: false,
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.green50, AppColors.white],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            boxShadow: AppShadows.card,
+            border: Border.all(color: AppColors.green100),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Text('👑', style: TextStyle(fontSize: 18)),
-                  const SizedBox(width: 6),
-                  Text('Твой план', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: const BoxDecoration(color: AppColors.white, shape: BoxShape.circle),
+                    child: const Icon(Icons.auto_awesome_rounded, color: AppColors.green700, size: 16),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('Твой план',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.green700, fontWeight: FontWeight.w700)),
                 ],
               ),
-              const SizedBox(height: 4),
-              Text(plan.title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
+              Text(plan.title, style: Theme.of(context).textTheme.headlineMedium),
+              const SizedBox(height: 6),
               Text(
                 '${plan.calorieGoal} ккал · Б ${plan.proteinGoal} г · Ж ${plan.fatGoal} г · У ${plan.carbsGoal} г',
-                style: const TextStyle(color: Colors.white70),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink700),
               ),
-              const SizedBox(height: 4),
-              Text('Сегодня, ${DateFormat('d MMMM yyyy', 'ru').format(summary.date)}', style: const TextStyle(color: Colors.white38, fontSize: 12)),
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: 2),
+              Text('Сегодня, ${DateFormat('d MMMM yyyy', 'ru').format(summary.date)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500)),
+              const SizedBox(height: AppSpacing.md),
               ClipRRect(
                 borderRadius: BorderRadius.circular(AppRadius.pill),
                 child: LinearProgressIndicator(
                   value: (plan.progressPercent / 100).clamp(0, 1),
                   minHeight: 6,
-                  backgroundColor: Colors.white12,
+                  backgroundColor: AppColors.white,
                   color: AppColors.green500,
                 ),
               ),

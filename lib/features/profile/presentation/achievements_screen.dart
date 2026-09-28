@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/progress_ring.dart';
 import '../../../data/models/achievement.dart';
 import '../../../data/repositories/workout_repository.dart';
 
@@ -20,19 +21,33 @@ class AchievementsScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            AppCard(
-              color: AppColors.green500,
-              shadow: false,
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.green50, AppColors.white],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+                boxShadow: AppShadows.card,
+                border: Border.all(color: AppColors.green100),
+              ),
               child: Row(
                 children: [
-                  const Text('🏆', style: TextStyle(fontSize: 32)),
-                  const SizedBox(width: AppSpacing.sm),
+                  ProgressRing(
+                    progress: achievements.isEmpty ? 0 : unlocked / achievements.length,
+                    size: 64,
+                    strokeWidth: 6,
+                    child: const Icon(Icons.emoji_events_rounded, color: AppColors.green600, size: 26),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('$unlocked из ${achievements.length}', style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
-                        const Text('достижений открыто', style: TextStyle(color: Colors.white70)),
+                        Text('$unlocked из ${achievements.length}', style: Theme.of(context).textTheme.headlineMedium),
+                        Text('достижений открыто', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
                       ],
                     ),
                   ),
