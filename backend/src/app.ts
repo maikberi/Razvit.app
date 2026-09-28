@@ -7,9 +7,11 @@ import { foodRouter } from './modules/food/food.routes';
 import { foodRecognitionRouter } from './modules/foodRecognition/foodRecognition.routes';
 import { mealRouter } from './modules/meal/meal.routes';
 import { nutritionRouter } from './modules/nutrition/nutrition.routes';
+import { progressRouter } from './modules/progress/progress.routes';
 import { recipeRouter } from './modules/recipe/recipe.routes';
 import { recipeGeneratorRouter } from './modules/recipeGenerator/recipeGenerator.routes';
 import { trainerRouter } from './modules/trainer/trainer.routes';
+import { workoutRouter } from './modules/workout/workout.routes';
 
 export function createApp(): Express {
   const app = express();
@@ -27,9 +29,11 @@ export function createApp(): Express {
   app.use('/api/v1', foodRecognitionRouter);
   app.use('/api/v1', mealRouter);
   app.use('/api/v1', nutritionRouter);
+  app.use('/api/v1', progressRouter);
   app.use('/api/v1', recipeRouter);
   app.use('/api/v1', recipeGeneratorRouter);
   app.use('/api/v1', trainerRouter);
+  app.use('/api/v1', workoutRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

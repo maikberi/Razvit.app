@@ -1,4 +1,3 @@
-import '../models/exercise.dart';
 import '../models/workout.dart';
 import 'mock_exercises.dart';
 
@@ -123,36 +122,3 @@ final List<WorkoutProgram> mockPrograms = [
 
 WorkoutProgram get activeProgram => mockPrograms.first;
 WorkoutDay get todayWorkout => activeProgram.days.first;
-
-/// История подходов по упражнениям — движок для графиков прогресса.
-/// Ключи — id из mockExercises (реальные упражнения с GIF).
-final Map<String, List<ExerciseHistoryEntry>> mockExerciseHistory = {
-  'barbell-bench-press': [
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 180)), weightKg: 50, reps: 8),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 150)), weightKg: 52.5, reps: 8),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 120)), weightKg: 55, reps: 10),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 90)), weightKg: 57.5, reps: 8),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 60)), weightKg: 60, reps: 8),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 30)), weightKg: 62.5, reps: 10),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 14)), weightKg: 65, reps: 8),
-    ExerciseHistoryEntry(date: DateTime.now(), weightKg: 65, reps: 10, isPersonalRecord: true),
-  ],
-  'barbell-full-squat': [
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 150)), weightKg: 60, reps: 8),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 90)), weightKg: 65, reps: 8),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 45)), weightKg: 70, reps: 6),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 10)), weightKg: 75, reps: 6, isPersonalRecord: true),
-  ],
-  'barbell-deadlift': [
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 160)), weightKg: 70, reps: 6),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 100)), weightKg: 80, reps: 6),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 40)), weightKg: 90, reps: 5),
-    ExerciseHistoryEntry(date: DateTime.now().subtract(const Duration(days: 5)), weightKg: 95, reps: 5, isPersonalRecord: true),
-  ],
-};
-
-final List<PersonalRecord> mockPersonalRecords = [
-  PersonalRecord(exerciseName: 'Жим штанги лёжа', weightKg: 65, date: DateTime.now().subtract(const Duration(days: 3))),
-  PersonalRecord(exerciseName: 'Приседания со штангой', weightKg: 75, date: DateTime.now().subtract(const Duration(days: 10))),
-  PersonalRecord(exerciseName: 'Становая тяга со штангой', weightKg: 95, date: DateTime.now().subtract(const Duration(days: 5))),
-];

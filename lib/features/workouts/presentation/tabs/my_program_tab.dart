@@ -36,7 +36,7 @@ class MyProgramTab extends ConsumerWidget {
     final exercises = catalog.where((e) => e.isFavorite).take(4).toList();
 
     final activeProgram = ref.watch(activeProgramProvider);
-    final sessions = ref.watch(workoutSessionsProvider);
+    final sessions = ref.watch(workoutSessionsProvider).valueOrNull ?? const [];
     final now = DateTime.now();
     final startOfWeek = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
     final doneThisWeek = sessions.where((s) => s.status == SessionStatus.done && !s.date.isBefore(startOfWeek)).length;

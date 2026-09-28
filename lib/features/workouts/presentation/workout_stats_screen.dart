@@ -24,7 +24,7 @@ class _WorkoutStatsScreenState extends ConsumerState<WorkoutStatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final sessions = ref.watch(workoutSessionsProvider).where((s) => s.status == SessionStatus.done).toList();
+    final sessions = (ref.watch(workoutSessionsProvider).valueOrNull ?? const []).where((s) => s.status == SessionStatus.done).toList();
 
     final days = switch (_period) {
       _Period.week => 7,

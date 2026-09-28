@@ -6,9 +6,10 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/mascot.dart';
-import '../../../data/mock/mock_achievements.dart';
 import '../../../data/models/user.dart';
+import '../../../data/repositories/progress_repository.dart';
 import '../../../data/repositories/user_repository.dart';
+import '../../../data/repositories/workout_repository.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -16,7 +17,11 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
-    final unlockedAchievements = mockAchievements.where((a) => a.isUnlocked).length;
+    final achievements = ref.watch(achievementsProvider);
+    final unlockedAchievements = achievements.where((a) => a.isUnlocked).length;
+    final streakDays = ref.watch(workoutStreakProvider);
+    final weightHistory = ref.watch(weightHistoryProvider).valueOrNull ?? const [];
+    final currentWeight = weightHistory.isEmpty ? user.weightKg : weightHistory.last.weightKg;
 
     return Scaffold(
       appBar: AppBar(
@@ -52,11 +57,11 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
             Text('Моя текущая серия', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: AppSpacing.sm),
-            _StreakCard(streakDays: user.streakDays),
+            _StreakCard(streakDays: streakDays),
             const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
-                Expanded(child: _statCard(context, '${user.weightKg.toStringAsFixed(0)} кг', 'Вес', onTap: () => context.push('/workout-stats'))),
+                Expanded(child: _statCard(context, '${currentWeight.toStringAsFixed(0)} кг', 'Вес', onTap: () => context.push('/workout-stats'))),
                 const SizedBox(width: 10),
                 Expanded(child: _statCard(context, '${user.heightCm} см', 'Рост', onTap: () => _showPersonalData(context, user))),
               ],
@@ -64,7 +69,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: _statCard(context, '${user.streakDays}', 'Дней подряд', onTap: () => context.push('/workout-calendar'))),
+                Expanded(child: _statCard(context, '$streakDays', 'Дней подряд', onTap: () => context.push('/workout-calendar'))),
                 const SizedBox(width: 10),
                 Expanded(child: _statCard(context, '$unlockedAchievements', 'Награды', onTap: () => context.push('/achievements'))),
               ],
@@ -73,7 +78,7 @@ class ProfileScreen extends ConsumerWidget {
             _SectionTile(icon: Icons.badge_outlined, title: 'Личные данные', subtitle: 'Имя, email, фото', onTap: () => _showPersonalData(context, user)),
             _SectionTile(icon: Icons.flag_outlined, title: 'Цели', subtitle: user.goal.label, onTap: () => _showGoal(context, user)),
             _SectionTile(icon: Icons.fitness_center_outlined, title: 'Мои программы', subtitle: 'Активные и завершённые', onTap: () => context.go('/workouts')),
-            _SectionTile(icon: Icons.emoji_events_outlined, title: 'Достижения', subtitle: '$unlockedAchievements из ${mockAchievements.length} открыто', onTap: () => context.push('/achievements')),
+            _SectionTile(icon: Icons.emoji_events_outlined, title: 'Достижения', subtitle: '$unlockedAchievements из ${achievements.length} открыто', onTap: () => context.push('/achievements')),
             _SectionTile(icon: Icons.insights_outlined, title: 'Статистика', subtitle: 'Тренировки, объём, серии', onTap: () => context.push('/workout-stats')),
             _SectionTile(icon: Icons.groups_outlined, title: 'Тренерская программа', subtitle: 'Мой тренер и мои клиенты', onTap: () => context.push('/coaching')),
             _SectionTile(icon: Icons.settings_outlined, title: 'Настройки', subtitle: 'Уведомления, аккаунт', onTap: () => context.push('/settings')),

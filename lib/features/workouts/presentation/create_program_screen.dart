@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -41,6 +42,7 @@ class _CreateProgramScreenState extends ConsumerState<CreateProgramScreen> {
   bool _reminder = true;
   int _reminderBefore = 30;
   final List<_DraftExercise> _exercises = [];
+  bool _saving = false;
 
   bool get _canContinue {
     switch (_step) {
@@ -80,9 +82,9 @@ class _CreateProgramScreenState extends ConsumerState<CreateProgramScreen> {
     _pageController.previousPage(duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic);
   }
 
-  void _save() {
-    final program = WorkoutProgram(
-      id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+  Future<void> _save() async {
+    final draft = WorkoutProgram(
+      id: '',
       title: _titleController.text.trim(),
       goal: _goal,
       level: _level,
@@ -102,8 +104,16 @@ class _CreateProgramScreenState extends ConsumerState<CreateProgramScreen> {
         ),
       ],
     );
-    ref.read(customProgramsProvider.notifier).add(program);
-    context.go('/workouts');
+    setState(() => _saving = true);
+    try {
+      await ref.read(customProgramsProvider.notifier).create(draft);
+      if (!mounted) return;
+      context.go('/workouts');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    }
   }
 
   @override
@@ -167,8 +177,10 @@ class _CreateProgramScreenState extends ConsumerState<CreateProgramScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
               child: ElevatedButton(
-                onPressed: _canContinue ? _next : null,
-                child: Text(_step == _totalSteps - 1 ? 'Сохранить программу' : 'Далее'),
+                onPressed: _canContinue && !_saving ? _next : null,
+                child: _saving
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text(_step == _totalSteps - 1 ? 'Сохранить программу' : 'Далее'),
               ),
             ),
           ],

@@ -13,6 +13,7 @@ import { InvalidImageError } from '../modules/foodRecognition/foodRecognition.se
 import { ForbiddenError, MealItemNotFoundError, MealNotFoundError } from '../modules/meal/meal.service';
 import { WaterEntryNotFoundError } from '../modules/nutrition/nutrition.daily.service';
 import { IncompleteNutritionProfileError } from '../modules/nutrition/nutritionTarget.service';
+import { WeightEntryNotFoundError } from '../modules/progress/progress.service';
 import { RecipeIngredientFoodNotFoundError, RecipeIngredientUnitError, RecipeNotFoundError } from '../modules/recipe/recipe.service';
 import { VisionNotConfiguredError, VisionRateLimitError, VisionTimeoutError, VisionUnavailableError } from '../integrations/visionClient';
 import {
@@ -31,6 +32,7 @@ import {
   InvalidRelationStateError,
   TrainerRelationNotFoundError,
 } from '../modules/trainer/trainer.service';
+import { WorkoutProgramNotFoundError } from '../modules/workout/workout.service';
 
 const SOCIAL_PROVIDER_LABELS: Record<SocialProvider, string> = { google: 'Google', vk: 'VK', telegram: 'Telegram' };
 
@@ -93,6 +95,14 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   }
   if (err instanceof WaterEntryNotFoundError) {
     res.status(404).json({ error: { code: 'WATER_ENTRY_NOT_FOUND', message: 'Запись о воде не найдена' } });
+    return;
+  }
+  if (err instanceof WeightEntryNotFoundError) {
+    res.status(404).json({ error: { code: 'WEIGHT_ENTRY_NOT_FOUND', message: 'Запись о весе не найдена' } });
+    return;
+  }
+  if (err instanceof WorkoutProgramNotFoundError) {
+    res.status(404).json({ error: { code: 'WORKOUT_PROGRAM_NOT_FOUND', message: 'Программа тренировок не найдена' } });
     return;
   }
   if (err instanceof IncompleteNutritionProfileError) {

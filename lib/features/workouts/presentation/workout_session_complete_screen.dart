@@ -2,16 +2,54 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/animated_emoji.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../data/models/workout_session.dart';
 import '../../../data/repositories/workout_repository.dart';
+import '../../../data/services/workout_api_service.dart';
 
-class WorkoutSessionCompleteScreen extends ConsumerWidget {
+class WorkoutSessionCompleteScreen extends ConsumerStatefulWidget {
   const WorkoutSessionCompleteScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WorkoutSessionCompleteScreen> createState() => _WorkoutSessionCompleteScreenState();
+}
+
+class _WorkoutSessionCompleteScreenState extends ConsumerState<WorkoutSessionCompleteScreen> {
+  bool _saving = false;
+
+  Future<void> _finish(ActiveWorkoutState state, Duration duration, int calories) async {
+    setState(() => _saving = true);
+    try {
+      // Сохраняем факт тренировки на backend — раньше "Готово" просто
+      // сбрасывало activeWorkoutProvider (in-memory), и вся тренировка,
+      // календарь и статистика по ней исчезали при следующем открытии.
+      await ref.read(workoutApiServiceProvider).createSession(
+            programDayId: state.day.id,
+            date: state.startedAt,
+            title: state.day.title,
+            status: SessionStatus.done,
+            durationMinutes: duration.inMinutes,
+            calories: calories,
+            exerciseLogs: state.exerciseLogs,
+          );
+      ref.invalidate(workoutSessionsProvider);
+      if (!mounted) return;
+      ref.read(activeWorkoutProvider.notifier).finish();
+      context.go('/home');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Не удалось сохранить тренировку: ${e.message}')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(activeWorkoutProvider);
 
     if (state == null) {
@@ -95,11 +133,10 @@ class WorkoutSessionCompleteScreen extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    ref.read(activeWorkoutProvider.notifier).finish();
-                    context.go('/home');
-                  },
-                  child: const Text('Готово'),
+                  onPressed: _saving ? null : () => _finish(state, duration, calories),
+                  child: _saving
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Готово'),
                 ),
               ),
             ],

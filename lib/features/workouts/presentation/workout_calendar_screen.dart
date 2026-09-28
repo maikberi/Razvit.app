@@ -21,7 +21,7 @@ class _WorkoutCalendarScreenState extends ConsumerState<WorkoutCalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final sessions = ref.watch(workoutSessionsProvider);
+    final sessions = ref.watch(workoutSessionsProvider).valueOrNull ?? const [];
     WorkoutSession? sessionFor(DateTime day) {
       final d = DateTime(day.year, day.month, day.day);
       final matches = sessions.where((s) => DateTime(s.date.year, s.date.month, s.date.day) == d);

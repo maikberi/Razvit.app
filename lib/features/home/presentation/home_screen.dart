@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/ru_pluralize.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/mascot.dart';
 import '../../../core/widgets/progress_ring.dart';
-import '../../../data/mock/mock_progress.dart';
+import '../../../data/models/weight_entry.dart';
 import '../../../data/models/nutrition.dart';
 import '../../../data/models/workout_session.dart';
 import '../../../data/repositories/health_repository.dart';
@@ -55,14 +56,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final protein = nutritionSummary?.consumedProtein ?? 0.0;
     final water = nutritionSummary?.waterConsumedMl ?? 0;
     final trainer = ref.watch(myTrainerProvider);
-    final weightHistory = ref.watch(weightHistoryProvider);
-    final sessions = ref.watch(workoutSessionsProvider);
+    final weightHistory = ref.watch(weightHistoryProvider).valueOrNull ?? const [];
+    final sessions = ref.watch(workoutSessionsProvider).valueOrNull ?? const [];
     final healthConnected = ref.watch(healthConnectedProvider);
     final steps = ref.watch(dailyStepsProvider);
 
-    final weightDelta = weightHistory.isEmpty
-        ? 0.0
-        : user.weightKg - weightHistory.first.weightKg;
+    final currentWeight = weightHistory.isEmpty ? user.weightKg : weightHistory.last.weightKg;
+    final weightDelta = weightHistory.isEmpty ? 0.0 : currentWeight - weightHistory.first.weightKg;
 
     return Scaffold(
       body: SafeArea(
@@ -219,7 +219,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         color: _statPurple,
                         background: const Color(0xFFF2ECFE),
                         label: 'Вес',
-                        value: user.weightKg.toStringAsFixed(0),
+                        value: currentWeight.toStringAsFixed(0),
                         goal: 'кг',
                         trailing: Text(
                           '${weightDelta <= 0 ? '↓' : '↑'} ${weightDelta.abs().toStringAsFixed(1)} кг',
@@ -231,7 +231,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       ? AppColors.green600
                                       : AppColors.error),
                         ),
-                        onTap: () => context.push('/workout-stats'),
+                        onTap: () => _showAddWeightDialog(context, ref, currentWeight),
                       ),
                     ),
                   ],
@@ -254,7 +254,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const SizedBox(height: AppSpacing.sm),
             _WeekCalendar(sessions: sessions),
             const SizedBox(height: AppSpacing.xl),
-            _StreakCard(streakDays: user.streakDays),
+            _StreakCard(streakDays: ref.watch(workoutStreakProvider)),
             const SizedBox(height: AppSpacing.xl),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -266,7 +266,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            _ProgressCard(history: weightHistory, currentWeight: user.weightKg),
+            _ProgressCard(history: weightHistory, currentWeight: currentWeight),
             const SizedBox(height: AppSpacing.xl),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -310,6 +310,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 rating: trainer.rating,
                 seed: trainer.avatarSeed,
                 id: trainer.id),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAddWeightDialog(BuildContext context, WidgetRef ref, double currentWeight) async {
+    final controller = TextEditingController(text: currentWeight.toStringAsFixed(1));
+    var saving = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Добавить вес'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(suffixText: 'кг'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Отмена')),
+            FilledButton(
+              onPressed: saving
+                  ? null
+                  : () async {
+                      final value = double.tryParse(controller.text.replaceAll(',', '.'));
+                      if (value == null || value <= 0) return;
+                      setDialogState(() => saving = true);
+                      try {
+                        await ref.read(weightEntryNotifierProvider.notifier).add(value);
+                        if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                      } on ApiException catch (e) {
+                        setDialogState(() => saving = false);
+                        if (dialogContext.mounted) {
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text(e.message)));
+                        }
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Сохранить'),
+            ),
           ],
         ),
       ),
@@ -691,14 +735,34 @@ class _ProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (history.isEmpty) {
+      return AppCard(
+        onTap: () => context.push('/workout-stats'),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Вес', style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 4),
+                  Text('Пока нет записей', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 2),
+                  Text('Нажми на карточку «Вес» выше, чтобы добавить первую',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final weights = history.map((e) => e.weightKg).toList();
     final minW = (weights.reduce((a, b) => a < b ? a : b) - 1).floorToDouble();
     final maxW = (weights.reduce((a, b) => a > b ? a : b) + 1).ceilToDouble();
-    final delta =
-        history.isEmpty ? 0.0 : currentWeight - history.first.weightKg;
-    final weeks = history.isEmpty
-        ? 0
-        : (DateTime.now().difference(history.first.date).inDays / 7).round();
+    final delta = currentWeight - history.first.weightKg;
+    final weeks = (DateTime.now().difference(history.first.date).inDays / 7).round();
     final steps = 4;
     final labels = List.generate(
         steps, (i) => (maxW - (maxW - minW) * i / (steps - 1)).round());
