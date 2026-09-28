@@ -392,60 +392,75 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.md, AppSpacing.lg),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.green500, AppColors.green700],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.xl),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, 0, 0),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.green500, AppColors.green700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: AppShadows.card,
         ),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: AppShadows.card,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Сегодня по плану',
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelMedium
-                        ?.copyWith(color: Colors.white70, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 4),
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineMedium
-                      ?.copyWith(color: Colors.white),
+        // Текст и гантели — в Row с фиксированными долями ширины, поэтому
+        // никогда не наслаиваются друг на друга (раньше картинка была шире
+        // своего места и либо обрезалась по краю карточки, либо наезжала
+        // на текст). Гантели крупные и слегка "срезаны" по нижнему краю —
+        // как на референсе, — но заголовок и все три строки статистики
+        // всегда полностью читаемы на своей половине.
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              flex: 7,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Сегодня по плану',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelMedium
+                            ?.copyWith(color: Colors.white70, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(color: Colors.white, fontSize: 20),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _bullet(context, Icons.format_list_bulleted_rounded,
+                        '$exercises упражнений'),
+                    const SizedBox(height: 4),
+                    _bullet(context, Icons.timer_outlined, '$minutes минут'),
+                    const SizedBox(height: 4),
+                    _bullet(context, Icons.bar_chart_rounded,
+                        '${volumeKg.round()} кг объём'),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                _bullet(context, Icons.format_list_bulleted_rounded,
-                    '$exercises упражнений'),
-                const SizedBox(height: 4),
-                _bullet(context, Icons.timer_outlined, '$minutes минут'),
-                const SizedBox(height: 4),
-                _bullet(context, Icons.bar_chart_rounded,
-                    '${volumeKg.round()} кг объём'),
-              ],
+              ),
             ),
-          ),
-          SizedBox(
-            width: 108,
-            height: 92,
-            child: Image.asset(
-              'assets/home/hero_dumbbells.png',
-              fit: BoxFit.contain,
+            Expanded(
+              flex: 5,
+              child: AspectRatio(
+                aspectRatio: 1.3,
+                child: Image.asset(
+                  'assets/home/hero_dumbbells.png',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomRight,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
