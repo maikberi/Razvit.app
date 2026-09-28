@@ -392,64 +392,60 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.xl),
-      child: Container(
-        color: AppColors.green50,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Сегодня по плану',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
-                              ?.copyWith(color: AppColors.green700)),
-                      const SizedBox(height: 4),
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(color: AppColors.ink900),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _bullet(context, Icons.format_list_bulleted_rounded,
-                          '$exercises упражнений'),
-                      const SizedBox(height: 4),
-                      _bullet(context, Icons.timer_outlined, '$minutes минут'),
-                      const SizedBox(height: 4),
-                      _bullet(context, Icons.bar_chart_rounded,
-                          '${volumeKg.round()} кг объём'),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 118,
-                child: OverflowBox(
-                  minWidth: 118,
-                  maxWidth: 170,
-                  alignment: Alignment.centerLeft,
-                  child: Image.asset(
-                    'assets/home/hero_dumbbells.png',
-                    width: 170,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-            ],
-          ),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.md, AppSpacing.lg),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.green500, AppColors.green700],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppShadows.card,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Сегодня по плану',
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelMedium
+                        ?.copyWith(color: Colors.white70, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineMedium
+                      ?.copyWith(color: Colors.white),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _bullet(context, Icons.format_list_bulleted_rounded,
+                    '$exercises упражнений'),
+                const SizedBox(height: 4),
+                _bullet(context, Icons.timer_outlined, '$minutes минут'),
+                const SizedBox(height: 4),
+                _bullet(context, Icons.bar_chart_rounded,
+                    '${volumeKg.round()} кг объём'),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 108,
+            height: 92,
+            child: Image.asset(
+              'assets/home/hero_dumbbells.png',
+              fit: BoxFit.contain,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -457,13 +453,13 @@ class _GoalCard extends StatelessWidget {
   Widget _bullet(BuildContext context, IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 15, color: AppColors.green700),
+        Icon(icon, size: 15, color: Colors.white),
         const SizedBox(width: 6),
         Text(text,
             style: Theme.of(context)
                 .textTheme
                 .bodySmall
-                ?.copyWith(color: AppColors.ink700)),
+                ?.copyWith(color: Colors.white)),
       ],
     );
   }
