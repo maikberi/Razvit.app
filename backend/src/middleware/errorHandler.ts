@@ -33,6 +33,7 @@ import {
   TrainerRelationNotFoundError,
 } from '../modules/trainer/trainer.service';
 import { WorkoutProgramNotFoundError } from '../modules/workout/workout.service';
+import { IncompleteWorkoutProfileError } from '../modules/workout/workoutProgramGenerator.service';
 
 const SOCIAL_PROVIDER_LABELS: Record<SocialProvider, string> = { google: 'Google', vk: 'VK', telegram: 'Telegram' };
 
@@ -110,6 +111,16 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
       error: {
         code: 'NUTRITION_PROFILE_INCOMPLETE',
         message: 'Заполни все данные профиля, чтобы рассчитать цели',
+        details: { missingFields: err.missingFields },
+      },
+    });
+    return;
+  }
+  if (err instanceof IncompleteWorkoutProfileError) {
+    res.status(422).json({
+      error: {
+        code: 'WORKOUT_PROFILE_INCOMPLETE',
+        message: 'Заполни все данные анкеты, чтобы собрать программу тренировок',
         details: { missingFields: err.missingFields },
       },
     });

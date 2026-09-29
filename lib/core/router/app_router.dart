@@ -87,7 +87,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),
     GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingFlowScreen()),
     GoRoute(path: '/plan-generating', builder: (context, state) => const PlanGeneratingScreen()),
-    GoRoute(path: '/plan-ready', builder: (context, state) => const PlanReadyScreen()),
+    GoRoute(path: '/plan-ready', builder: (context, state) => PlanReadyScreen(plan: state.extra as GeneratedPlan?)),
 
     // Полноэкранные маршруты без нижней навигации.
     GoRoute(

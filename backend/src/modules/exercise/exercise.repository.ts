@@ -29,6 +29,10 @@ export class ExerciseRepository {
       conditions.push(`equipment = $${i++}`);
       values.push(params.equipment);
     }
+    if (params.equipmentIn && params.equipmentIn.length > 0) {
+      conditions.push(`equipment = ANY($${i++}::text[])`);
+      values.push(params.equipmentIn);
+    }
     if (params.difficulty) {
       conditions.push(`difficulty = $${i++}`);
       values.push(params.difficulty);

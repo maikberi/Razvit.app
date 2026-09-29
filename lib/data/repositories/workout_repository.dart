@@ -52,9 +52,46 @@ final allProgramsProvider = Provider<List<WorkoutProgram>>((ref) {
   return [...ref.watch(programsProvider), ...custom];
 });
 
-final activeProgramProvider = Provider<WorkoutProgram>((ref) => activeProgram);
+/// Активная программа — реальная (созданная вручную или сгенерированная
+/// онбордингом, см. plan_generating_screen.dart), если она есть, иначе
+/// мок-заглушка (пока пользователь вообще ничего не создал/не прошёл
+/// генерацию). Последняя созданная — самая актуальная (customProgramsProvider
+/// хранит их в порядке создания).
+final activeProgramProvider = Provider<WorkoutProgram>((ref) {
+  final custom = ref.watch(customProgramsProvider).valueOrNull ?? const [];
+  if (custom.isNotEmpty) return custom.last;
+  return activeProgram;
+});
 
-final todayWorkoutProvider = Provider<WorkoutDay>((ref) => todayWorkout);
+final todayWorkoutProvider = Provider<WorkoutDay>((ref) {
+  final program = ref.watch(activeProgramProvider);
+  if (!program.isCustom || program.days.isEmpty) return todayWorkout;
+  return _todayOrNextDay(program);
+});
+
+/// День программы, соответствующий сегодняшнему дню недели (program.days[i]
+/// соответствует program.trainingDays[i], 1=Пн..7=Вс) — а если сегодня не
+/// тренировочный день, ближайший следующий по расписанию (стандартное для
+/// фитнес-приложений поведение вместо пустого/непонятного состояния).
+WorkoutDay _todayOrNextDay(WorkoutProgram program) {
+  final today = DateTime.now().weekday;
+  final n = program.days.length;
+
+  for (var i = 0; i < program.trainingDays.length && i < n; i++) {
+    if (program.trainingDays[i] == today) return program.days[i];
+  }
+
+  int? bestIndex;
+  var bestDelta = 8;
+  for (var i = 0; i < program.trainingDays.length && i < n; i++) {
+    final delta = ((program.trainingDays[i] - today) % 7 + 7) % 7;
+    if (delta > 0 && delta < bestDelta) {
+      bestDelta = delta;
+      bestIndex = i;
+    }
+  }
+  return program.days[bestIndex ?? 0];
+}
 
 /// Реальная история тренировок (GET /workout-sessions) — раньше был
 /// статичный mockSessions и in-memory activeWorkoutProvider: закрыл

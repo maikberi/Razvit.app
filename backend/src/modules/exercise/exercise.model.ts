@@ -23,6 +23,10 @@ export interface ExerciseSearchParams {
   query?: string;
   muscleGroup?: MuscleGroup;
   equipment?: string;
+  /** Матч по ЛЮБОМУ из значений — для Workout Program Generator (пользователь
+   * может тренироваться с разным оборудованием сразу), не выставлено наружу
+   * через публичный GET /exercises (см. exercise.routes.ts). */
+  equipmentIn?: string[];
   difficulty?: ExerciseDifficulty;
   page: number;
   perPage: number;

@@ -1,8 +1,20 @@
 import { z } from 'zod';
+import { DURATION_VALUES, EXPERIENCE_VALUES, PLACE_VALUES } from './workoutProfile.model';
 
 const GOALS = ['mass', 'loss', 'strength', 'definition', 'maintenance'] as const;
 const LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
 const STATUSES = ['done', 'planned', 'missed'] as const;
+
+export const updateWorkoutProfileSchema = z.object({
+  experience: z.enum(EXPERIENCE_VALUES).optional(),
+  place: z.enum(PLACE_VALUES).optional(),
+  // Свободные строки (имена HomeEquipment во Flutter), не enum — см.
+  // WorkoutProfileRow.equipment в workoutProfile.model.ts.
+  equipment: z.array(z.string().trim().min(1)).optional(),
+  workoutsPerWeek: z.coerce.number().int().min(1).max(7).optional(),
+  duration: z.enum(DURATION_VALUES).optional(),
+});
+export type UpdateWorkoutProfileBody = z.infer<typeof updateWorkoutProfileSchema>;
 
 const programExerciseSchema = z.object({
   exerciseId: z.string().trim().min(1),

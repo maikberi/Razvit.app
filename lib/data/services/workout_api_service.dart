@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_client.dart';
 import '../mock/mock_exercises.dart';
 import '../models/exercise.dart';
+import '../models/user.dart';
 import '../models/workout.dart';
 import '../models/workout_session.dart';
+import '../models/workout_profile.dart';
 
 /// Клиент сохранённых на backend программ и тренировок RAZVIT
 /// (POST/GET /workout-programs, POST/GET /workout-sessions) — заменяет
@@ -27,6 +29,39 @@ class WorkoutApiService {
   }
 
   Future<void> deleteProgram(String id) => _client.delete('/api/v1/workout-programs/${Uri.encodeComponent(id)}');
+
+  Future<WorkoutProfile> getProfile() async {
+    final json = await _client.getJson('/api/v1/workout-profile');
+    return WorkoutProfile.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<WorkoutProfile> updateProfile({
+    ExperienceLevel? experience,
+    TrainingPlace? place,
+    Set<HomeEquipment>? equipment,
+    int? workoutsPerWeek,
+    WorkoutDuration? duration,
+  }) async {
+    final json = await _client.putJson('/api/v1/workout-profile', {
+      if (experience != null) 'experience': experience.name,
+      if (place != null) 'place': place.name,
+      if (equipment != null) 'equipment': equipment.map((e) => e.name).toList(),
+      if (workoutsPerWeek != null) 'workoutsPerWeek': workoutsPerWeek,
+      if (duration != null) 'duration': duration.name,
+    });
+    return WorkoutProfile.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  /// Workout Program Generator на backend: анкета (этот сервис) + цель
+  /// из nutrition-профиля -> сплит по дням -> подбор упражнений из
+  /// реального каталога -> сохранённая программа (см.
+  /// workoutProgramGenerator.service.ts). Требует, чтобы перед этим уже
+  /// были сохранены и профиль тренировок (updateProfile выше), и goal в
+  /// nutrition-профиле (NutritionApiService.updateProfile).
+  Future<WorkoutProgram> generateProgram() async {
+    final json = await _client.postJson('/api/v1/workout-programs/generate', const {});
+    return _programFromJson(json['data'] as Map<String, dynamic>);
+  }
 
   Future<WorkoutSession> createSession({
     String? programId,
