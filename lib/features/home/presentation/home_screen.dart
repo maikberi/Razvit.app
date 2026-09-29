@@ -140,7 +140,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       children: [
                         const Text('Начать тренировку'),
                         const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward_rounded, size: 18),
+                        const Icon(Icons.chevron_right_rounded, size: 20),
                       ],
                     ),
                   ),
@@ -436,7 +436,7 @@ class _GoalCard extends StatelessWidget {
                             ?.copyWith(color: Colors.white70, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(
-                      title,
+                      '$title 💪',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context)
@@ -445,12 +445,12 @@ class _GoalCard extends StatelessWidget {
                           ?.copyWith(color: Colors.white, fontSize: 18, height: 1.2),
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    _bullet(context, Icons.format_list_bulleted_rounded,
+                    _bullet(context, Icons.adjust_rounded,
                         '$exercises упражнений'),
                     const SizedBox(height: 4),
-                    _bullet(context, Icons.timer_outlined, '$minutes минут'),
+                    _bullet(context, Icons.adjust_rounded, '$minutes минут'),
                     const SizedBox(height: 4),
-                    _bullet(context, Icons.bar_chart_rounded,
+                    _bullet(context, Icons.adjust_rounded,
                         '${volumeKg.round()} кг объём'),
                   ],
                 ),
