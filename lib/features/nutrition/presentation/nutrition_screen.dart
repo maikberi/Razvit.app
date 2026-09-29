@@ -1058,8 +1058,12 @@ class _MealSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = _mealStyle(meal.type);
 
+    // Лёгкий градиент в цвет приёма пищи вместо сплошного белого — та же
+    // логика, что и в карточках "Мои показатели" на Главной: разные
+    // приёмы пищи визуально отличаются друг от друга, а не только иконкой.
     return AppCard(
       onTap: onToggle,
+      gradient: LinearGradient(colors: [style.$3, AppColors.white], begin: Alignment.topLeft, end: Alignment.bottomRight),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1068,8 +1072,8 @@ class _MealSection extends StatelessWidget {
               Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(color: style.$3, shape: BoxShape.circle),
-                child: Icon(style.$1, color: style.$2, size: 20),
+                decoration: BoxDecoration(color: style.$2, shape: BoxShape.circle),
+                child: Icon(style.$1, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 10),
               Expanded(

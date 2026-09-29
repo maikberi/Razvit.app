@@ -611,18 +611,22 @@ class _TodayStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Раньше это была обычная белая карточка — только иконка была
+    // цветной. Лёгкий градиент в цвет самой метрики (тот же приём, что и
+    // в карточках калорий/воды на "Питании") добавляет красок вместо
+    // одинаково бледных плашек подряд.
     return AppCard(
       onTap: onTap,
       padding: const EdgeInsets.all(AppSpacing.sm),
+      gradient: LinearGradient(colors: [background, AppColors.white], begin: Alignment.topLeft, end: Alignment.bottomRight),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 34,
             height: 34,
-            decoration:
-                BoxDecoration(color: background, shape: BoxShape.circle),
-            child: Icon(icon, color: color, size: 17),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            child: Icon(icon, color: Colors.white, size: 17),
           ),
           const SizedBox(height: 10),
           Text(label,
@@ -642,7 +646,7 @@ class _TodayStatCard extends StatelessWidget {
                 child: LinearProgressIndicator(
                     value: (progress ?? 0).clamp(0, 1),
                     minHeight: 5,
-                    backgroundColor: AppColors.ink100,
+                    backgroundColor: AppColors.white,
                     color: color),
               ),
         ],

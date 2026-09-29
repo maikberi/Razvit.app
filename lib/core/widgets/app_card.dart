@@ -10,6 +10,7 @@ class AppCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(AppSpacing.lg),
     this.onTap,
     this.color,
+    this.gradient,
     this.radius = AppRadius.lg,
     this.shadow = true,
     this.border,
@@ -19,6 +20,9 @@ class AppCard extends StatelessWidget {
   final EdgeInsets padding;
   final VoidCallback? onTap;
   final Color? color;
+  /// Если задан, рисуется вместо [color] — для цветных карточек-акцентов
+  /// (например, тонированные под метрику плашки на Главной/Питании).
+  final Gradient? gradient;
   final double radius;
   final bool shadow;
   final Color? border;
@@ -28,7 +32,8 @@ class AppCard extends StatelessWidget {
     final content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: color ?? Theme.of(context).cardTheme.color ?? AppColors.white,
+        color: gradient == null ? (color ?? Theme.of(context).cardTheme.color ?? AppColors.white) : null,
+        gradient: gradient,
         borderRadius: BorderRadius.circular(radius),
         boxShadow: shadow ? AppShadows.card : null,
         border: border != null ? Border.all(color: border!) : null,
