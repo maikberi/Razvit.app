@@ -396,71 +396,69 @@ class _GoalCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.xl),
       child: Container(
         padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, 0, 0),
-        // Тёмный вариант оказался слишком тёмным, а перекрашенный в сплошной
-        // цвет силуэт гантелей — просто бесформенным пятном (внутренняя
-        // деталь/блики картинки полностью терялись при заливке в один тон).
-        // Вернули яркий зелёный градиент, а сами гантели теперь не
-        // перекрашиваются, а осветляются (ColorFilter.matrix, множитель
-        // яркости к исходным RGB) — так остаётся вся светотень фото
-        // (хром, грани дисков, логотип RAZVIT), просто ярче, и это
-        // прекрасно читается на зелёном фоне.
+        // Почти сплошной зелёный (капелька темнее в правом нижнем углу,
+        // а не заметный градиент через всю карточку) — раньше
+        // green500->green700 давал видимое затемнение к углу, на
+        // референсе фон выглядит гораздо ровнее.
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.green500, AppColors.green700],
+            colors: [AppColors.green500, AppColors.green600],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           boxShadow: AppShadows.card,
         ),
-        // Текст и гантели — в Row с фиксированными долями ширины, поэтому
-        // никогда не наслаиваются друг на друга (раньше картинка была шире
-        // своего места и либо обрезалась по краю карточки, либо наезжала
-        // на текст). Гантели занимают почти половину карточки — как просил
-        // пользователь — и "срезаны" по нижнему краю, а заголовок и все три
-        // строки статистики всегда полностью читаемы на своей половине.
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              flex: 6,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Сегодня по плану',
+        // Фиксированная высота — раньше карточка подстраивалась под высоту
+        // текста, и у длинных названий (например "Грудь, плечи, трицепс",
+        // в отличие от короткого "Push Day" с референса) заголовок
+        // переносился на 2 строки и утаскивал за собой всю карточку и
+        // гантели вниз/меньше. Теперь гантели всегда одного размера,
+        // независимо от того, сколько строк займёт заголовок.
+        child: SizedBox(
+          height: 190,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                flex: 6,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Сегодня по плану',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
+                              ?.copyWith(color: Colors.white70, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$title 💪',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context)
                             .textTheme
-                            .labelMedium
-                            ?.copyWith(color: Colors.white70, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$title 💪',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(color: Colors.white, fontSize: 18, height: 1.2),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    _bullet(context, Icons.adjust_rounded,
-                        '$exercises упражнений'),
-                    const SizedBox(height: 4),
-                    _bullet(context, Icons.adjust_rounded, '$minutes минут'),
-                    const SizedBox(height: 4),
-                    _bullet(context, Icons.adjust_rounded,
-                        '${volumeKg.round()} кг объём'),
-                  ],
+                            .titleLarge
+                            ?.copyWith(color: Colors.white, fontSize: 18, height: 1.2),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _bullet(context, Icons.adjust_rounded,
+                          '$exercises упражнений'),
+                      const SizedBox(height: 4),
+                      _bullet(context, Icons.adjust_rounded, '$minutes минут'),
+                      const SizedBox(height: 4),
+                      _bullet(context, Icons.adjust_rounded,
+                          '${volumeKg.round()} кг объём'),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 6,
-              child: AspectRatio(
-                aspectRatio: 0.8,
-                child: ColorFiltered(
+              Expanded(
+                flex: 6,
+                child: AspectRatio(
+                  aspectRatio: 0.8,
+                  child: ColorFiltered(
                   // Множитель ~2.3 к исходным RGB (альфа не трогаем) —
                   // фото было сильно недоэкспонировано (средняя яркость
                   // ~40/255), но вся детализация (хром, грани дисков,
@@ -484,7 +482,8 @@ class _GoalCard extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _bullet(BuildContext context, IconData icon, String text) {
