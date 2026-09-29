@@ -26,7 +26,7 @@ Future<void> main() async {
   } else if (Session.isLoggedIn) {
     try {
       final me = await _fetchCurrentUserWithRetry();
-      restoredUser = AppUser(id: me.id, name: me.name, email: me.email);
+      restoredUser = AppUser(id: me.id, name: me.name, email: me.email, lastName: me.lastName, nickname: me.nickname, avatarUrl: me.avatarUrl);
       router.initialRoute = '/home';
     } on ApiException catch (e) {
       // Токен реально недействителен/просрочен (backend явно ответил 401) —

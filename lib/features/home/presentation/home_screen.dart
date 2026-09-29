@@ -396,30 +396,33 @@ class _GoalCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.xl),
       child: Container(
         padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, 0, 0),
-        // Тёмная карточка вместо сплошного зелёного градиента — того же
-        // духа, что тёмный экран самой тренировки (см. app_typography.dart:
-        // "не зависит от тёмной темы экрана"). Затемнение гуще слева, где
-        // текст, и чуть светлее справа, где гантели — снимок не тонет в
-        // сплошном чёрном, но текст всегда читается на самом тёмном участке.
+        // Тёмный вариант оказался слишком тёмным, а перекрашенный в сплошной
+        // цвет силуэт гантелей — просто бесформенным пятном (внутренняя
+        // деталь/блики картинки полностью терялись при заливке в один тон).
+        // Вернули яркий зелёный градиент, а сами гантели теперь не
+        // перекрашиваются, а осветляются (ColorFilter.matrix, множитель
+        // яркости к исходным RGB) — так остаётся вся светотень фото
+        // (хром, грани дисков, логотип RAZVIT), просто ярче, и это
+        // прекрасно читается на зелёном фоне.
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.darkSurface, AppColors.darkSurfaceElevated],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
+            colors: [AppColors.green500, AppColors.green700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
           boxShadow: AppShadows.card,
         ),
         // Текст и гантели — в Row с фиксированными долями ширины, поэтому
         // никогда не наслаиваются друг на друга (раньше картинка была шире
         // своего места и либо обрезалась по краю карточки, либо наезжала
-        // на текст). Гантели крупные и слегка "срезаны" по нижнему краю —
-        // как на референсе, — но заголовок и все три строки статистики
-        // всегда полностью читаемы на своей половине.
+        // на текст). Гантели занимают почти половину карточки — как просил
+        // пользователь — и "срезаны" по нижнему краю, а заголовок и все три
+        // строки статистики всегда полностью читаемы на своей половине.
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
-              flex: 7,
+              flex: 6,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                 child: Column(
@@ -454,46 +457,27 @@ class _GoalCard extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 5,
+              flex: 6,
               child: AspectRatio(
-                aspectRatio: 0.95,
-                // Сама картинка гантелей — тёмно-угольная иллюстрация
-                // (средняя яркость ~40/255): на сплошном тёмном фоне
-                // карточки она физически неразличима, а не просто "плохо
-                // видна" (проверено на пикселях — они почти совпадают с
-                // ink900/ink800). Поэтому не пытаемся подсветить исходные
-                // тёмные пиксели, а перекрашиваем весь силуэт в светлый
-                // оттенок бренда (ColorFilter.srcIn держит маску по альфе
-                // картинки — форма гантелей сохраняется один в один, просто
-                // без внутренней тени/бликов) плюс мягкое зелёное свечение
-                // позади — вместе даёт чёткий, заметный силуэт вместо
-                // тёмного пятна в тёмном пятне.
-                child: Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: RadialGradient(
-                            center: Alignment.bottomRight,
-                            radius: 1.15,
-                            colors: [
-                              AppColors.green500.withValues(alpha: 0.55),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    ColorFiltered(
-                      colorFilter: const ColorFilter.mode(AppColors.green100, BlendMode.srcIn),
-                      child: Image.asset(
-                        'assets/home/hero_dumbbells.png',
-                        fit: BoxFit.contain,
-                        alignment: Alignment.bottomRight,
-                      ),
-                    ),
-                  ],
+                aspectRatio: 0.8,
+                child: ColorFiltered(
+                  // Множитель ~2.3 к исходным RGB (альфа не трогаем) —
+                  // фото было сильно недоэкспонировано (средняя яркость
+                  // ~40/255), но вся детализация (хром, грани дисков,
+                  // логотип) в нём есть, просто тёмная. Линейное
+                  // осветление проявляет её, а не стирает, как плоская
+                  // перекраска в один тон.
+                  colorFilter: const ColorFilter.matrix(<double>[
+                    2.3, 0, 0, 0, 0,
+                    0, 2.3, 0, 0, 0,
+                    0, 0, 2.3, 0, 0,
+                    0, 0, 0, 1, 0,
+                  ]),
+                  child: Image.asset(
+                    'assets/home/hero_dumbbells.png',
+                    fit: BoxFit.contain,
+                    alignment: Alignment.bottomRight,
+                  ),
                 ),
               ),
             ),

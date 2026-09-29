@@ -37,3 +37,16 @@ export const telegramAuthSchema = z.object({
   hash: z.string().min(1),
 });
 export type TelegramAuthBody = z.infer<typeof telegramAuthSchema>;
+
+// avatarUrl — data URL (data:image/...;base64,...) целиком в JSON-теле, тот
+// же подход, что уже используется для фото в AI Food Recognition (см.
+// app.ts — лимит тела запроса 8mb специально под base64-фото). ~700 000
+// символов base64 — с запасом хватает на фото профиля после client-side
+// сжатия (image_picker: maxWidth/maxHeight/imageQuality, см. Flutter).
+export const updateUserProfileSchema = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  lastName: z.string().trim().max(120).nullable().optional(),
+  nickname: z.string().trim().max(60).nullable().optional(),
+  avatarUrl: z.string().trim().max(700_000).startsWith('data:image/').nullable().optional(),
+});
+export type UpdateUserProfileBody = z.infer<typeof updateUserProfileSchema>;

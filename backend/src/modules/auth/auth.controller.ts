@@ -1,6 +1,6 @@
 import { asyncHandler } from '../../utils/asyncHandler';
 import { AuthService } from './auth.service';
-import { GoogleAuthBody, LoginBody, RegisterBody, TelegramAuthBody, VkAuthBody } from './auth.validation';
+import { GoogleAuthBody, LoginBody, RegisterBody, TelegramAuthBody, UpdateUserProfileBody, VkAuthBody } from './auth.validation';
 
 export class AuthController {
   constructor(private readonly service: AuthService) {}
@@ -41,6 +41,13 @@ export class AuthController {
       res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: 'Пользователь не найден' } });
       return;
     }
+    res.status(200).json({ data: user });
+  });
+
+  /** PATCH /auth/me — имя/фамилия/никнейм/фото (см. "Личные данные" в профиле). */
+  updateProfile = asyncHandler(async (req, res) => {
+    const body = req.validatedBody as UpdateUserProfileBody;
+    const user = await this.service.updateProfile(req.userId as string, body);
     res.status(200).json({ data: user });
   });
 }

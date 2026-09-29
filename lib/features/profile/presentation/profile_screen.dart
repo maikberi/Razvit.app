@@ -10,6 +10,7 @@ import '../../../data/models/user.dart';
 import '../../../data/repositories/progress_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../data/repositories/workout_repository.dart';
+import 'profile_edit_sheet.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -35,9 +36,10 @@ class ProfileScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xxl),
           children: [
             AppCard(
+              onTap: () => showProfileEditSheet(context),
               child: Row(
                 children: [
-                  AppAvatar(name: user.name, size: 60),
+                  AppAvatar(name: user.name, size: 60, imageUrl: user.avatarUrl),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Column(
@@ -45,12 +47,13 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         Text('${user.name}${user.lastName != null ? ' ${user.lastName}' : ''}', style: Theme.of(context).textTheme.titleLarge),
                         if (user.nickname != null)
-                          Text(user.nickname!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500)),
+                          Text('@${user.nickname}', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500)),
                         const SizedBox(height: 6),
                         _GoalTag(icon: Icons.track_changes_rounded, label: user.goal.label),
                       ],
                     ),
                   ),
+                  const Icon(Icons.edit_outlined, color: AppColors.ink300),
                 ],
               ),
             ),
@@ -63,7 +66,7 @@ class ProfileScreen extends ConsumerWidget {
               children: [
                 Expanded(child: _statCard(context, '${currentWeight.toStringAsFixed(0)} кг', 'Вес', onTap: () => context.push('/workout-stats'))),
                 const SizedBox(width: 10),
-                Expanded(child: _statCard(context, '${user.heightCm} см', 'Рост', onTap: () => _showPersonalData(context, user))),
+                Expanded(child: _statCard(context, '${user.heightCm} см', 'Рост', onTap: () => showProfileEditSheet(context))),
               ],
             ),
             const SizedBox(height: 10),
@@ -75,7 +78,7 @@ class ProfileScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            _SectionTile(icon: Icons.badge_outlined, title: 'Личные данные', subtitle: 'Имя, email, фото', onTap: () => _showPersonalData(context, user)),
+            _SectionTile(icon: Icons.badge_outlined, title: 'Личные данные', subtitle: 'Имя, фамилия, никнейм, фото', onTap: () => showProfileEditSheet(context)),
             _SectionTile(icon: Icons.flag_outlined, title: 'Цели', subtitle: user.goal.label, onTap: () => _showGoal(context, user)),
             _SectionTile(icon: Icons.fitness_center_outlined, title: 'Мои программы', subtitle: 'Активные и завершённые', onTap: () => context.go('/workouts')),
             _SectionTile(icon: Icons.emoji_events_outlined, title: 'Достижения', subtitle: '$unlockedAchievements из ${achievements.length} открыто', onTap: () => context.push('/achievements')),
@@ -97,31 +100,6 @@ class ProfileScreen extends ConsumerWidget {
           Text(value, style: Theme.of(context).textTheme.headlineMedium),
           Text(label, style: Theme.of(context).textTheme.bodySmall),
         ],
-      ),
-    );
-  }
-
-  void _showPersonalData(BuildContext context, AppUser user) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Личные данные', style: Theme.of(context).textTheme.headlineMedium),
-              const SizedBox(height: AppSpacing.lg),
-              _row(context, 'Имя', user.name),
-              if (user.lastName != null) _row(context, 'Фамилия', user.lastName!),
-              if (user.nickname != null) _row(context, 'Никнейм', user.nickname!),
-              _row(context, 'Email', user.email),
-              _row(context, 'Рост', '${user.heightCm} см'),
-              _row(context, 'Вес', '${user.weightKg.toStringAsFixed(0)} кг'),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -151,18 +129,6 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _row(BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink500)),
-          Text(value, style: Theme.of(context).textTheme.titleSmall),
-        ],
-      ),
-    );
-  }
 }
 
 class _SectionTile extends StatelessWidget {

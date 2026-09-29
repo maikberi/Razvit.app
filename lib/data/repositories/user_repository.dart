@@ -14,7 +14,24 @@ class UserNotifier extends StateNotifier<AppUser> {
             ));
 
   void setFromAuth(AuthUser user) {
-    state = AppUser(id: user.id, name: user.name, email: user.email);
+    state = AppUser(
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      lastName: user.lastName,
+      nickname: user.nickname,
+      avatarUrl: user.avatarUrl,
+      // Цель/рост/стартовый вес/серия — полей ещё нет в AuthUser/backend
+      // users (см. класс AppUser), сохраняем то, что уже было в состоянии,
+      // а не откатываем на дефолты — важно, если setFromAuth вызывается
+      // повторно (например, после сохранения "Личных данных"), а не только
+      // один раз при входе.
+      goal: state.goal,
+      heightCm: state.heightCm,
+      weightKg: state.weightKg,
+      startWeightKg: state.startWeightKg,
+      streakDays: state.streakDays,
+    );
   }
 
   void logWeight(double weightKg) {

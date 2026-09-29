@@ -103,4 +103,60 @@ describe('Auth API', () => {
     expect(res.status).toBe(200);
     expect(res.body.data).toMatchObject({ email, name: 'Михаил' });
   });
+
+  it('PATCH /auth/me без токена — 401', async () => {
+    const res = await request(app).patch('/api/v1/auth/me').send({ name: 'Новое имя' });
+    expect(res.status).toBe(401);
+  });
+
+  it('PATCH /auth/me — обновляет имя/фамилию/никнейм/фото', async () => {
+    const email = uniqueEmail();
+    const registerRes = await request(app).post('/api/v1/auth/register').send({ email, password: 'supersecret1', name: 'Михаил' });
+    const token = registerRes.body.data.token as string;
+
+    const avatar = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    const res = await request(app)
+      .patch('/api/v1/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Михаил Обновлённый', lastName: 'Иванов', nickname: 'misha', avatarUrl: avatar });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toMatchObject({ name: 'Михаил Обновлённый', lastName: 'Иванов', nickname: 'misha', avatarUrl: avatar });
+
+    const me = await request(app).get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`);
+    expect(me.body.data).toMatchObject({ name: 'Михаил Обновлённый', lastName: 'Иванов', nickname: 'misha' });
+  });
+
+  it('PATCH /auth/me — частичное обновление не трогает уже сохранённые поля', async () => {
+    const email = uniqueEmail();
+    const registerRes = await request(app).post('/api/v1/auth/register').send({ email, password: 'supersecret1', name: 'Михаил' });
+    const token = registerRes.body.data.token as string;
+
+    await request(app).patch('/api/v1/auth/me').set('Authorization', `Bearer ${token}`).send({ nickname: 'misha' });
+    const res = await request(app).patch('/api/v1/auth/me').set('Authorization', `Bearer ${token}`).send({ lastName: 'Иванов' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toMatchObject({ name: 'Михаил', lastName: 'Иванов', nickname: 'misha' });
+  });
+
+  it('PATCH /auth/me — явный null очищает поле (например, убрать фото)', async () => {
+    const email = uniqueEmail();
+    const registerRes = await request(app).post('/api/v1/auth/register').send({ email, password: 'supersecret1', name: 'Михаил' });
+    const token = registerRes.body.data.token as string;
+
+    await request(app).patch('/api/v1/auth/me').set('Authorization', `Bearer ${token}`).send({ nickname: 'misha' });
+    const res = await request(app).patch('/api/v1/auth/me').set('Authorization', `Bearer ${token}`).send({ nickname: null });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.nickname).toBeNull();
+  });
+
+  it('PATCH /auth/me — avatarUrl не data:image — 422', async () => {
+    const email = uniqueEmail();
+    const registerRes = await request(app).post('/api/v1/auth/register').send({ email, password: 'supersecret1', name: 'Михаил' });
+    const token = registerRes.body.data.token as string;
+
+    const res = await request(app).patch('/api/v1/auth/me').set('Authorization', `Bearer ${token}`).send({ avatarUrl: 'https://evil.example.com/x.png' });
+    expect(res.status).toBe(422);
+  });
 });

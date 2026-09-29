@@ -6,7 +6,14 @@ import { validate } from '../../middleware/validate';
 import { AuthController } from './auth.controller';
 import { AuthRepository } from './auth.repository';
 import { AuthService } from './auth.service';
-import { googleAuthSchema, loginSchema, registerSchema, telegramAuthSchema, vkAuthSchema } from './auth.validation';
+import {
+  googleAuthSchema,
+  loginSchema,
+  registerSchema,
+  telegramAuthSchema,
+  updateUserProfileSchema,
+  vkAuthSchema,
+} from './auth.validation';
 
 const repository = new AuthRepository(pool);
 const service = new AuthService(repository);
@@ -20,5 +27,6 @@ authRouter.post('/auth/google', authRateLimiter, validate(googleAuthSchema, 'bod
 authRouter.post('/auth/vk', authRateLimiter, validate(vkAuthSchema, 'body'), controller.vk);
 authRouter.post('/auth/telegram', authRateLimiter, validate(telegramAuthSchema, 'body'), controller.telegram);
 authRouter.get('/auth/me', authUser, controller.me);
+authRouter.patch('/auth/me', authUser, validate(updateUserProfileSchema, 'body'), controller.updateProfile);
 
 export { AuthRepository, AuthService };

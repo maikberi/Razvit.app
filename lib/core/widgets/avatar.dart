@@ -1,15 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Заглушка-аватар: круг с инициалом и стабильным по seed цветом фона.
-/// В проекте пока нет реальных фотографий пользователей/тренеров.
+/// Аватар пользователя — показывает настоящее фото (data: URL из
+/// PATCH /auth/me, см. profile_edit_sheet.dart), а если фото не задано —
+/// круг с инициалом и стабильным по seed цветом фона.
 class AppAvatar extends StatelessWidget {
-  const AppAvatar({super.key, required this.name, this.size = 44, this.seed = 0});
+  const AppAvatar({super.key, required this.name, this.size = 44, this.seed = 0, this.imageUrl});
 
   final String name;
   final double size;
   final int seed;
+  final String? imageUrl;
 
   static const _palette = [
     AppColors.green500,
@@ -21,6 +25,38 @@ class AppAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final url = imageUrl;
+    if (url != null && url.isNotEmpty) {
+      final provider = _imageProviderFor(url);
+      if (provider != null) {
+        return ClipOval(
+          child: Image(
+            image: provider,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _initialCircle(),
+          ),
+        );
+      }
+    }
+    return _initialCircle();
+  }
+
+  ImageProvider? _imageProviderFor(String url) {
+    if (url.startsWith('data:')) {
+      final comma = url.indexOf(',');
+      if (comma == -1) return null;
+      try {
+        return MemoryImage(base64Decode(url.substring(comma + 1)));
+      } catch (_) {
+        return null;
+      }
+    }
+    return NetworkImage(url);
+  }
+
+  Widget _initialCircle() {
     final color = _palette[seed % _palette.length];
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
     return Container(

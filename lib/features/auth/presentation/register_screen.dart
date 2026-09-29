@@ -8,6 +8,7 @@ import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/fade_slide_in.dart';
 import '../../../core/widgets/mascot.dart';
 import '../../../data/repositories/user_repository.dart';
+import '../../../data/services/auth_api_service.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -85,9 +86,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             name: lastName.isEmpty ? firstName : '$firstName $lastName',
           );
       if (!mounted) return;
-      if (_nickname.text.trim().isNotEmpty) {
-        container.read(userProvider.notifier).updateProfile(nickname: _nickname.text.trim());
+      final nickname = _nickname.text.trim();
+      // Фамилия/никнейм — реальные поля профиля (PATCH /auth/me), а не
+      // только локальное отображаемое имя: раньше никнейм терялся при
+      // перезапуске приложения, потому что сохранялся только в памяти.
+      if (lastName.isNotEmpty || nickname.isNotEmpty) {
+        try {
+          final updated = await container.read(authApiServiceProvider).updateProfile(
+                lastName: lastName.isEmpty ? null : lastName,
+                nickname: nickname.isEmpty ? null : nickname,
+              );
+          container.read(userProvider.notifier).setFromAuth(updated);
+        } on ApiException {
+          // Не блокируем регистрацию, если это конкретное сохранение не
+          // удалось — пользователь всегда сможет добавить фамилию/никнейм
+          // позже в профиле.
+        }
       }
+      if (!mounted) return;
       context.push('/onboarding');
     } on ApiException catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(e.message)));

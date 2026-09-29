@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../../config/env';
 import { AuthRepository } from './auth.repository';
-import { SocialProvider, UserRole, UserRow } from './auth.model';
+import { SocialProvider, UserProfilePatch, UserRole, UserRow } from './auth.model';
 import { GoogleTokenVerifier, RealGoogleTokenVerifier } from './google.verifier';
 import { VkAuthVerifier, VkExchangeParams, RealVkAuthVerifier } from './vk.verifier';
 import { RealTelegramAuthVerifier, TelegramAuthVerifier, TelegramLoginPayload } from './telegram.verifier';
@@ -38,7 +38,7 @@ export class InvalidSocialTokenError extends Error {
 
 export interface AuthResult {
   token: string;
-  user: { id: string; email: string; name: string; role: UserRole };
+  user: { id: string; email: string; name: string; lastName: string | null; nickname: string | null; avatarUrl: string | null; role: UserRole };
 }
 
 export interface SocialAuthResult extends AuthResult {
@@ -131,11 +131,25 @@ export class AuthService {
     return user ? toPublicUser(user) : null;
   }
 
+  /** PATCH /auth/me — см. AuthRepository.updateProfile про null-vs-undefined. */
+  async updateProfile(userId: string, patch: UserProfilePatch): Promise<AuthResult['user']> {
+    const updated = await this.repository.updateProfile(userId, patch);
+    return toPublicUser(updated);
+  }
+
   private issueToken(userId: string): string {
     return jwt.sign({ sub: userId }, env.jwtSecret, { expiresIn: TOKEN_TTL });
   }
 }
 
 function toPublicUser(user: UserRow): AuthResult['user'] {
-  return { id: user.id, email: user.email, name: user.name, role: user.role };
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    lastName: user.last_name,
+    nickname: user.nickname,
+    avatarUrl: user.avatar_url,
+    role: user.role,
+  };
 }

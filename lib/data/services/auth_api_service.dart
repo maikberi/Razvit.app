@@ -3,16 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_client.dart';
 
 class AuthUser {
-  const AuthUser({required this.id, required this.email, required this.name});
+  const AuthUser({required this.id, required this.email, required this.name, this.lastName, this.nickname, this.avatarUrl});
 
   final String id;
   final String email;
   final String name;
+  final String? lastName;
+  final String? nickname;
+  final String? avatarUrl;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
         id: json['id'] as String,
         email: json['email'] as String,
         name: json['name'] as String,
+        lastName: json['lastName'] as String?,
+        nickname: json['nickname'] as String?,
+        avatarUrl: json['avatarUrl'] as String?,
       );
 }
 
@@ -92,6 +98,22 @@ class AuthApiService {
 
   Future<AuthUser> me() async {
     final json = await _client.getJson('/api/v1/auth/me');
+    return AuthUser.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  /// PATCH /auth/me — имя/фамилия/никнейм/фото профиля. Экран редактирования
+  /// всегда отправляет весь текущий снимок формы разом (а не точечные
+  /// правки), поэтому здесь достаточно обычных nullable-параметров: null
+  /// значит "очистить поле" (backend различает null/отсутствие ключа —
+  /// см. AuthRepository.updateProfile, — но при полном снимке формы
+  /// отсутствующих ключей просто не бывает).
+  Future<AuthUser> updateProfile({String? name, String? lastName, String? nickname, String? avatarUrl}) async {
+    final json = await _client.patchJson('/api/v1/auth/me', {
+      if (name != null) 'name': name,
+      'lastName': lastName,
+      'nickname': nickname,
+      'avatarUrl': avatarUrl,
+    });
     return AuthUser.fromJson(json['data'] as Map<String, dynamic>);
   }
 }
