@@ -256,15 +256,36 @@ class _CalorieCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final remaining = summary.remainingCalories;
-    return AppCard(
+    final progress = summary.targets.calorieGoal == 0 ? 0.0 : (summary.consumedCalories / summary.targets.calorieGoal).clamp(0, 1).toDouble();
+    // Раньше карточка была плоским белым AppCard — "всё бело и тускло".
+    // Тёплый зеленоватый градиент вместо сплошного белого плюс цветные
+    // иконки под каждый нутриент (вместо одинаковых зелёных галочек)
+    // добавляют карточке яркости, не мешая читаемости чисел.
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFEFFCF3), AppColors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadows.card,
+      ),
       child: Row(
         children: [
-          ProgressRing(
-            progress: summary.targets.calorieGoal == 0 ? 0 : (summary.consumedCalories / summary.targets.calorieGoal).clamp(0, 1),
-            size: 132,
-            strokeWidth: 11,
-            color: AppColors.green500,
-            trackColor: AppColors.green100,
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: progress),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) => ProgressRing(
+              progress: value,
+              size: 132,
+              strokeWidth: 11,
+              color: AppColors.green500,
+              trackColor: AppColors.green100,
+              child: child,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -284,11 +305,11 @@ class _CalorieCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _macroLine(context, 'Белки', summary.consumedProtein, summary.targets.proteinGoal, summary.remainingProtein),
+                _macroLine(context, Icons.egg_alt_rounded, AppColors.protein, 'Белки', summary.consumedProtein, summary.targets.proteinGoal, summary.remainingProtein),
                 const SizedBox(height: 16),
-                _macroLine(context, 'Жиры', summary.consumedFat, summary.targets.fatGoal, summary.remainingFat),
+                _macroLine(context, Icons.opacity_rounded, AppColors.fat, 'Жиры', summary.consumedFat, summary.targets.fatGoal, summary.remainingFat),
                 const SizedBox(height: 16),
-                _macroLine(context, 'Углеводы', summary.consumedCarbs, summary.targets.carbsGoal, summary.remainingCarbs),
+                _macroLine(context, Icons.grain_rounded, AppColors.carbs, 'Углеводы', summary.consumedCarbs, summary.targets.carbsGoal, summary.remainingCarbs),
               ],
             ),
           ),
@@ -297,19 +318,15 @@ class _CalorieCard extends StatelessWidget {
     );
   }
 
-  Widget _macroLine(BuildContext context, String label, double consumed, int goal, double remaining) {
+  Widget _macroLine(BuildContext context, IconData icon, Color color, String label, double consumed, int goal, double remaining) {
     final done = goal > 0 && consumed >= goal;
     return Row(
       children: [
         Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.green500, width: 1.5),
-            color: done ? AppColors.green500 : Colors.transparent,
-          ),
-          child: Icon(Icons.check_rounded, size: 14, color: done ? Colors.white : AppColors.green500),
+          width: 26,
+          height: 26,
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.14), shape: BoxShape.circle),
+          child: Icon(done ? Icons.check_rounded : icon, size: 15, color: color),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -418,8 +435,24 @@ class _WaterCardState extends ConsumerState<_WaterCard> {
     final consumedMl = widget.consumedMl;
     final goalMl = widget.goalMl;
     final notifier = ref.read(nutritionDayProvider.notifier);
+    final progress = goalMl == 0 ? 0.0 : (consumedMl / goalMl).clamp(0, 1).toDouble();
 
-    return AppCard(
+    // Раньше карточка воды была таким же плоским белым AppCard, как и всё
+    // остальное — тут добавлен голубой градиент (цвет самой воды) и
+    // анимированная полоса-заливка вместо статичного ряда капель, чтобы
+    // добавление воды ощущалось как настоящее действие, а не просто смена
+    // цифры.
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFEAF7FE), AppColors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadows.card,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -434,15 +467,24 @@ class _WaterCardState extends ConsumerState<_WaterCard> {
                 ),
                 child: Row(
                   children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(color: AppColors.water, shape: BoxShape.circle),
+                      child: const Icon(Icons.water_drop_rounded, size: 16, color: Colors.white),
+                    ),
+                    const SizedBox(width: 8),
                     Text('Вода', style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(width: 4),
                     const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.ink400),
                   ],
                 ),
               ),
               Row(
                 children: [
-                  Text('${(consumedMl / 1000).toStringAsFixed(1)} / ${(goalMl / 1000).toStringAsFixed(1)} л', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    '${(consumedMl / 1000).toStringAsFixed(1)} / ${(goalMl / 1000).toStringAsFixed(1)} л',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
+                  ),
                   if (consumedMl > 0)
                     IconButton(
                       onPressed: _busy ? null : () => _run(notifier.removeLastWater),
@@ -453,24 +495,38 @@ class _WaterCardState extends ConsumerState<_WaterCard> {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              for (var i = 0; i < 8; i++)
-                Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: Icon(Icons.water_drop_rounded, size: 22, color: (i + 1) * 250 <= consumedMl ? AppColors.water : AppColors.ink200),
-                ),
-            ],
+          const SizedBox(height: AppSpacing.md),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: progress),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, _) => Stack(
+                children: [
+                  Container(height: 14, color: AppColors.ink100),
+                  FractionallySizedBox(
+                    widthFactor: value,
+                    child: Container(
+                      height: 14,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(colors: [AppColors.water, Color(0xFF0EA5E9)]),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               for (final amount in const [250, 500, 750]) ...[
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: _busy ? null : () => _run(() => notifier.addWater(amount)),
-                    child: Text('+$amount мл'),
+                  child: _WaterAddButton(
+                    amount: amount,
+                    busy: _busy,
+                    onTap: () => _run(() => notifier.addWater(amount)),
                   ),
                 ),
                 if (amount != 750) const SizedBox(width: 8),
@@ -478,6 +534,50 @@ class _WaterCardState extends ConsumerState<_WaterCard> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Кнопка добавления воды с лёгким "поп"-эффектом нажатия (scale down/up) —
+/// раньше это были обычные OutlinedButton без обратной связи по нажатию,
+/// кроме самого системного ripple.
+class _WaterAddButton extends StatefulWidget {
+  const _WaterAddButton({required this.amount, required this.busy, required this.onTap});
+  final int amount;
+  final bool busy;
+  final VoidCallback onTap;
+
+  @override
+  State<_WaterAddButton> createState() => _WaterAddButtonState();
+}
+
+class _WaterAddButtonState extends State<_WaterAddButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: widget.busy ? null : (_) => setState(() => _pressed = true),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTap: widget.busy ? null : widget.onTap,
+      child: AnimatedScale(
+        scale: _pressed ? 0.94 : 1,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: const Color(0xFFBFE7FA)),
+          ),
+          child: Text(
+            '+${widget.amount} мл',
+            style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF0369A1)),
+          ),
+        ),
       ),
     );
   }

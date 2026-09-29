@@ -171,10 +171,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                                 padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
                                 child: Center(child: CircularProgressIndicator()),
                               ),
-                            for (final f in _results) ...[
-                              _FoodRow(food: f, onAdd: (grams) => _addFood(f, grams)),
-                              const SizedBox(height: 8),
-                            ],
+                            ..._buildResultRows(context),
                             if (_searchError != null)
                               _OnlineErrorRow(message: _searchError!, onRetry: () => _runSearch(reset: _results.isEmpty)),
                             if (_searchError == null && _loadingMore)
@@ -196,6 +193,27 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
         ),
       ),
     );
+  }
+
+  /// Делит результаты поиска на два раздела: основная база RAZVIT
+  /// (проверенные базовые продукты, обычно без фото — просто эмодзи) и
+  /// продукты из открытых баз (USDA/Open Food Facts) — конкретные бренды
+  /// со своими фото, которые туда когда-то добавили сами пользователи.
+  /// Раньше всё шло одним общим списком вперемешку — тяжело было понять,
+  /// где надёжный базовый продукт, а где чей-то конкретный бренд.
+  List<Widget> _buildResultRows(BuildContext context) {
+    final base = _results.where((f) => f.source == FoodSource.razvit).toList();
+    final community = _results.where((f) => f.source != FoodSource.razvit).toList();
+    if (base.isEmpty || community.isEmpty) {
+      return [for (final f in _results) ...[_FoodRow(food: f, onAdd: (grams) => _addFood(f, grams)), const SizedBox(height: 8)]];
+    }
+    return [
+      const _ResultsSectionHeader(icon: Icons.verified_rounded, title: 'Основные продукты'),
+      for (final f in base) ...[_FoodRow(food: f, onAdd: (grams) => _addFood(f, grams)), const SizedBox(height: 8)],
+      const SizedBox(height: 4),
+      const _ResultsSectionHeader(icon: Icons.people_alt_rounded, title: 'Добавлено пользователями'),
+      for (final f in community) ...[_FoodRow(food: f, onAdd: (grams) => _addFood(f, grams)), const SizedBox(height: 8)],
+    ];
   }
 
   void _showBarcodeLookup(BuildContext context) {
@@ -321,6 +339,26 @@ class _OnlineErrorRow extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(child: Text(message, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.error))),
           TextButton(onPressed: onRetry, child: const Text('Повторить')),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResultsSectionHeader extends StatelessWidget {
+  const _ResultsSectionHeader({required this.icon, required this.title});
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 15, color: AppColors.ink400),
+          const SizedBox(width: 6),
+          Text(title, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.ink500)),
         ],
       ),
     );

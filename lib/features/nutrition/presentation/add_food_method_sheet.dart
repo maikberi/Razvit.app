@@ -236,9 +236,14 @@ class _ManualEntrySheetState extends State<_ManualEntrySheet> {
   final _name = TextEditingController();
   final _grams = TextEditingController(text: '100');
   final _calories = TextEditingController();
-  final _protein = TextEditingController(text: '0');
-  final _fat = TextEditingController(text: '0');
-  final _carbs = TextEditingController(text: '0');
+  // Пустые контроллеры вместо реального текста '0' — раньше поля БЖУ
+  // были предзаполнены значением "0", и чтобы ввести своё число,
+  // приходилось сначала стирать этот "0" вручную. Теперь "0" — это просто
+  // hint (серая подсказка), она сама исчезает при вводе, как и положено
+  // плейсхолдеру. При сохранении пустое поле по-прежнему считается нулём.
+  final _protein = TextEditingController();
+  final _fat = TextEditingController();
+  final _carbs = TextEditingController();
 
   bool get _canSave => _name.text.trim().isNotEmpty && (int.tryParse(_grams.text) ?? 0) > 0 && (int.tryParse(_calories.text) ?? -1) >= 0;
 
@@ -269,14 +274,38 @@ class _ManualEntrySheetState extends State<_ManualEntrySheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl),
+      padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md, AppSpacing.xl, MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Ввести вручную', style: Theme.of(context).textTheme.headlineMedium),
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+              decoration: BoxDecoration(color: AppColors.ink200, borderRadius: BorderRadius.circular(AppRadius.pill)),
+            ),
+          ),
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: const Color(0xFFFFF4DF), borderRadius: BorderRadius.circular(AppRadius.md)),
+                child: const Icon(Icons.edit_note_rounded, color: Color(0xFFF59E0B)),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text('Ввести вручную', style: Theme.of(context).textTheme.headlineMedium),
+            ],
+          ),
           const SizedBox(height: AppSpacing.lg),
-          TextField(controller: _name, decoration: const InputDecoration(labelText: 'Название блюда'), onChanged: (_) => setState(() {})),
+          TextField(
+            controller: _name,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(labelText: 'Название блюда', prefixIcon: Icon(Icons.restaurant_menu_rounded)),
+            onChanged: (_) => setState(() {}),
+          ),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
@@ -284,38 +313,84 @@ class _ManualEntrySheetState extends State<_ManualEntrySheet> {
                 child: TextField(
                   controller: _grams,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Граммы'),
+                  decoration: const InputDecoration(labelText: 'Граммы', suffixText: 'г'),
                   onChanged: (_) => setState(() {}),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
+                flex: 2,
                 child: TextField(
                   controller: _calories,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Калории'),
+                  style: const TextStyle(color: AppColors.green700, fontWeight: FontWeight.w800),
+                  decoration: const InputDecoration(
+                    labelText: 'Калории',
+                    hintText: '0',
+                    suffixText: 'ккал',
+                    prefixIcon: Icon(Icons.local_fire_department_rounded, color: AppColors.green600),
+                  ),
                   onChanged: (_) => setState(() {}),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: AppSpacing.lg),
+          Text('БЖУ на этот вес', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.ink500)),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              Expanded(child: TextField(controller: _protein, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Белки, г'))),
+              Expanded(child: _MacroField(controller: _protein, label: 'Белки', color: AppColors.protein)),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: TextField(controller: _fat, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Жиры, г'))),
+              Expanded(child: _MacroField(controller: _fat, label: 'Жиры', color: AppColors.fat)),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: TextField(controller: _carbs, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Углеводы, г'))),
+              Expanded(child: _MacroField(controller: _carbs, label: 'Углеводы', color: AppColors.carbs)),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(onPressed: _canSave ? _save : null, child: const Text('Добавить продукт')),
+            child: ElevatedButton.icon(
+              onPressed: _canSave ? _save : null,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Добавить продукт'),
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Поле одного макронутриента (Б/Ж/У) — цветная метка над полем вместо
+/// плавающего labelText, компактнее в тесной строке из трёх полей.
+class _MacroField extends StatelessWidget {
+  const _MacroField({required this.controller, required this.label, required this.color});
+  final TextEditingController controller;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            const SizedBox(width: 6),
+            Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.ink500)),
+          ],
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
+          style: TextStyle(color: color, fontWeight: FontWeight.w800),
+          decoration: const InputDecoration(hintText: '0', suffixText: 'г', contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 14)),
+        ),
+      ],
     );
   }
 }

@@ -141,20 +141,17 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              const TabBar(
-                isScrollable: true,
-                labelColor: AppColors.green600,
-                unselectedLabelColor: AppColors.ink500,
-                indicatorColor: AppColors.green500,
-                tabs: [
-                  Tab(text: 'Инструкция'),
-                  Tab(text: 'Ошибки'),
-                  Tab(text: 'Мышцы'),
-                  Tab(text: 'Советы'),
-                  Tab(text: 'История'),
-                ],
-              ),
+              const SizedBox(height: AppSpacing.md),
+              // Раньше здесь был обычный TabBar с подчёркиванием — из-за
+              // isScrollable у него по умолчанию был неровный отступ перед
+              // первой вкладкой и тонкая линия-индикатор, что выглядело
+              // неаккуратно. Заменили на свой сегментный контрол (зелёная
+              // "таблетка" на активной вкладке) поверх того же
+              // TabController — надёжнее встроенного TabBar с кастомным
+              // indicator, у которого в связке isScrollable + свой
+              // BoxDecoration геометрия индикатора и текста вкладок
+              // расходится.
+              const _TabPillsBar(labels: ['Инструкция', 'Ошибки', 'Мышцы', 'Советы', 'История']),
               Expanded(
                 child: TabBarView(
                   children: [
@@ -173,6 +170,76 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Сегментный контрол для DefaultTabController — сам следит за
+/// controller.index и перерисовывается при смене вкладки (в т.ч. свайпом
+/// по TabBarView), а тап анимирует переход через controller.animateTo.
+class _TabPillsBar extends StatefulWidget {
+  const _TabPillsBar({required this.labels});
+  final List<String> labels;
+
+  @override
+  State<_TabPillsBar> createState() => _TabPillsBarState();
+}
+
+class _TabPillsBarState extends State<_TabPillsBar> {
+  TabController? _controller;
+
+  void _onTick() => setState(() {});
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final controller = DefaultTabController.of(context);
+    if (!identical(controller, _controller)) {
+      _controller?.removeListener(_onTick);
+      _controller = controller..addListener(_onTick);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_onTick);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = _controller!;
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        itemCount: widget.labels.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final selected = controller.index == i;
+          return GestureDetector(
+            onTap: () => controller.animateTo(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected ? AppColors.green500 : AppColors.ink100,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+              child: Text(
+                widget.labels[i],
+                style: TextStyle(
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+                  fontSize: 13,
+                  color: selected ? Colors.white : AppColors.ink600,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
