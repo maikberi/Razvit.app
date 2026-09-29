@@ -144,12 +144,7 @@ class _Media extends StatefulWidget {
 }
 
 class _MediaState extends State<_Media> {
-  // Для полноразмерного вида грузим ОБА варианта параллельно: лёгкий
-  // статичный webp (обычно 10-30 КБ, готов почти мгновенно) и полный GIF
-  // (обычно 150-500 КБ). Пока GIF ещё не пришёл, показываем уже готовый
-  // превью вместо пустого спиннера — экран никогда не выглядит "висящим".
-  Future<Uint8List>? _thumbFuture;
-  Future<Uint8List>? _fullFuture;
+  Future<Uint8List>? _future;
   Timer? _watchdog;
   bool _timedOut = false;
 
@@ -173,25 +168,24 @@ class _MediaState extends State<_Media> {
     _watchdog?.cancel();
     _timedOut = false;
 
-    if (widget.thumbOnly) {
-      // Маленькое превью в списках — только лёгкий webp (или GIF, если
-      // превью почему-то нет), полноразмерная анимация тут не нужна.
-      final url = exercise.thumbUrl ?? exercise.gifUrl;
-      _thumbFuture = url != null ? _ImageBytesCache.load(url) : null;
-      _fullFuture = null;
-    } else {
-      final thumbUrl = exercise.thumbUrl;
-      final fullUrl = exercise.gifUrl ?? thumbUrl;
-      _thumbFuture = thumbUrl != null ? _ImageBytesCache.load(thumbUrl) : null;
-      _fullFuture = fullUrl != null ? _ImageBytesCache.load(fullUrl) : null;
-    }
+    // В списках (thumbOnly) показываем лёгкий статичный webp — там это
+    // уместно, превью и так маленькое. В полноразмерном виде показываем
+    // только сам GIF: пробовали сперва показывать webp-превью, пока GIF не
+    // догрузится, но на весь экран растянутый пережатый статичный кадр
+    // выглядел как "пропало качество", а не как "быстрее грузится". Пока
+    // GIF не пришёл — обычный спиннер; скорость обеспечивает
+    // prefetchExerciseMedia (см. ниже).
+    final url = widget.thumbOnly
+        ? (exercise.thumbUrl ?? exercise.gifUrl)
+        : (exercise.gifUrl ?? exercise.thumbUrl);
+    _future = url != null ? _ImageBytesCache.load(url) : null;
 
-    final primary = _fullFuture ?? _thumbFuture;
-    if (primary != null) {
+    final future = _future;
+    if (future != null) {
       _watchdog = Timer(const Duration(seconds: 12), () {
         if (mounted) setState(() => _timedOut = true);
       });
-      primary.whenComplete(() => _watchdog?.cancel());
+      future.whenComplete(() => _watchdog?.cancel());
     }
   }
 
@@ -219,35 +213,12 @@ class _MediaState extends State<_Media> {
     }
     if (_timedOut) return _fallbackIcon();
 
-    if (widget.thumbOnly) {
-      return FutureBuilder<Uint8List>(
-        future: _thumbFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) return _placeholder();
-          if (snapshot.hasError || !snapshot.hasData) return _fallbackIcon();
-          return Image.memory(snapshot.data!, fit: BoxFit.contain, gaplessPlayback: true);
-        },
-      );
-    }
-
     return FutureBuilder<Uint8List>(
-      future: _fullFuture,
-      builder: (context, fullSnapshot) {
-        if (fullSnapshot.connectionState == ConnectionState.done && fullSnapshot.hasData) {
-          return Image.memory(fullSnapshot.data!, fit: BoxFit.contain, gaplessPlayback: true);
-        }
-        if (_thumbFuture == null) {
-          return fullSnapshot.hasError ? _fallbackIcon() : _placeholder();
-        }
-        return FutureBuilder<Uint8List>(
-          future: _thumbFuture,
-          builder: (context, thumbSnapshot) {
-            if (thumbSnapshot.connectionState == ConnectionState.done && thumbSnapshot.hasData) {
-              return Image.memory(thumbSnapshot.data!, fit: BoxFit.contain, gaplessPlayback: true);
-            }
-            return (fullSnapshot.hasError && thumbSnapshot.hasError) ? _fallbackIcon() : _placeholder();
-          },
-        );
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) return _placeholder();
+        if (snapshot.hasError || !snapshot.hasData) return _fallbackIcon();
+        return Image.memory(snapshot.data!, fit: BoxFit.contain, gaplessPlayback: true);
       },
     );
   }

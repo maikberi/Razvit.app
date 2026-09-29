@@ -429,12 +429,12 @@ class _GoalCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       title,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge
-                          ?.copyWith(color: Colors.white, fontSize: 20),
+                          ?.copyWith(color: Colors.white, fontSize: 18, height: 1.2),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     _bullet(context, Icons.format_list_bulleted_rounded,
