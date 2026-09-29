@@ -35,7 +35,13 @@ class _WorkoutSessionScreenState extends ConsumerState<WorkoutSessionScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final notifier = ref.read(activeWorkoutProvider.notifier);
       if (ref.read(activeWorkoutProvider) == null) {
-        notifier.start(ref.read(todayWorkoutProvider));
+        final day = ref.read(todayWorkoutProvider);
+        notifier.start(day);
+        // Прогреваем кэш анимаций сразу для ВСЕХ упражнений дня, а не только
+        // текущего — пока делаем первый подход первого упражнения, GIF для
+        // второго и третьего уже качаются в фоне и будут готовы к моменту,
+        // когда до них дойдёт очередь.
+        prefetchExerciseMedia(day.exercises.map((e) => e.exercise));
       }
       _elapsedTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         final s = ref.read(activeWorkoutProvider);

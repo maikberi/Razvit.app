@@ -114,6 +114,24 @@ class _ImageBytesCache {
   }
 }
 
+/// Прогревает кэш GIF/превью для списка упражнений заранее — например,
+/// сразу для всех упражнений дня в момент начала тренировки. Сама загрузка
+/// идёт в фоне и не блокирует ничего; к моменту, когда пользователь дойдёт
+/// до второго-третьего упражнения, их анимации уже скачаны и появляются
+/// без задержки вместо "опять грузится с нуля".
+void prefetchExerciseMedia(Iterable<Exercise> exercises) {
+  for (final e in exercises) {
+    if (e.thumbUrl != null) {
+      // ignore: unawaited_futures
+      _ImageBytesCache.load(e.thumbUrl!).catchError((_) => Uint8List(0));
+    }
+    if (e.gifUrl != null) {
+      // ignore: unawaited_futures
+      _ImageBytesCache.load(e.gifUrl!).catchError((_) => Uint8List(0));
+    }
+  }
+}
+
 class _Media extends StatefulWidget {
   const _Media({required this.exercise, required this.iconSize, this.thumbOnly = false});
 
@@ -126,7 +144,12 @@ class _Media extends StatefulWidget {
 }
 
 class _MediaState extends State<_Media> {
-  Future<Uint8List>? _future;
+  // Для полноразмерного вида грузим ОБА варианта параллельно: лёгкий
+  // статичный webp (обычно 10-30 КБ, готов почти мгновенно) и полный GIF
+  // (обычно 150-500 КБ). Пока GIF ещё не пришёл, показываем уже готовый
+  // превью вместо пустого спиннера — экран никогда не выглядит "висящим".
+  Future<Uint8List>? _thumbFuture;
+  Future<Uint8List>? _fullFuture;
   Timer? _watchdog;
   bool _timedOut = false;
 
@@ -136,11 +159,7 @@ class _MediaState extends State<_Media> {
     _load(widget.exercise);
   }
 
-  String? _urlFor(Exercise exercise) {
-    // В маленьком превью полноразмерный GIF не нужен — thumbUrl (лёгкий
-    // статичный webp) достаточно и грузится в разы быстрее.
-    return widget.thumbOnly ? (exercise.thumbUrl ?? exercise.gifUrl) : (exercise.gifUrl ?? exercise.thumbUrl);
-  }
+  bool get _hasMedia => widget.exercise.thumbUrl != null || widget.exercise.gifUrl != null;
 
   // http.get(...).timeout(10s) внутри _ImageBytesCache.load — основная защита
   // от вечной загрузки. Но на нестабильной мобильной сети (именно там и
@@ -153,23 +172,33 @@ class _MediaState extends State<_Media> {
   void _load(Exercise exercise) {
     _watchdog?.cancel();
     _timedOut = false;
-    final url = _urlFor(exercise);
-    if (url == null) {
-      _future = null;
-      return;
+
+    if (widget.thumbOnly) {
+      // Маленькое превью в списках — только лёгкий webp (или GIF, если
+      // превью почему-то нет), полноразмерная анимация тут не нужна.
+      final url = exercise.thumbUrl ?? exercise.gifUrl;
+      _thumbFuture = url != null ? _ImageBytesCache.load(url) : null;
+      _fullFuture = null;
+    } else {
+      final thumbUrl = exercise.thumbUrl;
+      final fullUrl = exercise.gifUrl ?? thumbUrl;
+      _thumbFuture = thumbUrl != null ? _ImageBytesCache.load(thumbUrl) : null;
+      _fullFuture = fullUrl != null ? _ImageBytesCache.load(fullUrl) : null;
     }
-    final future = _ImageBytesCache.load(url);
-    _future = future;
-    _watchdog = Timer(const Duration(seconds: 12), () {
-      if (mounted && _future == future) setState(() => _timedOut = true);
-    });
-    future.whenComplete(() => _watchdog?.cancel());
+
+    final primary = _fullFuture ?? _thumbFuture;
+    if (primary != null) {
+      _watchdog = Timer(const Duration(seconds: 12), () {
+        if (mounted) setState(() => _timedOut = true);
+      });
+      primary.whenComplete(() => _watchdog?.cancel());
+    }
   }
 
   @override
   void didUpdateWidget(covariant _Media oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_urlFor(oldWidget.exercise) != _urlFor(widget.exercise)) {
+    if (oldWidget.exercise.thumbUrl != widget.exercise.thumbUrl || oldWidget.exercise.gifUrl != widget.exercise.gifUrl) {
       setState(() => _load(widget.exercise));
     }
   }
@@ -182,19 +211,43 @@ class _MediaState extends State<_Media> {
 
   @override
   Widget build(BuildContext context) {
-    if (_future == null) {
+    if (!_hasMedia) {
       if (widget.exercise.videoAsset != null) {
         return LoopVideo(assetPath: widget.exercise.videoAsset!, posterAssetPath: widget.exercise.videoPosterAsset);
       }
       return _fallbackIcon();
     }
     if (_timedOut) return _fallbackIcon();
+
+    if (widget.thumbOnly) {
+      return FutureBuilder<Uint8List>(
+        future: _thumbFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) return _placeholder();
+          if (snapshot.hasError || !snapshot.hasData) return _fallbackIcon();
+          return Image.memory(snapshot.data!, fit: BoxFit.contain, gaplessPlayback: true);
+        },
+      );
+    }
+
     return FutureBuilder<Uint8List>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) return _placeholder();
-        if (snapshot.hasError || !snapshot.hasData) return _fallbackIcon();
-        return Image.memory(snapshot.data!, fit: BoxFit.contain, gaplessPlayback: true);
+      future: _fullFuture,
+      builder: (context, fullSnapshot) {
+        if (fullSnapshot.connectionState == ConnectionState.done && fullSnapshot.hasData) {
+          return Image.memory(fullSnapshot.data!, fit: BoxFit.contain, gaplessPlayback: true);
+        }
+        if (_thumbFuture == null) {
+          return fullSnapshot.hasError ? _fallbackIcon() : _placeholder();
+        }
+        return FutureBuilder<Uint8List>(
+          future: _thumbFuture,
+          builder: (context, thumbSnapshot) {
+            if (thumbSnapshot.connectionState == ConnectionState.done && thumbSnapshot.hasData) {
+              return Image.memory(thumbSnapshot.data!, fit: BoxFit.contain, gaplessPlayback: true);
+            }
+            return (fullSnapshot.hasError && thumbSnapshot.hasError) ? _fallbackIcon() : _placeholder();
+          },
+        );
       },
     );
   }

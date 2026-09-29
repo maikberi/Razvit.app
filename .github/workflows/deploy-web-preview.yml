@@ -35,6 +35,18 @@ jobs:
           --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
           --dart-define=VK_CLIENT_ID=${{ secrets.VK_CLIENT_ID }}
 
+      # По умолчанию Flutter web грузит CanvasKit (движок рендеринга) с
+      # www.gstatic.com при каждом холодном старте — это тот же класс
+      # проблемы, что уже чинили для GIF упражнений (медленный/нестабильный
+      # сторонний CDN из части российских сетей), только здесь тормозит
+      # запуск вообще всего приложения. flutter build web уже кладёт
+      # CanvasKit локально в build/web/canvaskit/ — просто не использует
+      # его по умолчанию. Патчим сгенерированный flutter_bootstrap.js,
+      # чтобы он брал CanvasKit с того же домена, что и остальное приложение.
+      - run: |
+          sed -i 's#_flutter.loader.load({#_flutter.loader.load({\n  config: {canvasKitBaseUrl: "canvaskit/"},#' build/web/flutter_bootstrap.js
+          grep -q canvasKitBaseUrl build/web/flutter_bootstrap.js
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 /// Типографика RAZVIT — на iOS/macOS используется настоящий системный
@@ -8,6 +7,13 @@ import 'app_colors.dart';
 /// сам файл в кроссплатформенное приложение нельзя). На остальных
 /// платформах — Nunito, открытый круглый гротеск с полной поддержкой
 /// кириллицы, близкий по духу к SF Pro Rounded.
+///
+/// Шрифт вшит в приложение как ассет (см. pubspec.yaml, fonts/Nunito-Variable.ttf),
+/// а не через google_fonts — тот подгружал файл с fonts.gstatic.com при
+/// каждом холодном запуске, и именно это, судя по всему, было главной
+/// причиной "очень долго грузит": тот же класс проблем, что и с GIF
+/// упражнений на стороннем CDN (см. self-hosting в web/exercises/), только
+/// здесь тормозил КАЖДЫЙ экран, а не только раздел тренировок.
 abstract final class AppTypography {
   static bool get _useSystemAppleRounded =>
       !kIsWeb &&
@@ -20,17 +26,8 @@ abstract final class AppTypography {
     double? letterSpacing,
     double? height,
   }) {
-    if (_useSystemAppleRounded) {
-      return TextStyle(
-        fontFamily: '.SF Pro Rounded',
-        fontSize: fontSize,
-        fontWeight: fontWeight,
-        color: color,
-        letterSpacing: letterSpacing,
-        height: height,
-      );
-    }
-    return GoogleFonts.nunito(
+    return TextStyle(
+      fontFamily: _useSystemAppleRounded ? '.SF Pro Rounded' : 'Nunito',
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
@@ -41,7 +38,7 @@ abstract final class AppTypography {
 
   static TextTheme textTheme(Color base, {Color? secondary}) {
     final muted = secondary ?? AppColors.ink500;
-    final theme = _useSystemAppleRounded ? const TextTheme() : GoogleFonts.nunitoTextTheme();
+    const theme = TextTheme();
     return theme.copyWith(
       displayLarge: _style(
         fontSize: 34,
