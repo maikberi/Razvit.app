@@ -1,0 +1,1003 @@
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/network/api_client.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/ru_pluralize.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/avatar.dart';
+import '../../../core/widgets/mascot.dart';
+import '../../../core/widgets/progress_ring.dart';
+import '../../../data/models/weight_entry.dart';
+import '../../../data/models/nutrition.dart';
+import '../../../data/models/workout_session.dart';
+import '../../../data/repositories/health_repository.dart';
+import '../../../data/repositories/nutrition_day_repository.dart';
+import '../../../data/repositories/progress_repository.dart';
+import '../../../data/repositories/trainer_repository.dart';
+import '../../../data/repositories/user_repository.dart';
+import '../../../data/repositories/workout_repository.dart';
+
+const _statBlue = Color(0xFF3B82F6);
+const _statPurple = Color(0xFF8B5CF6);
+const _weekdayLetters = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+String _greeting() {
+  final hour = DateTime.now().hour;
+  if (hour < 6) return 'Доброй ночи';
+  if (hour < 12) return 'Доброе утро';
+  if (hour < 18) return 'Добрый день';
+  return 'Добрый вечер';
+}
+
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    final today = ref.watch(todayWorkoutProvider);
+    // Реальные данные питания (Meal Diary + вода + цели) — то же, что
+    // видит экран "Питание", единый источник (nutritionDayProvider), а не
+    // отдельный локальный счётчик. summary == null, пока день ещё не
+    // загрузился (первый холодный запуск) — тогда показываем нули вместо
+    // блокировки всего Home на лоадер.
+    final nutritionSummary = ref.watch(nutritionDayProvider).valueOrNull;
+    final plan = nutritionSummary?.targets ??
+        NutritionPlan(title: '', calorieGoal: 0, proteinGoal: 0, fatGoal: 0, carbsGoal: 0, waterGoalMl: 0, validUntil: DateTime.now(), progressPercent: 0);
+    final calories = nutritionSummary?.consumedCalories ?? 0;
+    final protein = nutritionSummary?.consumedProtein ?? 0.0;
+    final water = nutritionSummary?.waterConsumedMl ?? 0;
+    final trainer = ref.watch(myTrainerProvider);
+    final weightHistory = ref.watch(weightHistoryProvider).valueOrNull ?? const [];
+    final sessions = ref.watch(workoutSessionsProvider).valueOrNull ?? const [];
+    final healthConnected = ref.watch(healthConnectedProvider);
+    final steps = ref.watch(dailyStepsProvider);
+
+    final currentWeight = weightHistory.isEmpty ? user.weightKg : weightHistory.last.weightKg;
+    final weightDelta = weightHistory.isEmpty ? 0.0 : currentWeight - weightHistory.first.weightKg;
+
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xxl),
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.headlineLarge,
+                      children: [
+                        TextSpan(text: '${_greeting()},\n'),
+                        TextSpan(
+                            text: '${user.name}! 👋',
+                            style: const TextStyle(color: AppColors.green600)),
+                      ],
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => context.push('/nutrition-plan'),
+                  child: SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: ProgressRing(
+                      progress: plan.progressPercent / 100,
+                      size: 64,
+                      strokeWidth: 6,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('${plan.progressPercent}%',
+                              style: Theme.of(context).textTheme.titleSmall),
+                          Text('Прогресс',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(fontSize: 8)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text('Ты на ${plan.progressPercent}% ближе к своей цели!',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.ink500)),
+            const SizedBox(height: AppSpacing.lg),
+            Column(
+              children: [
+                _GoalCard(
+                    title: today.title,
+                    exercises: today.exercises.length,
+                    minutes: today.estimatedDuration.inMinutes,
+                    volumeKg: today.estimatedVolumeKg),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => context.push('/workout-session'),
+                    style: OutlinedButton.styleFrom(
+                        backgroundColor: Theme.of(context).cardTheme.color,
+                        side: BorderSide.none,
+                        elevation: 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Начать тренировку'),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.chevron_right_rounded, size: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Мои показатели',
+                    style: Theme.of(context).textTheme.titleLarge),
+                _LinkText(
+                    label: 'Настроить',
+                    onTap: () => context.push('/nutrition-plan')),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _TodayStatCard(
+                        icon: Icons.local_fire_department_rounded,
+                        color: AppColors.green600,
+                        background: AppColors.green50,
+                        label: 'Калории',
+                        value: '$calories',
+                        goal: '${plan.calorieGoal} ккал',
+                        progress: plan.calorieGoal == 0
+                            ? 0
+                            : calories / plan.calorieGoal,
+                        onTap: () => context.go('/nutrition'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _TodayStatCard(
+                        icon: Icons.egg_alt_rounded,
+                        color: _statBlue,
+                        background: const Color(0xFFEAF1FE),
+                        label: 'Белки',
+                        value: protein.toStringAsFixed(0),
+                        goal: '${plan.proteinGoal} г',
+                        progress: plan.proteinGoal == 0
+                            ? 0
+                            : protein / plan.proteinGoal,
+                        onTap: () => context.go('/nutrition'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _TodayStatCard(
+                        icon: Icons.water_drop_rounded,
+                        color: AppColors.water,
+                        background: const Color(0xFFE0FAFE),
+                        label: 'Вода',
+                        value: (water / 1000).toStringAsFixed(1),
+                        goal:
+                            '${(plan.waterGoalMl / 1000).toStringAsFixed(1)} л',
+                        progress: plan.waterGoalMl == 0
+                            ? 0
+                            : water / plan.waterGoalMl,
+                        onTap: () => context.go('/nutrition'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _TodayStatCard(
+                        icon: Icons.monitor_weight_rounded,
+                        color: _statPurple,
+                        background: const Color(0xFFF2ECFE),
+                        label: 'Вес',
+                        value: currentWeight.toStringAsFixed(0),
+                        goal: 'кг',
+                        trailing: Text(
+                          '${weightDelta <= 0 ? '↓' : '↑'} ${weightDelta.abs().toStringAsFixed(1)} кг',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(
+                                  color: weightDelta <= 0
+                                      ? AppColors.green600
+                                      : AppColors.error),
+                        ),
+                        onTap: () => _showAddWeightDialog(context, ref, currentWeight),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _StepsCard(connected: healthConnected, steps: steps),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Календарь тренировок',
+                    style: Theme.of(context).textTheme.titleLarge),
+                _LinkText(
+                    label: 'Смотреть все',
+                    onTap: () => context.push('/workout-calendar')),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _WeekCalendar(sessions: sessions),
+            const SizedBox(height: AppSpacing.xl),
+            _StreakCard(streakDays: ref.watch(workoutStreakProvider)),
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Прогресс', style: Theme.of(context).textTheme.titleLarge),
+                _LinkText(
+                    label: 'Подробнее',
+                    onTap: () => context.push('/workout-stats')),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _ProgressCard(history: weightHistory, currentWeight: currentWeight),
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Тренировки',
+                    style: Theme.of(context).textTheme.titleLarge),
+                _LinkText(
+                    label: 'Смотреть все',
+                    onTap: () => context.push('/workouts')),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Column(
+              children: [
+                _WorkoutRow(
+                  icon: Icons.fitness_center_rounded,
+                  color: _statBlue,
+                  background: const Color(0xFFEAF1FE),
+                  title: today.title,
+                  subtitle:
+                      '${today.estimatedDuration.inMinutes} мин • ${today.exercises.length} упражнений',
+                  tag: 'Силовая тренировка',
+                  onTap: () => context.push('/workout-session'),
+                ),
+                const SizedBox(height: 10),
+                _WorkoutRow(
+                  icon: Icons.directions_run_rounded,
+                  color: _statPurple,
+                  background: const Color(0xFFF2ECFE),
+                  title: 'Кардио',
+                  subtitle: '30 мин • Средняя интенсивность',
+                  tag: 'Беговая дорожка',
+                  onTap: () => context.push('/workouts'),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            _TrainerCard(
+                name: trainer.name,
+                isOnline: trainer.isOnline,
+                rating: trainer.rating,
+                seed: trainer.avatarSeed,
+                id: trainer.id),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAddWeightDialog(BuildContext context, WidgetRef ref, double currentWeight) async {
+    final controller = TextEditingController(text: currentWeight.toStringAsFixed(1));
+    var saving = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Добавить вес'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(suffixText: 'кг'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Отмена')),
+            FilledButton(
+              onPressed: saving
+                  ? null
+                  : () async {
+                      final value = double.tryParse(controller.text.replaceAll(',', '.'));
+                      if (value == null || value <= 0) return;
+                      setDialogState(() => saving = true);
+                      try {
+                        await ref.read(weightEntryNotifierProvider.notifier).add(value);
+                        if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                      } on ApiException catch (e) {
+                        setDialogState(() => saving = false);
+                        if (dialogContext.mounted) {
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text(e.message)));
+                        }
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Сохранить'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LinkText extends StatelessWidget {
+  const _LinkText({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(label,
+          style: Theme.of(context)
+              .textTheme
+              .labelMedium
+              ?.copyWith(color: AppColors.green600)),
+    );
+  }
+}
+
+class _GoalCard extends StatelessWidget {
+  const _GoalCard(
+      {required this.title,
+      required this.exercises,
+      required this.minutes,
+      required this.volumeKg});
+  final String title;
+  final int exercises;
+  final int minutes;
+  final double volumeKg;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.xl),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, 0, 0),
+        // Почти сплошной зелёный (капелька темнее в правом нижнем углу,
+        // а не заметный градиент через всю карточку) — раньше
+        // green500->green700 давал видимое затемнение к углу, на
+        // референсе фон выглядит гораздо ровнее.
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.green500, AppColors.green600],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: AppShadows.card,
+        ),
+        // Фиксированная высота — раньше карточка подстраивалась под высоту
+        // текста, и у длинных названий (например "Грудь, плечи, трицепс",
+        // в отличие от короткого "Push Day" с референса) заголовок
+        // переносился на 2 строки и утаскивал за собой всю карточку и
+        // гантели вниз/меньше. Теперь гантели всегда одного размера,
+        // независимо от того, сколько строк займёт заголовок.
+        child: SizedBox(
+          height: 190,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Сегодня по плану',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelMedium
+                            ?.copyWith(color: Colors.white70, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$title 💪',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(color: Colors.white, fontSize: 18, height: 1.2),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _bullet(context, Icons.adjust_rounded,
+                        '$exercises упражнений'),
+                    const SizedBox(height: 4),
+                    _bullet(context, Icons.adjust_rounded, '$minutes минут'),
+                    const SizedBox(height: 4),
+                    _bullet(context, Icons.adjust_rounded,
+                        '${volumeKg.round()} кг объём'),
+                  ],
+                ),
+              ),
+              // flex 7 + BoxFit.cover на все 190px высоты карточки — раньше
+              // AspectRatio(0.8) под фото 620×400 оставлял пустую полосу
+              // сверху (картинка вписывалась по ширине и не дотягивала до
+              // верха), а сами гантели выглядели мельче половины карточки,
+              // как просил пользователь. cover заполняет всю ячейку без
+              // зазоров; alignment centerLeft — обрезаем по правому краю
+              // (у карточки, а не по фото слева), логотип и левая гантель
+              // остаются полностью в кадре.
+              Expanded(
+                flex: 7,
+                child: SizedBox(
+                  height: 190,
+                  child: ColorFiltered(
+                  // Множитель ~2.3 к исходным RGB (альфа не трогаем) —
+                  // фото было сильно недоэкспонировано (средняя яркость
+                  // ~40/255), но вся детализация (хром, грани дисков,
+                  // логотип) в нём есть, просто тёмная. Линейное
+                  // осветление проявляет её, а не стирает, как плоская
+                  // перекраска в один тон.
+                  colorFilter: const ColorFilter.matrix(<double>[
+                    2.3, 0, 0, 0, 0,
+                    0, 2.3, 0, 0, 0,
+                    0, 0, 2.3, 0, 0,
+                    0, 0, 0, 1, 0,
+                  ]),
+                  child: Image.asset(
+                    'assets/home/hero_dumbbells.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.centerLeft,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+  }
+
+  Widget _bullet(BuildContext context, IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 15, color: Colors.white),
+        const SizedBox(width: 6),
+        Text(text,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.white)),
+      ],
+    );
+  }
+}
+
+class _StepsCard extends StatelessWidget {
+  const _StepsCard({required this.connected, required this.steps});
+  final bool connected;
+  final int steps;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!connected) {
+      return AppCard(
+        onTap: () => context.push('/settings'),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                  color: AppColors.green50,
+                  borderRadius: BorderRadius.circular(AppRadius.sm)),
+              child: const Icon(Icons.directions_walk_rounded,
+                  color: AppColors.green600, size: 20),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Подключи Здоровье',
+                      style: Theme.of(context).textTheme.titleSmall),
+                  Text('Чтобы отслеживать шаги в приложении',
+                      style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.ink300),
+          ],
+        ),
+      );
+    }
+
+    final progress = (steps / dailyStepsGoal).clamp(0.0, 1.0);
+    return AppCard(
+      onTap: () => context.push('/workout-stats'),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+                color: AppColors.green50,
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
+            child: const Icon(Icons.directions_walk_rounded,
+                color: AppColors.green600, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text('$steps',
+                        style: Theme.of(context).textTheme.titleMedium),
+                    Text(' / $dailyStepsGoal шагов',
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      backgroundColor: AppColors.ink100,
+                      color: AppColors.green500),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TodayStatCard extends StatelessWidget {
+  const _TodayStatCard({
+    required this.icon,
+    required this.color,
+    required this.background,
+    required this.label,
+    required this.value,
+    required this.goal,
+    this.progress,
+    this.trailing,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final Color background;
+  final String label;
+  final String value;
+  final String goal;
+  final double? progress;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    // Раньше это была обычная белая карточка — только иконка была
+    // цветной. Лёгкий градиент в цвет самой метрики (тот же приём, что и
+    // в карточках калорий/воды на "Питании") добавляет красок вместо
+    // одинаково бледных плашек подряд.
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      gradient: LinearGradient(colors: [background, AppColors.white], begin: Alignment.topLeft, end: Alignment.bottomRight),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            child: Icon(icon, color: Colors.white, size: 17),
+          ),
+          const SizedBox(height: 10),
+          Text(label,
+              style: Theme.of(context).textTheme.bodySmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 2),
+          Text(value, style: Theme.of(context).textTheme.titleLarge),
+          Text('/ $goal',
+              style: Theme.of(context).textTheme.labelSmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 8),
+          trailing ??
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                child: LinearProgressIndicator(
+                    value: (progress ?? 0).clamp(0, 1),
+                    minHeight: 5,
+                    backgroundColor: AppColors.white,
+                    color: color),
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeekCalendar extends StatelessWidget {
+  const _WeekCalendar({required this.sessions});
+  final List<WorkoutSession> sessions;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+
+    return AppCard(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          for (var i = 0; i < 7; i++)
+            _dayColumn(context, startOfWeek.add(Duration(days: i)), today),
+        ],
+      ),
+    );
+  }
+
+  Widget _dayColumn(BuildContext context, DateTime date, DateTime today) {
+    final isToday = date == today;
+    WorkoutSession? session;
+    for (final s in sessions) {
+      final sDate = DateTime(s.date.year, s.date.month, s.date.day);
+      if (sDate == date) {
+        session = s;
+        break;
+      }
+    }
+
+    Color bg;
+    Color fg;
+    Widget? child;
+    if (session?.status == SessionStatus.done) {
+      bg = AppColors.green500;
+      fg = Colors.white;
+      child = const Icon(Icons.check_rounded, size: 16, color: Colors.white);
+    } else if (session?.status == SessionStatus.missed) {
+      bg = Theme.of(context).dividerColor;
+      fg = AppColors.ink500;
+      child = Text('${date.day}',
+          style:
+              TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w700));
+    } else {
+      bg = Colors.transparent;
+      fg = AppColors.ink400;
+      child = Text('${date.day}',
+          style:
+              TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w700));
+    }
+
+    return Column(
+      children: [
+        Text(_weekdayLetters[date.weekday - 1],
+            style: Theme.of(context).textTheme.labelSmall),
+        const SizedBox(height: 6),
+        Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: bg,
+            shape: BoxShape.circle,
+            border: isToday
+                ? Border.all(color: AppColors.green600, width: 2)
+                : Border.all(color: Theme.of(context).dividerColor),
+          ),
+          child: child,
+        ),
+      ],
+    );
+  }
+}
+
+class _StreakCard extends StatelessWidget {
+  const _StreakCard({required this.streakDays});
+  final int streakDays;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      color: context.isDarkMode
+          ? AppColors.green500.withValues(alpha: 0.16)
+          : AppColors.green50,
+      shadow: false,
+      onTap: () => context.push('/ai-assistant'),
+      child: Row(
+        children: [
+          const Text('🔥', style: TextStyle(fontSize: 22)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$streakDays дней подряд',
+                    style: Theme.of(context).textTheme.titleSmall),
+                Text('Не останавливайся!',
+                    style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+          const RazvitMascot(size: 44),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProgressCard extends StatelessWidget {
+  const _ProgressCard({required this.history, required this.currentWeight});
+  final List<WeightEntry> history;
+  final double currentWeight;
+
+  @override
+  Widget build(BuildContext context) {
+    if (history.isEmpty) {
+      return AppCard(
+        onTap: () => context.push('/workout-stats'),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Вес', style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 4),
+                  Text('Пока нет записей', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 2),
+                  Text('Нажми на карточку «Вес» выше, чтобы добавить первую',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.ink500)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final weights = history.map((e) => e.weightKg).toList();
+    final minW = (weights.reduce((a, b) => a < b ? a : b) - 1).floorToDouble();
+    final maxW = (weights.reduce((a, b) => a > b ? a : b) + 1).ceilToDouble();
+    final delta = currentWeight - history.first.weightKg;
+    final weeks = (DateTime.now().difference(history.first.date).inDays / 7).round();
+    final steps = 4;
+    final labels = List.generate(
+        steps, (i) => (maxW - (maxW - minW) * i / (steps - 1)).round());
+
+    return AppCard(
+      onTap: () => context.push('/workout-stats'),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 4,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Вес', style: Theme.of(context).textTheme.bodySmall),
+                const SizedBox(height: 4),
+                Text('${currentWeight.toStringAsFixed(1)} кг',
+                    style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 6),
+                Text(
+                  '${delta <= 0 ? '' : '+'}${delta.toStringAsFixed(1)} кг за $weeks ${weeksLabel(weeks)}',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: delta <= 0 ? AppColors.green600 : AppColors.error),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 26,
+            height: 110,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (final l in labels)
+                  Text('$l', style: Theme.of(context).textTheme.labelSmall)
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            flex: 5,
+            child: SizedBox(
+              height: 110,
+              child: LineChart(
+                LineChartData(
+                  minY: minW,
+                  maxY: maxW,
+                  gridData: const FlGridData(show: false),
+                  titlesData: const FlTitlesData(show: false),
+                  borderData: FlBorderData(show: false),
+                  lineTouchData: const LineTouchData(enabled: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: [
+                        for (var i = 0; i < weights.length; i++)
+                          FlSpot(i.toDouble(), weights[i])
+                      ],
+                      isCurved: true,
+                      color: AppColors.green500,
+                      barWidth: 3,
+                      dotData: const FlDotData(show: false),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorkoutRow extends StatelessWidget {
+  const _WorkoutRow({
+    required this.icon,
+    required this.color,
+    required this.background,
+    required this.title,
+    required this.subtitle,
+    required this.tag,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final Color background;
+  final String title;
+  final String subtitle;
+  final String tag;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+                color: background,
+                borderRadius: BorderRadius.circular(AppRadius.md)),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                Text(tag,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: AppColors.ink400)),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                  color: background,
+                  borderRadius: BorderRadius.circular(AppRadius.md)),
+              child: Icon(Icons.play_arrow_rounded, color: color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrainerCard extends StatelessWidget {
+  const _TrainerCard(
+      {required this.name,
+      required this.isOnline,
+      required this.rating,
+      required this.seed,
+      required this.id});
+  final String name;
+  final bool isOnline;
+  final double rating;
+  final int seed;
+  final String id;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      onTap: () => context.push('/trainer/$id'),
+      child: Row(
+        children: [
+          Stack(
+            children: [
+              AppAvatar(name: name, seed: seed, size: 48),
+              if (isOnline)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                        color: AppColors.green500,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2)),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: Theme.of(context).textTheme.titleSmall),
+                Text('Персональный тренер · ★ $rating',
+                    style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => context.push('/chat/$id'),
+            icon: const Icon(Icons.chat_bubble_outline_rounded,
+                color: AppColors.green600),
+          ),
+        ],
+      ),
+    );
+  }
+}
