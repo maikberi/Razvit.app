@@ -417,41 +417,38 @@ class _GoalCard extends StatelessWidget {
         child: SizedBox(
           height: 190,
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 flex: 5,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Сегодня по плану',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
-                              ?.copyWith(color: Colors.white70, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$title 💪',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Сегодня по плану',
                         style: Theme.of(context)
                             .textTheme
-                            .titleLarge
-                            ?.copyWith(color: Colors.white, fontSize: 18, height: 1.2),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _bullet(context, Icons.adjust_rounded,
-                          '$exercises упражнений'),
-                      const SizedBox(height: 4),
-                      _bullet(context, Icons.adjust_rounded, '$minutes минут'),
-                      const SizedBox(height: 4),
-                      _bullet(context, Icons.adjust_rounded,
-                          '${volumeKg.round()} кг объём'),
-                    ],
-                  ),
+                            .labelMedium
+                            ?.copyWith(color: Colors.white70, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$title 💪',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(color: Colors.white, fontSize: 18, height: 1.2),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _bullet(context, Icons.adjust_rounded,
+                        '$exercises упражнений'),
+                    const SizedBox(height: 4),
+                    _bullet(context, Icons.adjust_rounded, '$minutes минут'),
+                    const SizedBox(height: 4),
+                    _bullet(context, Icons.adjust_rounded,
+                        '${volumeKg.round()} кг объём'),
+                  ],
                 ),
               ),
               // flex 7 + BoxFit.cover на все 190px высоты карточки — раньше
@@ -459,8 +456,9 @@ class _GoalCard extends StatelessWidget {
               // сверху (картинка вписывалась по ширине и не дотягивала до
               // верха), а сами гантели выглядели мельче половины карточки,
               // как просил пользователь. cover заполняет всю ячейку без
-              // зазоров, обрезая гантели слева — справа они и так уже
-              // упираются в край карточки (padding справа = 0).
+              // зазоров; alignment centerLeft — обрезаем по правому краю
+              // (у карточки, а не по фото слева), логотип и левая гантель
+              // остаются полностью в кадре.
               Expanded(
                 flex: 7,
                 child: SizedBox(
@@ -481,7 +479,7 @@ class _GoalCard extends StatelessWidget {
                   child: Image.asset(
                     'assets/home/hero_dumbbells.png',
                     fit: BoxFit.cover,
-                    alignment: Alignment.centerRight,
+                    alignment: Alignment.centerLeft,
                   ),
                 ),
               ),
