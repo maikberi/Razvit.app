@@ -420,7 +420,7 @@ class _GoalCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
-                flex: 6,
+                flex: 5,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                   child: Column(
@@ -454,10 +454,17 @@ class _GoalCard extends StatelessWidget {
                   ),
                 ),
               ),
+              // flex 7 + BoxFit.cover на все 190px высоты карточки — раньше
+              // AspectRatio(0.8) под фото 620×400 оставлял пустую полосу
+              // сверху (картинка вписывалась по ширине и не дотягивала до
+              // верха), а сами гантели выглядели мельче половины карточки,
+              // как просил пользователь. cover заполняет всю ячейку без
+              // зазоров, обрезая гантели слева — справа они и так уже
+              // упираются в край карточки (padding справа = 0).
               Expanded(
-                flex: 6,
-                child: AspectRatio(
-                  aspectRatio: 0.8,
+                flex: 7,
+                child: SizedBox(
+                  height: 190,
                   child: ColorFiltered(
                   // Множитель ~2.3 к исходным RGB (альфа не трогаем) —
                   // фото было сильно недоэкспонировано (средняя яркость
@@ -473,8 +480,8 @@ class _GoalCard extends StatelessWidget {
                   ]),
                   child: Image.asset(
                     'assets/home/hero_dumbbells.png',
-                    fit: BoxFit.contain,
-                    alignment: Alignment.bottomRight,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.centerRight,
                   ),
                 ),
               ),
