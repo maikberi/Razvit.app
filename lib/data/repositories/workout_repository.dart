@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/workouts/presentation/widgets/exercise_media.dart';
 import '../mock/mock_exercises.dart';
 import '../mock/mock_programs.dart';
 import '../models/achievement.dart';
@@ -11,6 +12,15 @@ import '../models/workout_session.dart';
 import '../services/workout_api_service.dart';
 
 final exerciseCatalogProvider = Provider<List<Exercise>>((ref) => mockExercises);
+
+/// Прогревает кэш GIF/превью (exercise_media.dart) для всех упражнений
+/// программы сразу, как только она пришла с backend — не дожидаясь, пока
+/// пользователь долистает до AppShell или откроет конкретный день.
+void _prefetchProgramMedia(WorkoutProgram program) {
+  for (final day in program.days) {
+    prefetchExerciseMedia(day.exercises.map((e) => e.exercise));
+  }
+}
 
 final programsProvider = Provider<List<WorkoutProgram>>((ref) => mockPrograms);
 
@@ -28,6 +38,9 @@ class CustomProgramsNotifier extends StateNotifier<AsyncValue<List<WorkoutProgra
     try {
       final programs = await _api.listPrograms();
       state = AsyncValue.data(programs);
+      for (final program in programs) {
+        _prefetchProgramMedia(program);
+      }
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -38,6 +51,7 @@ class CustomProgramsNotifier extends StateNotifier<AsyncValue<List<WorkoutProgra
   Future<WorkoutProgram> create(WorkoutProgram draft) async {
     final created = await _api.createProgram(draft);
     state = AsyncValue.data([...(state.valueOrNull ?? const []), created]);
+    _prefetchProgramMedia(created);
     return created;
   }
 }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../data/repositories/workout_repository.dart';
+import '../workouts/presentation/widgets/exercise_media.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
@@ -17,9 +20,37 @@ class AppShell extends StatelessWidget {
   ];
 
   @override
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+/// Раньше GIF-анимации упражнений прогревались в кэш (см. exercise_media.dart)
+/// только в момент старта конкретной тренировки — пока пользователь листал
+/// программу/каталог до этого, каждая GIF качалась с нуля при первом
+/// открытии карточки упражнения, что на медленной сети (GitHub Pages из
+/// России) ощущалось как "висит по несколько минут". Теперь прогрев всего
+/// каталога и текущей активной программы запускается один раз сразу при
+/// входе в приложение (здесь, в корневой навигации) — к моменту, когда
+/// пользователь долистает до упражнений, большая часть уже в кэше.
+class _AppShellState extends ConsumerState<AppShell> {
+  bool _prefetched = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_prefetched) return;
+    _prefetched = true;
+    final catalog = ref.read(exerciseCatalogProvider);
+    prefetchExerciseMedia(catalog);
+    final program = ref.read(activeProgramProvider);
+    for (final day in program.days) {
+      prefetchExerciseMedia(day.exercises.map((e) => e.exercise));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigationShell,
+      body: widget.navigationShell,
       bottomNavigationBar: DecoratedBox(
         decoration: BoxDecoration(
           color: Theme.of(context).cardTheme.color,
@@ -30,16 +61,16 @@ class AppShell extends StatelessWidget {
             height: 64,
             child: Row(
               children: [
-                for (var i = 0; i < _items.length; i++)
+                for (var i = 0; i < AppShell._items.length; i++)
                   Expanded(
                     child: _NavItem(
-                      icon: _items[i].icon,
-                      outlineIcon: _items[i].outlineIcon,
-                      label: _items[i].label,
-                      selected: navigationShell.currentIndex == i,
-                      onTap: () => navigationShell.goBranch(
+                      icon: AppShell._items[i].icon,
+                      outlineIcon: AppShell._items[i].outlineIcon,
+                      label: AppShell._items[i].label,
+                      selected: widget.navigationShell.currentIndex == i,
+                      onTap: () => widget.navigationShell.goBranch(
                         i,
-                        initialLocation: i == navigationShell.currentIndex,
+                        initialLocation: i == widget.navigationShell.currentIndex,
                       ),
                     ),
                   ),
