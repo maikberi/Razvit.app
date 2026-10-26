@@ -20,7 +20,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: true,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-bench-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-bench-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-bench-press.thumb.webp',
   ),
   Exercise(
@@ -32,7 +32,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-incline-bench-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-incline-bench-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-incline-bench-press.thumb.webp',
   ),
   Exercise(
@@ -44,7 +44,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-decline-bench-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-decline-bench-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-decline-bench-press.thumb.webp',
   ),
   Exercise(
@@ -56,7 +56,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-bench-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-bench-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-bench-press.thumb.webp',
   ),
   Exercise(
@@ -68,7 +68,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-incline-bench-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-incline-bench-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-incline-bench-press.thumb.webp',
   ),
   Exercise(
@@ -80,7 +80,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-fly.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-fly.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-fly.thumb.webp',
   ),
   Exercise(
@@ -92,7 +92,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-standing-fly.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-standing-fly.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-standing-fly.thumb.webp',
   ),
   Exercise(
@@ -104,7 +104,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/chest-dip.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/chest-dip.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/chest-dip.thumb.webp',
   ),
   Exercise(
@@ -116,7 +116,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/push-up.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/push-up.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/push-up.thumb.webp',
   ),
   Exercise(
@@ -128,7 +128,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Отрегулируй тренажёр под себя и выбери нагрузку.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-chest-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-chest-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-chest-press.thumb.webp',
   ),
   Exercise(
@@ -140,7 +140,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Установи гриф машины Смита на нужной высоте.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/smith-bench-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/smith-bench-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/smith-bench-press.thumb.webp',
   ),
   Exercise(
@@ -152,7 +152,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-low-fly.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-low-fly.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-low-fly.thumb.webp',
   ),
   Exercise(
@@ -164,7 +164,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги грудные мышцы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-pullover.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-pullover.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-pullover.thumb.webp',
   ),
   Exercise(
@@ -176,7 +176,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: true,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-deadlift.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-deadlift.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-deadlift.thumb.webp',
   ),
   Exercise(
@@ -188,7 +188,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги верх спины перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-bent-over-row.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-bent-over-row.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-bent-over-row.thumb.webp',
   ),
   Exercise(
@@ -200,7 +200,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги верх спины перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-pendlay-row.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-pendlay-row.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-pendlay-row.thumb.webp',
   ),
   Exercise(
@@ -212,7 +212,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги широчайшие перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: true,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/pull-up.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/pull-up.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/pull-up.thumb.webp',
   ),
   Exercise(
@@ -224,7 +224,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги широчайшие перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/chin-up.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/chin-up.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/chin-up.thumb.webp',
   ),
   Exercise(
@@ -236,7 +236,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги широчайшие перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-bar-lateral-pulldown.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-bar-lateral-pulldown.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-bar-lateral-pulldown.thumb.webp',
   ),
   Exercise(
@@ -248,7 +248,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги верх спины перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-low-seated-row.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-low-seated-row.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-low-seated-row.thumb.webp',
   ),
   Exercise(
@@ -260,7 +260,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги верх спины перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-bent-over-row.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-bent-over-row.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-bent-over-row.thumb.webp',
   ),
   Exercise(
@@ -272,7 +272,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги верх спины перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-one-arm-bent-over-row.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-one-arm-bent-over-row.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-one-arm-bent-over-row.thumb.webp',
   ),
   Exercise(
@@ -284,7 +284,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги трапеции перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-shrug.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-shrug.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-shrug.thumb.webp',
   ),
   Exercise(
@@ -296,7 +296,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги мышцы спины перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/back-extension-on-exercise-ball.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/back-extension-on-exercise-ball.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/back-extension-on-exercise-ball.thumb.webp',
   ),
   Exercise(
@@ -308,7 +308,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги заднюю поверхность бедра перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-good-morning.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-good-morning.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-good-morning.thumb.webp',
   ),
   Exercise(
@@ -320,7 +320,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги широчайшие перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-pullover.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-pullover.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-pullover.thumb.webp',
   ),
   Exercise(
@@ -332,7 +332,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги широчайшие перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/assisted-pull-up.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/assisted-pull-up.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/assisted-pull-up.thumb.webp',
   ),
   Exercise(
@@ -344,7 +344,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Закрепи резиновую петлю и создай начальное натяжение.', 'Напряги широчайшие перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/band-assisted-pull-up.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/band-assisted-pull-up.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/band-assisted-pull-up.thumb.webp',
   ),
   Exercise(
@@ -356,7 +356,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: true,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-full-squat.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-full-squat.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-full-squat.thumb.webp',
   ),
   Exercise(
@@ -368,7 +368,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-front-squat.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-front-squat.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-front-squat.thumb.webp',
   ),
   Exercise(
@@ -380,7 +380,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-romanian-deadlift.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-romanian-deadlift.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-romanian-deadlift.thumb.webp',
   ),
   Exercise(
@@ -392,7 +392,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-romanian-deadlift.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-romanian-deadlift.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-romanian-deadlift.thumb.webp',
   ),
   Exercise(
@@ -404,7 +404,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-lunge.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-lunge.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-lunge.thumb.webp',
   ),
   Exercise(
@@ -416,7 +416,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-lunge.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-lunge.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-lunge.thumb.webp',
   ),
   Exercise(
@@ -428,7 +428,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/walking-lunge.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/walking-lunge.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/walking-lunge.thumb.webp',
   ),
   Exercise(
@@ -440,7 +440,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Подготовь инвентарь и прими исходное положение.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/sled-45-degrees-one-leg-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/sled-45-degrees-one-leg-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/sled-45-degrees-one-leg-press.thumb.webp',
   ),
   Exercise(
@@ -452,7 +452,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Отрегулируй тренажёр под себя и выбери нагрузку.', 'Напряги квадрицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-leg-extension.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-leg-extension.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-leg-extension.thumb.webp',
   ),
   Exercise(
@@ -464,7 +464,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-squat.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-squat.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-squat.thumb.webp',
   ),
   Exercise(
@@ -476,7 +476,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги квадрицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-goblet-squat.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-goblet-squat.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-goblet-squat.thumb.webp',
   ),
   Exercise(
@@ -488,7 +488,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-sumo-deadlift.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-sumo-deadlift.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-sumo-deadlift.thumb.webp',
   ),
   Exercise(
@@ -500,7 +500,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-step-up.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-step-up.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-step-up.thumb.webp',
   ),
   Exercise(
@@ -512,7 +512,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги квадрицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-single-leg-split-squat.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-single-leg-split-squat.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-single-leg-split-squat.thumb.webp',
   ),
   Exercise(
@@ -524,7 +524,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-glute-bridge.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-glute-bridge.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-glute-bridge.thumb.webp',
   ),
   Exercise(
@@ -536,7 +536,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги икры перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/bodyweight-standing-calf-raise.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/bodyweight-standing-calf-raise.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/bodyweight-standing-calf-raise.thumb.webp',
   ),
   Exercise(
@@ -548,7 +548,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Отрегулируй тренажёр под себя и выбери нагрузку.', 'Напряги икры перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-seated-calf-raise.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-seated-calf-raise.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-seated-calf-raise.thumb.webp',
   ),
   Exercise(
@@ -560,7 +560,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Сделай короткое подседание, чтобы накопить напряжение.', 'Выполни движение взрывно и приземлись подконтрольно.', 'Приземляйся мягко, амортизируя ногами и корпусом, затем переходи к следующему повтору.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-jump-squat.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-jump-squat.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-jump-squat.thumb.webp',
   ),
   Exercise(
@@ -572,7 +572,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги квадрицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/split-squats.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/split-squats.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/split-squats.thumb.webp',
   ),
   Exercise(
@@ -584,7 +584,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги ягодицы перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-hack-squat.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-hack-squat.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-hack-squat.thumb.webp',
   ),
   Exercise(
@@ -596,7 +596,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-standing-wide-military-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-standing-wide-military-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-standing-wide-military-press.thumb.webp',
   ),
   Exercise(
@@ -608,7 +608,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-seated-overhead-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-seated-overhead-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-seated-overhead-press.thumb.webp',
   ),
   Exercise(
@@ -620,7 +620,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-standing-overhead-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-standing-overhead-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-standing-overhead-press.thumb.webp',
   ),
   Exercise(
@@ -632,7 +632,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-seated-shoulder-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-seated-shoulder-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-seated-shoulder-press.thumb.webp',
   ),
   Exercise(
@@ -644,7 +644,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-arnold-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-arnold-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-arnold-press.thumb.webp',
   ),
   Exercise(
@@ -656,7 +656,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: true,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-lateral-raise.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-lateral-raise.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-lateral-raise.thumb.webp',
   ),
   Exercise(
@@ -668,7 +668,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-front-raise.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-front-raise.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-front-raise.thumb.webp',
   ),
   Exercise(
@@ -680,7 +680,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-lateral-raise.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-lateral-raise.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-lateral-raise.thumb.webp',
   ),
   Exercise(
@@ -692,7 +692,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-reverse-fly.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-reverse-fly.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-reverse-fly.thumb.webp',
   ),
   Exercise(
@@ -704,7 +704,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Отрегулируй тренажёр под себя и выбери нагрузку.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-seated-reverse-fly.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-seated-reverse-fly.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-seated-reverse-fly.thumb.webp',
   ),
   Exercise(
@@ -716,7 +716,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-upright-row.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-upright-row.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-upright-row.thumb.webp',
   ),
   Exercise(
@@ -728,7 +728,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги трапеции перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-shrug.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-shrug.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-shrug.thumb.webp',
   ),
   Exercise(
@@ -740,7 +740,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Отрегулируй тренажёр под себя и выбери нагрузку.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-shoulder-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-shoulder-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/lever-shoulder-press.thumb.webp',
   ),
   Exercise(
@@ -752,7 +752,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-rear-delt-row.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-rear-delt-row.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-rear-delt-row.thumb.webp',
   ),
   Exercise(
@@ -764,7 +764,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги бицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-curl.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-curl.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-curl.thumb.webp',
   ),
   Exercise(
@@ -776,7 +776,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги бицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-alternate-biceps-curl.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-alternate-biceps-curl.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-alternate-biceps-curl.thumb.webp',
   ),
   Exercise(
@@ -788,7 +788,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги бицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-alternate-seated-hammer-curl.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-alternate-seated-hammer-curl.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-alternate-seated-hammer-curl.thumb.webp',
   ),
   Exercise(
@@ -800,7 +800,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги бицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-preacher-curl.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-preacher-curl.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-preacher-curl.thumb.webp',
   ),
   Exercise(
@@ -812,7 +812,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги бицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-concentration-curl.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-concentration-curl.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-concentration-curl.thumb.webp',
   ),
   Exercise(
@@ -824,7 +824,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги трицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-close-grip-bench-press.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-close-grip-bench-press.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-close-grip-bench-press.thumb.webp',
   ),
   Exercise(
@@ -836,7 +836,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги трицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-triceps-pushdown-v-bar.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-triceps-pushdown-v-bar.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-triceps-pushdown-v-bar.thumb.webp',
   ),
   Exercise(
@@ -848,7 +848,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги трицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-lying-triceps-extension-skull-crusher.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-lying-triceps-extension-skull-crusher.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-lying-triceps-extension-skull-crusher.thumb.webp',
   ),
   Exercise(
@@ -860,7 +860,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги трицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-standing-overhead-triceps-extension.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-standing-overhead-triceps-extension.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-standing-overhead-triceps-extension.thumb.webp',
   ),
   Exercise(
@@ -872,7 +872,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги трицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-kickback.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-kickback.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-kickback.thumb.webp',
   ),
   Exercise(
@@ -884,7 +884,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги бицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-reverse-curl.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-reverse-curl.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-reverse-curl.thumb.webp',
   ),
   Exercise(
@@ -896,7 +896,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Возьми гантели (или одну, если указано) с подходящим весом.', 'Напряги бицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-over-bench-neutral-wrist-curl.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-over-bench-neutral-wrist-curl.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dumbbell-over-bench-neutral-wrist-curl.thumb.webp',
   ),
   Exercise(
@@ -908,7 +908,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги бицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-hammer-curl-with-rope.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-hammer-curl-with-rope.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-hammer-curl-with-rope.thumb.webp',
   ),
   Exercise(
@@ -920,7 +920,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги бицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-seated-one-arm-concentration-curl.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-seated-one-arm-concentration-curl.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-seated-one-arm-concentration-curl.thumb.webp',
   ),
   Exercise(
@@ -932,7 +932,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги трицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/assisted-triceps-dip-kneeling.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/assisted-triceps-dip-kneeling.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/assisted-triceps-dip-kneeling.thumb.webp',
   ),
   Exercise(
@@ -944,7 +944,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Нагрузи штангу нужным весом и прими исходное положение.', 'Напряги бицепс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-drag-curl.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-drag-curl.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/barbell-drag-curl.thumb.webp',
   ),
   Exercise(
@@ -956,7 +956,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/sit-up-v-2.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/sit-up-v-2.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/sit-up-v-2.thumb.webp',
   ),
   Exercise(
@@ -968,7 +968,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Закрепи резиновую петлю и создай начальное натяжение.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/band-bicycle-crunch.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/band-bicycle-crunch.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/band-bicycle-crunch.thumb.webp',
   ),
   Exercise(
@@ -980,7 +980,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-kneeling-crunch.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-kneeling-crunch.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-kneeling-crunch.thumb.webp',
   ),
   Exercise(
@@ -992,7 +992,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Установи блок на нужную высоту и выбери вес.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-reverse-crunch.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-reverse-crunch.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/cable-reverse-crunch.thumb.webp',
   ),
   Exercise(
@@ -1004,7 +1004,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/hanging-leg-raise.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/hanging-leg-raise.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/hanging-leg-raise.thumb.webp',
   ),
   Exercise(
@@ -1016,7 +1016,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/hanging-oblique-knee-raise.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/hanging-oblique-knee-raise.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/hanging-oblique-knee-raise.thumb.webp',
   ),
   Exercise(
@@ -1028,7 +1028,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/weighted-russian-twist.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/weighted-russian-twist.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/weighted-russian-twist.thumb.webp',
   ),
   Exercise(
@@ -1040,7 +1040,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dead-bug.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/dead-bug.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/dead-bug.thumb.webp',
   ),
   Exercise(
@@ -1052,7 +1052,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/bodyweight-incline-side-plank.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/bodyweight-incline-side-plank.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/bodyweight-incline-side-plank.thumb.webp',
   ),
   Exercise(
@@ -1064,7 +1064,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: true,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/front-plank-with-twist.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/front-plank-with-twist.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/front-plank-with-twist.thumb.webp',
   ),
   Exercise(
@@ -1076,7 +1076,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lying-leg-raise-flat-bench.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/lying-leg-raise-flat-bench.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/lying-leg-raise-flat-bench.thumb.webp',
   ),
   Exercise(
@@ -1088,7 +1088,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/wheel-rollerout.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/wheel-rollerout.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/wheel-rollerout.thumb.webp',
   ),
   Exercise(
@@ -1100,7 +1100,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Держи стабильный темп, соответствующий уровню подготовки.', 'Напряги пресс и сохраняй прямую осанку на протяжении всего упражнения.', 'Продолжай в течение запланированного времени или количества повторений.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/mountain-climber.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/mountain-climber.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/mountain-climber.thumb.webp',
   ),
   Exercise(
@@ -1112,7 +1112,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Напряги пресс перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/reverse-plank-with-leg-lift.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/reverse-plank-with-leg-lift.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/reverse-plank-with-leg-lift.thumb.webp',
   ),
   Exercise(
@@ -1124,7 +1124,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Держи стабильный темп, соответствующий уровню подготовки.', 'Напряги пресс и сохраняй прямую осанку на протяжении всего упражнения.', 'Продолжай в течение запланированного времени или количества повторений.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/burpee.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/burpee.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/burpee.thumb.webp',
   ),
   Exercise(
@@ -1136,7 +1136,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Держи стабильный темп, соответствующий уровню подготовки.', 'Напряги пресс и сохраняй прямую осанку на протяжении всего упражнения.', 'Продолжай в течение запланированного времени или количества повторений.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/jump-rope.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/jump-rope.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/jump-rope.thumb.webp',
   ),
   Exercise(
@@ -1148,7 +1148,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.advanced,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Держи стабильный темп, соответствующий уровню подготовки.', 'Напряги пресс и сохраняй прямую осанку на протяжении всего упражнения.', 'Продолжай в течение запланированного времени или количества повторений.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/jack-burpee.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/jack-burpee.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/jack-burpee.thumb.webp',
   ),
   Exercise(
@@ -1160,7 +1160,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Держи стабильный темп, соответствующий уровню подготовки.', 'Напряги пресс и сохраняй прямую осанку на протяжении всего упражнения.', 'Продолжай в течение запланированного времени или количества повторений.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/high-knee-against-wall.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/high-knee-against-wall.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/high-knee-against-wall.thumb.webp',
   ),
   Exercise(
@@ -1172,7 +1172,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Держи стабильный темп, соответствующий уровню подготовки.', 'Напряги пресс и сохраняй прямую осанку на протяжении всего упражнения.', 'Продолжай в течение запланированного времени или количества повторений.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/star-jump-male.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/star-jump-male.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/star-jump-male.thumb.webp',
   ),
   Exercise(
@@ -1184,7 +1184,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Прими исходное положение с правильным выравниванием тела.', 'Держи стабильный темп, соответствующий уровню подготовки.', 'Напряги пресс и сохраняй прямую осанку на протяжении всего упражнения.', 'Продолжай в течение запланированного времени или количества повторений.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/run.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/run.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/run.thumb.webp',
   ),
   Exercise(
@@ -1196,7 +1196,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.beginner,
     instructions: ['Отрегулируй тренажёр под себя и выбери нагрузку.', 'Держи стабильный темп, соответствующий уровню подготовки.', 'Напряги пресс и сохраняй прямую осанку на протяжении всего упражнения.', 'Продолжай в течение запланированного времени или количества повторений.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/walking-on-incline-treadmill.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/walking-on-incline-treadmill.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/walking-on-incline-treadmill.thumb.webp',
   ),
   Exercise(
@@ -1208,7 +1208,7 @@ final List<Exercise> mockExercises = [
     difficulty: ExerciseDifficulty.intermediate,
     instructions: ['Закрепи резиновую петлю и создай начальное натяжение.', 'Напряги дельты перед началом движения.', 'Выполняй движение подконтрольно, сохраняя правильную технику.', 'Возвращайся в исходное положение, контролируя негативную фазу.', 'Дыхание: выдох на усилии, вдох на возврате.'],
     isFavorite: false,
-    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/battling-ropes.gif',
+    gifUrl: 'https://maikberi.github.io/Razvit.app/exercises/battling-ropes.mp4',
     thumbUrl: 'https://maikberi.github.io/Razvit.app/exercises/battling-ropes.thumb.webp',
   ),
 ];
