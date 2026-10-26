@@ -42,10 +42,16 @@ class ExerciseHero extends StatelessWidget {
   }
 }
 
-/// Полноэкранная демонстрация для активной тренировки (workout_session_screen) —
-/// заполняет всё доступное пространство под собой (без квадратного
-/// AspectRatio, без карточки/тени — фон страницы сам служит "подложкой",
-/// поэтому по бокам не серые поля, а тот же светлый фон, что и везде).
+/// Полноэкранная демонстрация для активной тренировки (workout_session_screen).
+/// Раньше квадратное видео (360×360) просто растягивалось/вписывалось в
+/// высокий прямоугольник во весь верх экрана прямо на плоском белом фоне —
+/// без рамки и подложки это выглядело как случайно "подвисший не по центру"
+/// кадр, а не как осознанный макет. Теперь — мягкий брендовый градиент на
+/// весь фон (вместо плоского белого) и само видео в белой карточке со
+/// скруглением и тенью (тот же язык, что у ExerciseHero), сверху по центру
+/// под шапкой с таймером. Карточка всегда квадратная и видео в ней целиком
+/// видно (contain, без обрезки), просто теперь это явная, "спроектированная"
+/// композиция, а не голый full-bleed на пустом фоне.
 class ExerciseFullscreenMedia extends StatelessWidget {
   const ExerciseFullscreenMedia({super.key, required this.exercise});
 
@@ -53,7 +59,40 @@ class ExerciseFullscreenMedia extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Media(exercise: exercise, iconSize: 96);
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [AppColors.green50, AppColors.white],
+          stops: [0, 0.7],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 92, AppSpacing.xl, AppSpacing.xl),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
+                  boxShadow: AppShadows.raised,
+                ),
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  child: _Media(exercise: exercise, iconSize: 72),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
